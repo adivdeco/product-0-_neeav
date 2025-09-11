@@ -3,34 +3,38 @@ const { Schema } = mongoose;
 
 
 const userSchema = new Schema({
-    fullName: {
+    name: {
         type: String,
         required: true,
+        minLength: 3,
+        // maxLenghth: 10,
         trim: true,
+        lowercase: true,
     },
 
     email: {
         type: String,
         required: true,
         unique: true,
+        trim: true,
         lowercase: true,
     },
 
     phone: {
         type: String,
-        required: true,
-        unique: true,
+        default: null,
     },
 
-    passwordHash: {
+    password: {
         type: String,
         required: true,
+        minLength: 4
     },
 
     role: {
         type: String,
-        enum: ["customer", "store_owner", "contractor", "admin"],
-        default: "customer",
+        enum: ["nUser", "store_owner", "contractor", "co-admin", "admin"],
+        default: "nUser",
     },
 
     address: {
@@ -38,7 +42,8 @@ const userSchema = new Schema({
         city: String,
         state: String,
         pincode: String,
-        country: { type: String, default: "India" },
+        country: { type: String, default: "In, Bihar 821115" },
+
     },
 
     // ✅ For store owners
@@ -47,6 +52,8 @@ const userSchema = new Schema({
         gstNumber: String,
         licenseId: String,
         isVerified: { type: Boolean, default: false },
+        rating: { type: Number, default: 0 },
+        productCategories: [String], // e.g., ["cement", "bricks", "steel"],
     },
 
     // ✅ For contractors
@@ -54,6 +61,13 @@ const userSchema = new Schema({
         specialization: [String], // e.g., ["plumbing", "electrical", "masonry"]
         yearsOfExperience: Number,
         rating: { type: Number, default: 0 },
+        isVerified: { type: Boolean, default: false },
+
+    },
+
+    avatar: {
+        type: String,
+        default: '',
     },
 
     createdAt: {
@@ -70,4 +84,4 @@ const userSchema = new Schema({
 
 
 const User = mongoose.model("User", userSchema);
-export default User;
+module.exports = User;
