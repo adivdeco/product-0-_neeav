@@ -19,12 +19,14 @@ app.use(session({
 }));
 
 const authRouter = require('./routes/userAuth')
+const billsRouter = require('./routes/khata')
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use('/auth', authRouter)
+app.use('/auth', authRouter),
+    app.use('/kahta', billsRouter)
 
 
 

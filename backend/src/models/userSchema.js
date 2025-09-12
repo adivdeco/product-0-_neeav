@@ -7,9 +7,8 @@ const userSchema = new Schema({
         type: String,
         required: true,
         minLength: 3,
-        // maxLenghth: 10,
+        maxLenghth: 50,
         trim: true,
-        lowercase: true,
     },
 
     email: {
@@ -24,6 +23,16 @@ const userSchema = new Schema({
         type: String,
         default: null,
     },
+
+    // phone: {
+    //     type: String,
+    //     validate: {
+    //         validator: function (v) {
+    //             return /^[6-9]\d{9}$/.test(v);
+    //         },
+    //         message: props => `${props.value} is not a valid Indian phone number!`
+    //     }
+    // },
 
     password: {
         type: String,
@@ -42,6 +51,15 @@ const userSchema = new Schema({
         city: String,
         state: String,
         pincode: String,
+        // pincode: {
+        //     type: String,
+        //     validate: {
+        //         validator: function (v) {
+        //             return /^\d{6}$/.test(v);
+        //         },
+        //         message: props => `${props.value} is not a valid pincode!`
+        //     }
+        // },
         country: { type: String, default: "In, Bihar 821115" },
 
     },
@@ -52,17 +70,54 @@ const userSchema = new Schema({
         gstNumber: String,
         licenseId: String,
         isVerified: { type: Boolean, default: false },
-        rating: { type: Number, default: 0 },
-        productCategories: [String], // e.g., ["cement", "bricks", "steel"],
+        rating: { type: Number, default: 0, min: 0, max: 5 },
+        productCategories: [{
+            type: String,
+            enum: [
+                'Cement & Concrete',
+                'Bricks & Blocks',
+                'Steel & Reinforcement',
+                'Sand & Aggregates',
+                'Paints & Finishes',
+                'Tools & Equipment',
+                'Plumbing',
+                'Electrical',
+                'Tiles & Sanitary',
+                'Hardware & Fittings'
+            ]
+        }],
     },
 
     // ✅ For contractors
     contractorDetails: {
-        specialization: [String], // e.g., ["plumbing", "electrical", "masonry"]
-        yearsOfExperience: Number,
-        rating: { type: Number, default: 0 },
-        isVerified: { type: Boolean, default: false },
-
+        specialization: [{
+            type: String,
+            enum: [
+                'Masonry',
+                'Plumbing',
+                'Electrical',
+                'Carpentry',
+                'Painting',
+                'Flooring',
+                'Roofing',
+                'Structural'
+            ]
+        }],
+        yearsOfExperience: {
+            type: Number,
+            min: 0
+        },
+        rating: {
+            type: Number,
+            default: 0,
+            min: 0,
+            max: 5
+        },
+        isVerified: {
+            type: Boolean,
+            default: false
+        },
+        // licenseNumber: String,
     },
 
     avatar: {
@@ -83,5 +138,36 @@ const userSchema = new Schema({
 
 
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model("user", userSchema);
 module.exports = User;
+
+
+
+// for extra security we can add extra hash on pass stores hear 
+
+
+
+// Hash password before saving
+// userSchema.pre('save', async function (next) {
+//     if (!this.isModified('password')) return next();
+//     try {
+//         const salt = await bcrypt.genSalt(12);
+//         this.password = await bcrypt.hash(this.password, salt);
+//         next();
+//     } catch (error) {
+//         next(error);
+//     }
+// });
+
+// // Compare password method
+// userSchema.methods.comparePassword = async function (candidatePassword) {
+//     return await bcrypt.compare(candidatePassword, this.password);
+// };
+
+// // Virtual for full address
+// userSchema.virtual('fullAddress').get(function () {
+//     return `${this.address.street}, ${this.address.city}, ${this.address.state} - ${this.address.pincode}, ${this.address.country}`;
+// });
+
+// const User = mongoose.model("User", userSchema);
+// module.exports = User;
