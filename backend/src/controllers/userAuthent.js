@@ -85,10 +85,10 @@ const loginUser = async (req, res) => {
         req.session.email = user.email;
         req.session.role = user.role;
 
-        // console.log('=== SESSION CREATED ===');
-        // console.log('Session ID:', req.sessionID);
-        // console.log('Session Data:', req.session);
-        // console.log('=======================');
+        console.log('=== SESSION CREATED ===');
+        console.log('Session ID:', req.sessionID);
+        console.log('Session Data:', req.session);
+        console.log('=======================');
 
         const reply = {
             name: user.name,

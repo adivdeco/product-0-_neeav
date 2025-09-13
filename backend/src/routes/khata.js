@@ -1,5 +1,5 @@
 const express = require('express')
-
+const { addNewBills, updateBill, deleateBill, getBill, getAllBills } = require('../controllers/billManager')
 const billsRouter = express.Router()
 
 
@@ -13,3 +13,6 @@ billsRouter.delete('/delete_bill/:id', deleateBill)
 
 billsRouter.get('/find/:id', getBill)
 billsRouter.get('/allBills', getAllBills)
+
+
+module.exports = billsRouter

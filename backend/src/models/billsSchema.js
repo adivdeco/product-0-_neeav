@@ -1,14 +1,4 @@
-// const mongoose = require('mongoose')
-// const { Schema } = mongoose
 
-
-// const billSchema = new Schema({
-
-// })
-
-
-// const Bills = mongoose.model('bills', billSchema);
-// module.exports = Bills
 
 const mongoose = require('mongoose');
 const { Schema } = mongoose;

@@ -94,6 +94,8 @@ const shopSchema = new Schema({
 
 
     // Shop specialization
+
+
     categories: [{
         type: String,
         enum: [
