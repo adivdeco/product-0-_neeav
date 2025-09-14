@@ -28,7 +28,7 @@ app.use(cookieParser());
 
 app.use('/auth', authRouter),
     app.use('/khata', billsRouter)
-app.use('/useas', ownRouter)
+app.use('/useas', ownRouter) // add shop,contractor
 
 
 
