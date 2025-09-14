@@ -4,21 +4,24 @@ const { Schema } = mongoose;
 // Shop Schema
 const shopSchema = new Schema({
     // Basic shop information
-    name: {
+    shopName: {
         type: String,
         required: true,
         trim: true,
-        maxLength: 100
+        maxLength: 100,
+        unique: true
     },
-    // ownerName: {
-    //     type: String,
-    //     required: true
-    // },
+    ownerName: {
+        type: String,
+        required: true,
+    },
+
     ownerId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
+
     description: {
         type: String,
         maxLength: 500
@@ -39,11 +42,20 @@ const shopSchema = new Schema({
         email: {
             type: String,
             lowercase: true,
+            unique: true,
             match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
         },
+
+        // password: {
+        //     type: String,
+        //     required: true,
+        //     minLength: 4
+        // },
+
         phone: {
             type: String,
             required: true,
+            unique: true,
             validate: {
                 validator: function (v) {
                     return /^[6-9]\d{9}$/.test(v);
@@ -141,7 +153,7 @@ const shopSchema = new Schema({
     },
 
     // User account reference (who created this shop)
-    userId: {
+    createdBy: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true

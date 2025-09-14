@@ -27,8 +27,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use('/auth', authRouter),
-    app.use('./khata', billsRouter)
-app.use('./use_AS', ownRouter)
+    app.use('/khata', billsRouter)
+app.use('/useas', ownRouter)
 
 
 

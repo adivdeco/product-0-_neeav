@@ -11,29 +11,41 @@ const registerUser = async (req, res) => {
 
         validateuser(req.body);
 
-        const { password } = req.body;
+        const { password, email } = req.body;
 
         req.body.password = await bcrypt.hash(password, 10);
-
         req.body.role = 'nUser'
 
-        const user = await User.create(req.body);
 
-        // Create session after registration
-        req.session.userId = user._id;
-        req.session.email = user.email;
+        const check = await User.findOne({ email })
 
-        const reply = {
-            name: user.name,
-            email: user.email,
-            _id: user._id,
-            role: user.role,
+        if (check) {
+            return res.status(400).json({
+                message: "Email is alredy registered , try with different email_Id"
+            });
+        } else {
+
+            const user = await User.create(req.body);
+
+            // Create session after registration
+            req.session.userId = user._id;
+            req.session.email = user.email;
+
+            const reply = {
+                name: user.name,
+                email: user.email,
+                _id: user._id,
+                role: user.role,
+            }
+
+            res.status(200).json({
+                user: reply,
+                message: "login sussesfully",
+            });
+
         }
 
-        res.status(200).json({
-            user: reply,
-            message: "login sussesfully",
-        });
+
 
 
     } catch (error) {
