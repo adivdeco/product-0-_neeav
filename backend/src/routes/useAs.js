@@ -38,7 +38,7 @@ const {
 
 
 // Shop Owner Routes
-router.post('/shopowners', addShopOwner);              // Create a shop owner
+router.post('/addshopowners', addShopOwner);              // Create a shop owner
 // router.get('/shop-owners', getAllShopOwners);           // Get all shop owners
 // router.get('/shop-owners/:id', getShopOwner);           // Get a specific shop owner
 // router.put('/shop-owners/:id', updateShopOwner);        // Update a shop owner

@@ -144,8 +144,8 @@ const billSchema = new Schema({
     },
 
     // For digital signature/verification (future blockchain use)
-    digitalSignature: String,
-    billHash: String
+    // digitalSignature: String,
+    // billHash: String
 });
 
 // Update the updatedAt field before saving

@@ -64,6 +64,14 @@ const customerSchema = new Schema({
         type: Boolean,
         default: true
     },
+    images: [{
+        url: String,
+        caption: String,
+        isPrimary: {
+            type: Boolean,
+            default: false
+        }
+    }],
 
     // Timestamps
     createdAt: {
