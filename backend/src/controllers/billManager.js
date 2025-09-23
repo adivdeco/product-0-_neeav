@@ -82,41 +82,6 @@
 //     }
 // }
 
-const updateBill = async (req, res) => {
-    try {
-        // const userId = req.finduser._id
-    } catch (error) {
-        console.error('Error in adding New bill:', error);
-        res.sendStatus(500).json({ message: 'Internal server error' });
-    }
-}
-const deleateBill = async (req, res) => {
-    try {
-        // const userId = req.finduser._id
-    } catch (error) {
-        console.error('Error in adding New bill:', error);
-        res.sendStatus(500).json({ message: 'Internal server error' });
-    }
-}
-
-const getBill = async (req, res) => {
-    try {
-        // const userId = req.finduser._id
-    } catch (error) {
-        console.error('Error in adding New bill:', error);
-        res.sendStatus(500).json({ message: 'Internal server error' });
-    }
-}
-
-const getAllBills = async (req, res) => {
-    try {
-        // const userId = req.finduser._id
-    } catch (error) {
-        console.error('Error in adding New bill:', error);
-        res.sendStatus(500).json({ message: 'Internal server error' });
-    }
-}
-
 
 const mongoose = require('mongoose');
 const Bills = require('../models/billsSchema');
@@ -130,7 +95,6 @@ const addNewBills = async (req, res) => {
     try {
         const userId = req.session.userId;
         const role = req.session.role;
-        console.log(userId, role, 22);
 
         if (role !== 'store_owner' && role !== "admin") {
             return res.status(403).json({
@@ -138,21 +102,32 @@ const addNewBills = async (req, res) => {
             });
         }
 
+        // Find shop by ownerId
+        const shop = await Shop.findOne({ ownerId: userId }).session(session);
+        if (!shop) {
+            return res.status(400).json({
+                message: "Shop not found for this user"
+            });
+        }
+
+        const shopId = shop._id;
+        // console.log(shop.ownerId, "ownerId");
+        // console.log(shopId, "shopid");
+
         const {
             customerName,
             items,
             totalAmount,
             grandTotal,
-            shopId = userId,
             phone,
             email,
             address
         } = req.body;
 
         // Validate required fields
-        if (!customerName || !items || !totalAmount || !grandTotal || !shopId) {
+        if (!customerName || !items || !totalAmount || !grandTotal) {
             return res.status(400).json({
-                message: "Missing required fields: customerName, items, totalAmount, grandTotal, and shopId are required"
+                message: "Missing required fields: customerName, items, totalAmount, and grandTotal are required"
             });
         }
 
@@ -170,25 +145,16 @@ const addNewBills = async (req, res) => {
             });
         }
 
-        // Check if shop exists and user has access
-        const shop = await Shop.findOne({ _id: shopId, isActive: true }).session(session);
-        if (!shop) {
-            await session.abortTransaction();
-            return res.status(404).json({
-                message: "Shop not found or inactive"
-            });
-        }
-
         let customerId;
 
         // Find or create customer
         if (phone) {
-            let customer = await Customer.findOne({ phone }).session(session);
+            let customer = await Customer.findOne({ phone, shopId }).session(session);
 
             if (!customer) {
-                // Create new customer
+                // Create new customer WITH shopId
                 customer = new Customer({
-                    // shopId,
+                    shopId, // ✅ FIXED: Added shopId here
                     name: customerName,
                     phone: phone,
                     email: email || '',
@@ -262,9 +228,9 @@ const addNewBills = async (req, res) => {
         await session.commitTransaction();
 
         // Populate the bill with customer details before sending response
-        // const populatedBill = await Bills.findById(newBill._id)
-        //     .populate('customerId', 'name phone email')
-        //     .populate('shopId', 'shopName address');
+        const populatedBill = await Bills.findById(newBill._id)
+            .populate('customerId', 'name phone email')
+            .populate('shopId', 'shopName address');
 
         res.status(201).json({
             message: "Bill created successfully",
@@ -297,6 +263,42 @@ const addNewBills = async (req, res) => {
         session.endSession();
     }
 };
+
+
+const updateBill = async (req, res) => {
+    try {
+        // const userId = req.finduser._id
+    } catch (error) {
+        console.error('Error in adding New bill:', error);
+        res.sendStatus(500).json({ message: 'Internal server error' });
+    }
+}
+const deleateBill = async (req, res) => {
+    try {
+        // const userId = req.finduser._id
+    } catch (error) {
+        console.error('Error in adding New bill:', error);
+        res.sendStatus(500).json({ message: 'Internal server error' });
+    }
+}
+
+const getBill = async (req, res) => {
+    try {
+        // const userId = req.finduser._id
+    } catch (error) {
+        console.error('Error in adding New bill:', error);
+        res.sendStatus(500).json({ message: 'Internal server error' });
+    }
+}
+
+const getAllBills = async (req, res) => {
+    try {
+        // const userId = req.finduser._id
+    } catch (error) {
+        console.error('Error in adding New bill:', error);
+        res.sendStatus(500).json({ message: 'Internal server error' });
+    }
+}
 
 // const updateBill = async (req, res) => {
 //     const session = await mongoose.startSession();
@@ -484,19 +486,19 @@ const addNewBills = async (req, res) => {
 //     }
 // };
 
-// // Helper function to generate bill number
-// const generateBillNumber = () => {
-//     const now = new Date();
-//     const year = now.getFullYear();
-//     const month = String(now.getMonth() + 1).padStart(2, "0");
-//     const day = String(now.getDate()).padStart(2, "0");
-//     const hours = String(now.getHours()).padStart(2, "0");
-//     const minutes = String(now.getMinutes()).padStart(2, "0");
-//     const seconds = String(now.getSeconds()).padStart(2, "0");
-//     const random = Math.floor(Math.random() * 1000);
+// Helper function to generate bill number
+const generateBillNumber = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+    const random = Math.floor(Math.random() * 1000);
 
-//     return `BILL-${day}${month}${year}-${hours}${minutes}${seconds}-${random}`;
-// };
+    return `BILL-${day}${month}${year}-${hours}${minutes}${seconds}-${random}`;
+};
 
 // module.exports = {
 //     addNewBills,

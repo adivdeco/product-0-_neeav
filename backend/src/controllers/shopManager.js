@@ -69,7 +69,7 @@ const addShopOwner = async (req, res) => {
                 'address.pincode': address.pincode,
                 'storeDetails.storeName': shopName,
                 'storeDetails.productCategories': categories,
-                avatar: image[0].url
+                // avatar: image[0].url
 
             };
 
