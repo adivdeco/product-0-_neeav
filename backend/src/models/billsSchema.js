@@ -107,7 +107,7 @@ const billSchema = new Schema({
     // Credit information (if applicable)
     isCredit: {
         type: Boolean,
-        default: false
+        default: true
     },
     creditPeriod: Number, // in days
     creditInterestRate: Number,

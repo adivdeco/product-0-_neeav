@@ -11,7 +11,7 @@ billsRouter.delete('/delete_bill/:id', deleateBill)
 
 
 
-billsRouter.get('/find/:id', getBill)
+billsRouter.get('/find/:billId', getBill)
 billsRouter.get('/allBills', getAllBills)
 
 

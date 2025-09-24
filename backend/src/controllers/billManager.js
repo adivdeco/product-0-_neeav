@@ -1,88 +1,3 @@
-// const Bills = require('../models/billsSchema')
-// const Customer = require('../models/customerSchema')
-// const User = require('../models/userSchema')
-
-
-
-
-
-// const addNewBills = async (req, res) => {
-//     try {
-//         const userId = req.session.userId
-//         const role = req.session.role
-
-//         if (role != 'store_owner' && role != "admin") {
-//             return res.status(403).send("Forbidden: You do not have asses to addbills ")
-//         }
-
-//         const { customerName, items, totalAmount, grandTotal, shopId } = req.body;
-
-//         if (!customerName || !items || !totalAmount || !grandTotal || !shopId) {
-//             return res.status(400).json({
-//                 message: "Missing required fields: customerName, items, totalAmount, grandTotal, and shopId are required"
-//             });
-//         }
-
-//         const customerExists = await Customer.findOne({ shopId, phone: req.body.phone });
-
-//         if (!customerExists) {
-//             // Create a new customer if not exists
-//             const newCustomer = new Customer({
-//                 shopId,
-//                 name: customerName,
-//                 phone: req.body.phone,
-//                 email: req.body.email,
-//                 address: req.body.address || {}
-//             });
-//             await newCustomer.save();
-//         }
-
-//         // Generate a unique bill number (you might want to use a more robust method)
-//         const now = new Date();
-
-//         // Format parts
-//         const year = now.getFullYear();
-//         const month = String(now.getMonth() + 1).padStart(2, "0");
-//         const day = String(now.getDate()).padStart(2, "0");
-//         const hours = String(now.getHours()).padStart(2, "0");
-//         const minutes = String(now.getMinutes()).padStart(2, "0");
-//         const seconds = String(now.getSeconds()).padStart(2, "0");
-
-//         // Random part for uniqueness
-//         const random = Math.floor(Math.random() * 1000);
-
-//         // Final bill number format: BILL-DD-MM-YYYY-HH:MM:SS-RAND
-//         const billNumber = `BILL-${day}-${month}-${year}-${hours}:${minutes}:${seconds}-${random}`;
-
-
-//         const newBill = await Bills.create({
-//             ...req.body,
-//             billNumber,
-//             createdBy: userId // Track who created the bill
-//         });
-
-//         res.status(201).send({
-//             message: "New_bill added  successfully",
-//             newBill
-//         });
-
-
-
-//     } catch (error) {
-//         console.error('Error in adding New bill:', error);
-
-//         // Handle duplicate bill number error
-//         if (error.code === 11000 && error.keyPattern && error.keyPattern.billNumber) {
-//             return res.status(400).json({
-//                 message: "Bill number already exists. Please try again."
-//             });
-//         }
-
-//         res.sendStatus(500).json({ message: 'Internal server error' });
-//     }
-// }
-
-
 const mongoose = require('mongoose');
 const Bills = require('../models/billsSchema');
 const Customer = require('../models/customerSchema');
@@ -119,6 +34,7 @@ const addNewBills = async (req, res) => {
             items,
             totalAmount,
             grandTotal,
+            amountPaid,
             phone,
             email,
             address
@@ -169,9 +85,11 @@ const addNewBills = async (req, res) => {
 
             // Update customer balance if it's a credit bill
             if (req.body.isCredit) {
-                customer.currentBalance += grandTotal;
+                customer.currentBalance += (grandTotal) - (amountPaid);
                 await customer.save({ session });
             }
+
+
         }
 
         // Generate unique bill number
@@ -180,7 +98,7 @@ const addNewBills = async (req, res) => {
         // Calculate additional fields if not provided
         const discount = req.body.discount || 0;
         const taxAmount = req.body.taxAmount || 0;
-        const amountPaid = req.body.amountPaid || 0;
+        // const amountPaid = req.body.amountPaid || 0;
 
         // Validate payment status logic
         let paymentStatus = req.body.paymentStatus || 'pending';
@@ -213,7 +131,7 @@ const addNewBills = async (req, res) => {
             amountPaid,
             paymentStatus,
             paymentMethod: req.body.paymentMethod || 'cash',
-            isCredit: req.body.isCredit || false,
+            isCredit: req.body.isCredit || true,
             creditPeriod: req.body.creditPeriod,
             creditInterestRate: req.body.creditInterestRate,
             deliveryCharge: req.body.deliveryCharge || 0,
@@ -282,23 +200,23 @@ const deleateBill = async (req, res) => {
     }
 }
 
-const getBill = async (req, res) => {
-    try {
-        // const userId = req.finduser._id
-    } catch (error) {
-        console.error('Error in adding New bill:', error);
-        res.sendStatus(500).json({ message: 'Internal server error' });
-    }
-}
+// const getBill = async (req, res) => {
+//     try {
+//         // const userId = req.finduser._id
+//     } catch (error) {
+//         console.error('Error in adding New bill:', error);
+//         res.sendStatus(500).json({ message: 'Internal server error' });
+//     }
+// }
 
-const getAllBills = async (req, res) => {
-    try {
-        // const userId = req.finduser._id
-    } catch (error) {
-        console.error('Error in adding New bill:', error);
-        res.sendStatus(500).json({ message: 'Internal server error' });
-    }
-}
+// const getAllBills = async (req, res) => {
+//     try {
+//         // const userId = req.finduser._id
+//     } catch (error) {
+//         console.error('Error in adding New bill:', error);
+//         res.sendStatus(500).json({ message: 'Internal server error' });
+//     }
+// }
 
 // const updateBill = async (req, res) => {
 //     const session = await mongoose.startSession();
@@ -380,7 +298,7 @@ const getAllBills = async (req, res) => {
 //     }
 // };
 
-// const deleteBill = async (req, res) => {
+// const deleateBill = async (req, res) => {
 //     try {
 //         const userId = req.session.userId;
 //         const { billId } = req.params;
@@ -409,82 +327,87 @@ const getAllBills = async (req, res) => {
 //     }
 // };
 
-// const getBill = async (req, res) => {
-//     try {
-//         const { billId } = req.params;
+const getBill = async (req, res) => {
+    try {
+        const { billId } = req.params;
 
-//         if (!mongoose.Types.ObjectId.isValid(billId)) {
-//             return res.status(400).json({ message: "Invalid bill ID" });
-//         }
+        // if (!mongoose.Types.ObjectId.isValid(billId)) {
+        //     return res.status(400).json({ message: "Invalid bill ID" });
+        // }
+        console.log(billId, "billId");
 
-//         const bill = await Bills.findById(billId)
-//             .populate('customerId', 'name phone email address')
-//             .populate('shopId', 'name address phone')
-//             .populate('items.productId', 'name sku category');
 
-//         if (!bill) {
-//             return res.status(404).json({ message: "Bill not found" });
-//         }
+        const bill = await Bills.findById(billId)
+            .populate('customerId', 'name phone email address')
+            .populate('shopId', 'name address phone')
+        // .populate('items.productId', 'name sku category');
 
-//         res.json({
-//             message: "Bill retrieved successfully",
-//             bill
-//         });
+        if (!bill) {
+            return res.status(404).json({ message: "Bill not found" });
+        }
 
-//     } catch (error) {
-//         console.error('Error in getting bill:', error);
-//         res.status(500).json({ message: 'Internal server error' });
-//     }
-// };
+        res.json({
+            message: "Bill retrieved successfully",
+            bill
+        });
 
-// const getAllBills = async (req, res) => {
-//     try {
-//         const { shopId, page = 1, limit = 10, status, paymentStatus, startDate, endDate } = req.query;
+    } catch (error) {
+        console.error('Error in getting bill:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
 
-//         if (!shopId) {
-//             return res.status(400).json({ message: "Shop ID is required" });
-//         }
+const getAllBills = async (req, res) => {
+    try {
+        const { shopId, page = 1, limit = 10, status, paymentStatus, startDate, endDate } = req.query;
 
-//         const filter = { shopId };
+        if (!shopId) {
+            return res.status(400).json({ message: "Shop ID is required" });
+        }
 
-//         // Add filters if provided
-//         if (status) filter.status = status;
-//         if (paymentStatus) filter.paymentStatus = paymentStatus;
-//         if (startDate || endDate) {
-//             filter.billDate = {};
-//             if (startDate) filter.billDate.$gte = new Date(startDate);
-//             if (endDate) filter.billDate.$lte = new Date(endDate);
-//         }
+        const filter = { shopId };
 
-//         const options = {
-//             page: parseInt(page),
-//             limit: parseInt(limit),
-//             sort: { billDate: -1 },
-//             populate: [
-//                 { path: 'customerId', select: 'name phone' },
-//                 { path: 'shopId', select: 'name' }
-//             ]
-//         };
+        // Add filters if provided
+        if (status) filter.status = status;
+        if (paymentStatus) filter.paymentStatus = paymentStatus;
+        if (startDate || endDate) {
+            filter.billDate = {};
+            if (startDate) filter.billDate.$gte = new Date(startDate);
+            if (endDate) filter.billDate.$lte = new Date(endDate);
+        }
 
-//         const bills = await Bills.paginate(filter, options);
+        const options = {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            sort: { billDate: -1 },
+            populate: [
+                { path: 'customerId', select: 'name phone' },
+                { path: 'shopId', select: 'name' }
+            ]
+        };
 
-//         res.json({
-//             message: "Bills retrieved successfully",
-//             bills: bills.docs,
-//             pagination: {
-//                 page: bills.page,
-//                 totalPages: bills.totalPages,
-//                 totalBills: bills.totalDocs,
-//                 hasNext: bills.hasNextPage,
-//                 hasPrev: bills.hasPrevPage
-//             }
-//         });
+        const bills = await Bills.paginate(filter, options);
 
-//     } catch (error) {
-//         console.error('Error in getting all bills:', error);
-//         res.status(500).json({ message: 'Internal server error' });
-//     }
-// };
+        res.json({
+            message: "Bills retrieved successfully",
+            bills: bills.docs,
+            pagination: {
+                page: bills.page,
+                totalPages: bills.totalPages,
+                totalBills: bills.totalDocs,
+                hasNext: bills.hasNextPage,
+                hasPrev: bills.hasPrevPage
+            }
+        });
+
+    } catch (error) {
+        console.error('Error in getting all bills:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
+
 
 // Helper function to generate bill number
 const generateBillNumber = () => {
