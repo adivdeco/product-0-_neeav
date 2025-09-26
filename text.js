@@ -321,3 +321,9 @@ if (req.body.isPayment && req.body.againstCredit) {
 
 // When viewing customer account
 const customerAccount = await Customer.findById(customerId).select('name currentBalance creditLimit');
+
+
+const arr = [10, 20, 30]
+
+const total = arr.reduce((acc, val) => acc + val, 0);
+console.log(total); // 60
