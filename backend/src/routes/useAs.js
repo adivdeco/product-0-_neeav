@@ -15,7 +15,7 @@
 
 
 const express = require('express');
-const router = express.Router();
+const ownRouter = express.Router();
 
 // Import controller functions
 const {
@@ -23,12 +23,13 @@ const {
     // updateShopOwner,
     // deleteShopOwner,
 
-    // addContractor,
-    // updateContractor,
+    addContractor,
+    updateContractor,
     // deleteContractor,
 
     // getShopOwner,
-    // getContractor,
+    getContractors,
+    getContractorById,
 
     // getAllShopOwners,
     // getAllContractors
@@ -38,17 +39,17 @@ const {
 
 
 // Shop Owner Routes
-router.post('/addshopowners', addShopOwner);              // Create a shop owner
+ownRouter.post('/addshopowners', addShopOwner);              // Create a shop owner
 // router.get('/shop-owners', getAllShopOwners);           // Get all shop owners
 // router.get('/shop-owners/:id', getShopOwner);           // Get a specific shop owner
 // router.put('/shop-owners/:id', updateShopOwner);        // Update a shop owner
 // router.delete('/shop-owners/:id', deleteShopOwner);     // Delete a shop owner
 
 // // Contractor Routes
-// router.post('/contractors', addContractor);             // Create a contractor
-// router.get('/contractors', getAllContractors);          // Get all contractors
-// router.get('/contractors/:id', getContractor);          // Get a specific contractor
-// router.put('/contractors/:id', updateContractor);       // Update a contractor
+ownRouter.post('/contractors', addContractor);             // Create a contractor
+ownRouter.get('/contractors/:id', getContractors);        // Get all contractors   
+ownRouter.put('/contractors/:id', updateContractor);        // Update a contractor
+ownRouter.get('/contractors/:id', getContractorById);       // Get a specific contractor
 // router.delete('/contractors/:id', deleteContractor);    // Delete a contractor
 
-module.exports = router;
+module.exports = ownRouter;

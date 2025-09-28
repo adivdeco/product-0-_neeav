@@ -100,24 +100,36 @@ const userSchema = new Schema({
                 'Painting',
                 'Flooring',
                 'Roofing',
-                'Structural'
+                'Structural',
+                'Labor Supply',
+                'Construction',
+                'Renovation',
+                'Demolition',
+                'Landscaping',
+                'HVAC',
+                'Welding'
             ]
         }],
         yearsOfExperience: {
             type: Number,
             min: 0
         },
-        rating: {
-            type: Number,
-            default: 0,
-            min: 0,
-            max: 5
-        },
+        hourlyRate: Number,
+        licenseNumber: String,
         isVerified: {
             type: Boolean,
             default: false
         },
-        // licenseNumber: String,
+        totalProjects: {
+            type: Number,
+            default: 0
+        },
+        completedProjects: {
+            type: Number,
+            default: 0
+        },
+        skills: [String],
+        bio: String
     },
 
     avatar: {

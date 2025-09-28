@@ -9,7 +9,7 @@ const shopSchema = new Schema({
         required: true,
         trim: true,
         maxLength: 100,
-        unique: true
+        // unique: true
     },
     ownerName: {
         type: String,
