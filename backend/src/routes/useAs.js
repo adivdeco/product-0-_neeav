@@ -25,7 +25,7 @@ const {
 
     addContractor,
     updateContractor,
-    // deleteContractor,
+    deleteContractor,
 
     // getShopOwner,
     getContractors,
@@ -46,10 +46,10 @@ ownRouter.post('/addshopowners', addShopOwner);              // Create a shop ow
 // router.delete('/shop-owners/:id', deleteShopOwner);     // Delete a shop owner
 
 // // Contractor Routes
-ownRouter.post('/contractors', addContractor);             // Create a contractor
-ownRouter.get('/contractors/:id', getContractors);        // Get all contractors   
+ownRouter.post('/addcontractors', addContractor);             // Create a contractor
+ownRouter.get('/contractors', getContractors);        // Get all contractors   
 ownRouter.put('/contractors/:id', updateContractor);        // Update a contractor
 ownRouter.get('/contractors/:id', getContractorById);       // Get a specific contractor
-// router.delete('/contractors/:id', deleteContractor);    // Delete a contractor
+ownRouter.delete('/contractors/:id', deleteContractor);    // Delete a contractor
 
 module.exports = ownRouter;

@@ -284,6 +284,7 @@ const addContractor = async (req, res) => {
 // Get all contractors
 const getContractors = async (req, res) => {
     try {
+
         const { page = 1, limit = 10, service, city, search } = req.query;
 
         const filter = { isActive: true };
@@ -298,7 +299,9 @@ const getContractors = async (req, res) => {
         }
 
         const contractors = await Contractor.find(filter)
-            .populate('contractorId', 'name email phone avatar contractorDetails')
+            // const contractors = await Contractor.find()
+
+            .populate('contractorId', ' email phone avatar contractorDetails')
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .sort({ createdAt: -1 });
@@ -342,6 +345,16 @@ const getContractorById = async (req, res) => {
 // Update contractor
 const updateContractor = async (req, res) => {
     try {
+
+        const userId = req.session.userId
+        const role = req.session.role
+
+
+
+        if (role != 'co-admin' && role != "admin") {
+            return res.status(403).send("Forbidden: You do not have asses to addShop ")
+        }
+
         const { id } = req.params;
         const updateData = req.body;
 
@@ -376,6 +389,38 @@ const updateContractor = async (req, res) => {
     }
 };
 
+const deleteContractor = async (req, res) => {
+    try {
+
+        const userId = req.session.userId
+        const role = req.session.role
+
+
+
+        if (role != 'co-admin' && role != "admin") {
+            return res.status(403).send("Forbidden: You do not have asses to addShop ")
+        }
+
+        const { id } = req.params;
+
+        // Find the contractor first
+        const contractor = await Contractor.findById(id);
+        if (!contractor) {
+            return res.status(404).json({ message: "Contractor not found" });
+        }
+
+        await User.findByIdAndDelete(contractor.contractorId);
+
+
+        // Now delete the contractor
+        await Contractor.findByIdAndDelete(id);
+
+        res.status(200).json({ message: "Contractor deleted successfully" });
+
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+};
 
 
 
@@ -383,4 +428,5 @@ const updateContractor = async (req, res) => {
 
 
 
-module.exports = { addShopOwner, addContractor, getContractors, getContractorById, updateContractor }
+
+module.exports = { addShopOwner, addContractor, getContractors, getContractorById, updateContractor, deleteContractor }

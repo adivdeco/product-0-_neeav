@@ -334,7 +334,7 @@ const getBill = async (req, res) => {
         // if (!mongoose.Types.ObjectId.isValid(billId)) {
         //     return res.status(400).json({ message: "Invalid bill ID" });
         // }
-        console.log(billId, "billId");
+        // console.log(billId, "billId");
 
 
         const bill = await Bills.findById(billId)

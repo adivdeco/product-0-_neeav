@@ -14,7 +14,7 @@ const registerUser = async (req, res) => {
         const { password, email } = req.body;
 
         req.body.password = await bcrypt.hash(password, 10);
-        req.body.role = 'nUser'
+        req.body.role = 'User'
 
 
         const check = await User.findOne({ email })
