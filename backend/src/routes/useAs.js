@@ -20,14 +20,14 @@ const ownRouter = express.Router();
 // Import controller functions
 const {
     addShopOwner,
-    // updateShopOwner,
-    // deleteShopOwner,
+    getShopOwnerById,
+    getAllShopOwners,
+    updateShopOwner,
+    deleteShopOwner,
 
     addContractor,
     updateContractor,
     deleteContractor,
-
-    // getShopOwner,
     getContractors,
     getContractorById,
 
@@ -40,10 +40,10 @@ const {
 
 // Shop Owner Routes
 ownRouter.post('/addshopowners', addShopOwner);              // Create a shop owner
-// router.get('/shop-owners', getAllShopOwners);           // Get all shop owners
-// router.get('/shop-owners/:id', getShopOwner);           // Get a specific shop owner
-// router.put('/shop-owners/:id', updateShopOwner);        // Update a shop owner
-// router.delete('/shop-owners/:id', deleteShopOwner);     // Delete a shop owner
+router.get('/shop-owners', getAllShopOwners);           // Get all shop owners
+router.get('/shop-owners/:id', getShopOwnerById);           // Get a specific shop owner
+router.put('/shop-owners/:id', updateShopOwner);        // Update a shop owner
+router.delete('/shop-owners/:id', deleteShopOwner);     // Delete a shop owner
 
 // // Contractor Routes
 ownRouter.post('/addcontractors', addContractor);             // Create a contractor

@@ -127,6 +127,156 @@ const addShopOwner = async (req, res) => {
 
 }
 
+const getAllShopOwners = async (req, res) => {
+    try {
+        const { page = 1, limit = 10, service, city, search } = req.query;
+        const filter = { isActive: true };
+
+        if (service) filter.services = service;
+        if (city) filter['address.city'] = new RegExp(city, 'i');
+        if (search) {
+            filter.$or = [
+                { shopName: new RegExp(search, 'i') },
+                { description: new RegExp(search, 'i') }
+            ];
+        }
+
+        const shop = await Shop.find(filter)
+
+            .populate('ownerId', 'name email phone avatar storeDetails')
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            .sort({ createdAt: -1 });
+
+        const total = await Shop.countDocuments(filter);
+
+        res.status(200).json({
+            shop,
+            totalPages: Math.ceil(total / limit),
+            currentPage: page,
+            total
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Error fetching shops",
+            error: error.message
+        });
+    }
+};
+
+const getShopOwnerById = async (req, res) => {
+    try {
+        const shop = await Shop.findById(req.params.id)
+            .populate('ownerId', 'name email phone avatar storeDetails');
+
+        if (!shop) {
+            return res.status(404).json({ message: "Shop not found" });
+        }
+
+        res.status(200).json(shop);
+    } catch (error) {
+        res.status(500).json({
+            message: "Error fetching shop",
+            error: error.message
+        });
+    }
+};
+
+
+const updateShopOwner = async (req, res) => {
+    try {
+
+        const userId = req.session.userId
+        const role = req.session.role
+
+
+
+        if (role != 'co-admin' && role != "admin") {
+            return res.status(403).send("Forbidden: You do not have asses to addShop ")
+        }
+
+        const { id } = req.params;
+        const updateData = req.body;
+
+        const shop = await Shop.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true, runValidators: true }
+        ).populate('ownerId');
+
+        if (!shop) {
+            return res.status(404).json({ message: "Shop not found" });
+        }
+
+        // Also update user details if needed
+        if (updateData.ownerName || updateData.contact) {
+            await User.findByIdAndUpdate(shop.ownerId, {
+                name: updateData.ownerName || shop.ownerName,
+                email: updateData.contact?.email || shop.contact.email,
+                phone: updateData.contact?.phone || shop.contact.phone
+            });
+        }
+
+        res.status(200).json({
+            message: "shop updated successfully",
+            shop
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Error updating shop",
+            error: error.message
+        });
+    }
+};
+
+const deleteShopOwner = async (req, res) => {
+    try {
+
+        const userId = req.session.userId
+        const role = req.session.role
+
+
+
+        if (role != 'co-admin' && role != "admin") {
+            return res.status(403).send("Forbidden: You do not have asses to addShop ")
+        }
+
+        const { id } = req.params;
+
+        // Find the shop first
+        const shop = await Shop.findById(id);
+        if (!shop) {
+            return res.status(404).json({ message: "shop not found" });
+        }
+
+        await User.findByIdAndDelete(shop.ownerId);
+
+
+        // Now delete the shop
+        await shop.findByIdAndDelete(id);
+
+        res.status(200).json({ message: "shop deleted successfully" });
+
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const addContractor = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -429,4 +579,7 @@ const deleteContractor = async (req, res) => {
 
 
 
-module.exports = { addShopOwner, addContractor, getContractors, getContractorById, updateContractor, deleteContractor }
+module.exports = {
+    addShopOwner, getAllShopOwners, getShopOwnerById, updateShopOwner, deleteShopOwner,
+    addContractor, getContractors, getContractorById, updateContractor, deleteContractor
+}
