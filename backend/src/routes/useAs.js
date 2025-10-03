@@ -1,23 +1,7 @@
-// const express = require('express')
-
-// const addMeAs = express.Router()
-
-
-
-// addMeAs.post('/ShopOwner', addShopOwner)
-// addMeAs.put('/updateShopOwner/:id', updateShopOwner)
-// addMeAs.delete('/deleteShop', deleteShopOwner)
-
-
-// addMeAs.post('/contractor', addShopOwner)
-// addMeAs.put('/updateContractor/:id', updateShopOwner)
-// addMeAs.delete('/deleteContractor', deleteShopOwner)
-
 
 const express = require('express');
 const ownRouter = express.Router();
 
-// Import controller functions
 const {
     addShopOwner,
     getShopOwnerById,
@@ -31,8 +15,6 @@ const {
     getContractors,
     getContractorById,
 
-    // getAllShopOwners,
-    // getAllContractors
 } = require('../controllers/shopManager');
 
 
@@ -40,10 +22,10 @@ const {
 
 // Shop Owner Routes
 ownRouter.post('/addshopowners', addShopOwner);              // Create a shop owner
-router.get('/shop-owners', getAllShopOwners);           // Get all shop owners
-router.get('/shop-owners/:id', getShopOwnerById);           // Get a specific shop owner
-router.put('/shop-owners/:id', updateShopOwner);        // Update a shop owner
-router.delete('/shop-owners/:id', deleteShopOwner);     // Delete a shop owner
+ownRouter.get('/shop-owners', getAllShopOwners);           // Get all shop owners
+ownRouter.get('/shop-owners/:id', getShopOwnerById);           // Get a specific shop owner
+ownRouter.put('/shop-owners/:id', updateShopOwner);        // Update a shop owner
+ownRouter.delete('/shop-owners/:id', deleteShopOwner);     // Delete a shop owner
 
 // // Contractor Routes
 ownRouter.post('/addcontractors', addContractor);             // Create a contractor

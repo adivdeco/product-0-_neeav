@@ -3,6 +3,7 @@ const Bills = require('../models/billsSchema');
 const Customer = require('../models/customerSchema');
 const Shop = require('../models/shopSchema'); // Assuming you have a Shop model
 
+
 const addNewBills = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -183,158 +184,146 @@ const addNewBills = async (req, res) => {
 };
 
 
+
+
 const updateBill = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
-        // const userId = req.finduser._id
+        const userId = req.session.userId;
+        const role = req.session.role;
+
+        if (role !== 'store_owner' && role !== "admin") {
+            return res.status(403).json({
+                message: "Forbidden: You do not have access to add bills"
+            });
+        }
+        const { billId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(billId)) {
+            return res.status(400).json({ message: "Invalid bill ID" });
+        }
+
+        const bill = await Bills.findById(billId).session(session);
+        if (!bill) {
+            await session.abortTransaction();
+            return res.status(404).json({ message: "Bill not found" });
+        }
+
+        // Check if user has access to this bill's shop
+        // You might want to add additional authorization checks here
+
+        // Prevent updating certain fields
+        const allowedUpdates = [
+            'paymentStatus', 'amountPaid', 'paymentMethod', 'notes',
+            'referenceNumber', 'status', 'dueDate'
+        ];
+
+        const updates = Object.keys(req.body);
+        const isValidOperation = updates.every(update => allowedUpdates.includes(update));
+
+        if (!isValidOperation) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                message: "Invalid updates! Only certain fields can be updated"
+            });
+        }
+
+        // Handle payment updates
+        if (req.body.amountPaid !== undefined) {
+            if (req.body.amountPaid > bill.grandTotal) {
+                await session.abortTransaction();
+                return res.status(400).json({
+                    message: "Amount paid cannot exceed grand total"
+                });
+            }
+
+            // Update payment status based on amount paid
+            if (req.body.amountPaid >= bill.grandTotal) {
+                req.body.paymentStatus = 'paid';
+            } else if (req.body.amountPaid > 0) {
+                req.body.paymentStatus = 'partial';
+            } else {
+                req.body.paymentStatus = 'pending';
+            }
+        }
+
+        updates.forEach(update => bill[update] = req.body[update]);
+        bill.updatedBy = userId;
+
+        await bill.save({ session });
+        await session.commitTransaction();
+
+        const updatedBill = await Bills.findById(billId)
+            .populate('customerId', 'name phone email')
+            .populate('shopId', 'name address');
+
+        res.json({
+            message: "Bill updated successfully",
+            bill: updatedBill
+        });
+
     } catch (error) {
-        console.error('Error in adding New bill:', error);
-        res.sendStatus(500).json({ message: 'Internal server error' });
+        await session.abortTransaction();
+        console.error('Error in updating bill:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    } finally {
+        session.endSession();
     }
-}
+};
+
 const deleateBill = async (req, res) => {
     try {
-        // const userId = req.finduser._id
+
+        const userId = req.session.userId
+        const role = req.session.role
+
+
+
+        if (role != 'store_owner' && role != "admin") {
+            return res.status(403).send("Forbidden: You do not have asses to addShop ")
+        }
+
+
+        const { billId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(billId)) {
+            return res.status(400).json({ message: "Invalid bill ID" });
+        }
+
+        const bill = await Bills.findByIdAndDelete(billId);
+        if (!bill) {
+            return res.status(404).json({ message: "Bill not found" });
+        }
+
+        res.json({
+            message: "Bill delated successfully"
+        });
+
     } catch (error) {
-        console.error('Error in adding New bill:', error);
-        res.sendStatus(500).json({ message: 'Internal server error' });
+        console.error('Error in deleting bill:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
-}
-
-// const getBill = async (req, res) => {
-//     try {
-//         // const userId = req.finduser._id
-//     } catch (error) {
-//         console.error('Error in adding New bill:', error);
-//         res.sendStatus(500).json({ message: 'Internal server error' });
-//     }
-// }
-
-// const getAllBills = async (req, res) => {
-//     try {
-//         // const userId = req.finduser._id
-//     } catch (error) {
-//         console.error('Error in adding New bill:', error);
-//         res.sendStatus(500).json({ message: 'Internal server error' });
-//     }
-// }
-
-// const updateBill = async (req, res) => {
-//     const session = await mongoose.startSession();
-//     session.startTransaction();
-
-//     try {
-//         const userId = req.session.userId;
-//         const { billId } = req.params;
-
-//         if (!mongoose.Types.ObjectId.isValid(billId)) {
-//             return res.status(400).json({ message: "Invalid bill ID" });
-//         }
-
-//         const bill = await Bills.findById(billId).session(session);
-//         if (!bill) {
-//             await session.abortTransaction();
-//             return res.status(404).json({ message: "Bill not found" });
-//         }
-
-//         // Check if user has access to this bill's shop
-//         // You might want to add additional authorization checks here
-
-//         // Prevent updating certain fields
-//         const allowedUpdates = [
-//             'paymentStatus', 'amountPaid', 'paymentMethod', 'notes',
-//             'referenceNumber', 'status', 'dueDate'
-//         ];
-
-//         const updates = Object.keys(req.body);
-//         const isValidOperation = updates.every(update => allowedUpdates.includes(update));
-
-//         if (!isValidOperation) {
-//             await session.abortTransaction();
-//             return res.status(400).json({
-//                 message: "Invalid updates! Only certain fields can be updated"
-//             });
-//         }
-
-//         // Handle payment updates
-//         if (req.body.amountPaid !== undefined) {
-//             if (req.body.amountPaid > bill.grandTotal) {
-//                 await session.abortTransaction();
-//                 return res.status(400).json({
-//                     message: "Amount paid cannot exceed grand total"
-//                 });
-//             }
-
-//             // Update payment status based on amount paid
-//             if (req.body.amountPaid >= bill.grandTotal) {
-//                 req.body.paymentStatus = 'paid';
-//             } else if (req.body.amountPaid > 0) {
-//                 req.body.paymentStatus = 'partial';
-//             } else {
-//                 req.body.paymentStatus = 'pending';
-//             }
-//         }
-
-//         updates.forEach(update => bill[update] = req.body[update]);
-//         bill.updatedBy = userId;
-
-//         await bill.save({ session });
-//         await session.commitTransaction();
-
-//         const updatedBill = await Bills.findById(billId)
-//             .populate('customerId', 'name phone email')
-//             .populate('shopId', 'name address');
-
-//         res.json({
-//             message: "Bill updated successfully",
-//             bill: updatedBill
-//         });
-
-//     } catch (error) {
-//         await session.abortTransaction();
-//         console.error('Error in updating bill:', error);
-//         res.status(500).json({ message: 'Internal server error' });
-//     } finally {
-//         session.endSession();
-//     }
-// };
-
-// const deleateBill = async (req, res) => {
-//     try {
-//         const userId = req.session.userId;
-//         const { billId } = req.params;
-
-//         if (!mongoose.Types.ObjectId.isValid(billId)) {
-//             return res.status(400).json({ message: "Invalid bill ID" });
-//         }
-
-//         const bill = await Bills.findById(billId);
-//         if (!bill) {
-//             return res.status(404).json({ message: "Bill not found" });
-//         }
-
-//         // Soft delete by changing status instead of actual deletion
-//         bill.status = 'cancelled';
-//         bill.updatedBy = userId;
-//         await bill.save();
-
-//         res.json({
-//             message: "Bill cancelled successfully"
-//         });
-
-//     } catch (error) {
-//         console.error('Error in deleting bill:', error);
-//         res.status(500).json({ message: 'Internal server error' });
-//     }
-// };
+};
 
 const getBill = async (req, res) => {
     try {
+
+        const userId = req.session.userId;
+        const role = req.session.role;
+
+        if (role !== 'store_owner' && role !== "admin") {
+            return res.status(403).json({
+                message: "Forbidden: You do not have access to add bills"
+            });
+        }
+
         const { billId } = req.params;
 
-        // if (!mongoose.Types.ObjectId.isValid(billId)) {
-        //     return res.status(400).json({ message: "Invalid bill ID" });
-        // }
-        // console.log(billId, "billId");
+        if (!mongoose.Types.ObjectId.isValid(billId)) {
+            return res.status(400).json({ message: "Invalid bill ID" });
+        }
 
 
         const bill = await Bills.findById(billId)
@@ -359,15 +348,35 @@ const getBill = async (req, res) => {
 
 const getAllBills = async (req, res) => {
     try {
-        const { shopId, page = 1, limit = 10, status, paymentStatus, startDate, endDate } = req.query;
+        const userId = req.session.userId;
+        const role = req.session.role;
+
+        if (role !== 'store_owner' && role !== "admin") {
+            return res.status(403).json({
+                message: "Forbidden: You do not have access to view bills"
+            });
+        }
+
+        // Find the shop for this user
+        const shop = await Shop.findOne({ ownerId: userId });
+        if (!shop) {
+            return res.status(404).json({
+                message: "Shop not found for this user"
+            });
+        }
+
+        // Use shopId from query if provided, else use found shop's id
+        const shopId = req.query.shopId || shop._id;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const { status, paymentStatus, startDate, endDate } = req.query;
 
         if (!shopId) {
             return res.status(400).json({ message: "Shop ID is required" });
         }
 
+        // Build filter
         const filter = { shopId };
-
-        // Add filters if provided
         if (status) filter.status = status;
         if (paymentStatus) filter.paymentStatus = paymentStatus;
         if (startDate || endDate) {
@@ -376,13 +385,14 @@ const getAllBills = async (req, res) => {
             if (endDate) filter.billDate.$lte = new Date(endDate);
         }
 
+        // Pagination options
         const options = {
-            page: parseInt(page),
-            limit: parseInt(limit),
+            page,
+            limit,
             sort: { billDate: -1 },
             populate: [
                 { path: 'customerId', select: 'name phone' },
-                { path: 'shopId', select: 'name' }
+                { path: 'shopId', select: 'shopName' }
             ]
         };
 
@@ -423,12 +433,6 @@ const generateBillNumber = () => {
     return `BILL-${day}${month}${year}-${hours}${minutes}${seconds}-${random}`;
 };
 
-// module.exports = {
-//     addNewBills,
-//     updateBill,
-//     deleteBill,
-//     getBill,
-//     getAllBills
-// };
+
 
 module.exports = { addNewBills, updateBill, deleateBill, getBill, getAllBills }

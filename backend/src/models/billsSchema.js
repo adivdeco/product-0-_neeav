@@ -1,7 +1,9 @@
 
 
+
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
+
 
 const billSchema = new Schema({
     // Shop reference
@@ -163,6 +165,10 @@ billSchema.virtual('remainingAmount').get(function () {
 billSchema.index({ shopId: 1, billDate: -1 });
 billSchema.index({ shopId: 1, customerId: 1 });
 billSchema.index({ shopId: 1, paymentStatus: 1 });
+
+const mongoosePaginate = require('mongoose-paginate-v2');
+billSchema.plugin(mongoosePaginate);
+
 
 const Bills = mongoose.model('bills', billSchema);
 module.exports = Bills;

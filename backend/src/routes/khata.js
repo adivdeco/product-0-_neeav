@@ -5,8 +5,8 @@ const billsRouter = express.Router()
 
 
 billsRouter.post('/add_bill', addNewBills)
-billsRouter.put('/update_bill/:id', updateBill);
-billsRouter.delete('/delete_bill/:id', deleateBill)
+billsRouter.put('/update_bill/:billId', updateBill);
+billsRouter.delete('/delete_bill/:billId', deleateBill)
 
 
 
