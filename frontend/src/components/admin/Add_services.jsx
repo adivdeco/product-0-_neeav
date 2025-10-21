@@ -3,6 +3,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import { contractorSchema, SERVICES_ENUM } from '../../api/contractorValidationSchema';
 import 'react-toastify/dist/ReactToastify.css';
 import '../../AddContractor.css';
+import axiosClient from '../../api/auth';
+import { useNavigate } from 'react-router';
 
 const initialContractorState = {
     contractorName: '',
@@ -106,6 +108,7 @@ const AddContractor = () => {
     const [activeSection, setActiveSection] = useState(0);
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
+    const navigate = useNavigate();
 
     const sections = [
         { id: 'contractor', title: 'Contractor Details', icon: '👤' },
@@ -322,34 +325,49 @@ const AddContractor = () => {
                 pricing: validatedData.pricing
             };
 
-            const response = await fetch('/useas/addcontractor', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+            // Use axios client to POST
+            const { data } = await axiosClient.post('useas/addcontractors', payload);
+
+            toast.success(`✅ Contractor "${data.contractor.contractorName}" added successfully!`, {
+                style: {
+                    background: '#1f2937',
+                    color: '#fff',
+                    border: '1px solid #374151'
+                }
             });
 
-            const result = await response.json();
-
-            if (!response.ok) {
-                toast.error(`❌ ${result.message || 'Failed to add contractor. Check server logs.'}`);
-                throw new Error(result.message || 'API call failed');
-            }
-
-            toast.success(`✅ Contractor "${result.contractor.contractorName}" added successfully!`);
+            // reset form state
             setContractorData(initialContractorState);
             setErrors({});
             setTouched({});
             setActiveSection(0);
 
+            // navigate to contractors list or admin page
+            // navigate('/admin/contractors');
+            navigate('/')
+
         } catch (error) {
-            if (error.issues) {
+            // Handle Zod validation issues returned by parse or axios errors
+            if (error?.issues) {
                 error.issues.forEach(issue => {
                     const fieldPath = issue.path.join('.');
                     const niceName = fieldPath.split('.').pop().replace(/([A-Z])/g, ' $1').trim();
-                    toast.error(`[${niceName}] ${issue.message}`);
+                    toast.error(`[${niceName}] ${issue.message}`, {
+                        style: {
+                            background: '#1f2937',
+                            color: '#fff',
+                            border: '1px solid #374151'
+                        }
+                    });
                 });
-            } else if (!toast.isActive()) {
-                toast.error(`Error: ${error.message}`);
+            } else {
+                toast.error(`Error: ${error?.response?.data?.message || error.message}`, {
+                    style: {
+                        background: '#1f2937',
+                        color: '#fff',
+                        border: '1px solid #374151'
+                    }
+                });
             }
             console.error('Submission Error:', error);
         } finally {
@@ -592,7 +610,7 @@ const AddContractor = () => {
                                         placeholder="500"
                                         onChangeHandler={handleChange}
                                         onBlurHandler={handleBlur}
-                                        error={getError('pricing.hourlyRate')}
+                                    // error={getError('pricing.hourlyRate')}
                                     />
                                     <InputField
                                         label="Daily Rate (₹)"
@@ -603,7 +621,7 @@ const AddContractor = () => {
                                         placeholder="4000"
                                         onChangeHandler={handleChange}
                                         onBlurHandler={handleBlur}
-                                        error={getError('pricing.dailyRate')}
+                                    // error={getError('pricing.dailyRate')}
                                     />
                                     <InputField
                                         label="Project Rate"
@@ -613,7 +631,7 @@ const AddContractor = () => {
                                         placeholder="Negotiable or Fixed amount"
                                         onChangeHandler={handleChange}
                                         onBlurHandler={handleBlur}
-                                        error={getError('pricing.projectRate')}
+                                    // error={getError('pricing.projectRate')}
                                     />
                                 </div>
                             </div>

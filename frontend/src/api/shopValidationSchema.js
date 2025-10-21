@@ -16,9 +16,9 @@ const WORKING_DAYS_ENUM = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday
 
 export const shopSchema = z.object({
     // Basic shop information
-    shopName: z.string().min(1, "Shop Name is required").max(100, "Shop Name must be 100 characters or less"),
+    shopName: z.string().min(1, "Shop Name is required").max(50, "Shop Name must be 50 characters or less"),
     ownerName: z.string().min(1, "Owner Name is required"),
-    description: z.string().max(500, "Description must be 500 characters or less").optional(),
+    description: z.string().max(200, "Description must be 200 characters or less").optional(),
 
     // Contact (must include a password for owner creation)
     contact: z.object({
@@ -38,7 +38,7 @@ export const shopSchema = z.object({
     }),
 
     // Shop specialization
-    categories: z.array(z.enum(CATEGORIES_ENUM)).optional(),
+    categories: z.array(z.enum(CATEGORIES_ENUM)),
 
     // Business hours
     businessHours: z.object({
@@ -47,7 +47,6 @@ export const shopSchema = z.object({
         workingDays: z.array(z.enum(WORKING_DAYS_ENUM)).optional().default(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']),
     }).optional(),
 
-    // Note: ownerId, createdBy, etc. are handled by the backend
 });
 
 // Export the arrays for the component
