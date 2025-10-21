@@ -7,13 +7,14 @@ import { checkAuth } from "./authSlice";
 
 import Login from "./auth/Login";
 import Register from "./auth/Register";
-import Dashboard from "./pages/Dashbord";
 // import Main1 from "./pages/Main1";
-import Homepg from './pages/Dashbord';
+import Homepg from './pages/Home';
 import LocalShop from './pages/localShop';
 import Services from './pages/Services';
 import Ai_tools from './pages/Ai_tools';
 import Material_market from './pages/Material_market'
+import Add_shop from './components/admin/Add_shop';
+import Add_services from './components/admin/Add_services';
 
 function App() {
   const dispatch = useDispatch();
@@ -39,14 +40,15 @@ function App() {
       <Route
         path="/dashboard"
         element={
-          isAuthenticated ? <Dashboard /> : <Navigate to="/register" />
+          isAuthenticated ? <Homepg /> : <Navigate to="/register" />
         }
       />
       <Route path='/localShop' element={isAuthenticated ? <LocalShop /> : <Login />} />
       <Route path='/Services' element={isAuthenticated ? <Services /> : <Login />} />
       <Route path='/Planning_tools' element={isAuthenticated ? <Ai_tools /> : <Login />} />
       <Route path='/Material_market' element={isAuthenticated ? <Material_market /> : <Login />} />
-
+      <Route path='/addShop' element={isAuthenticated ? <Add_shop /> : <Login />} />
+      <Route path='/addServices' element={isAuthenticated ? <Add_services /> : <Login />} />
 
     </Routes>
   );

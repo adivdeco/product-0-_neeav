@@ -1,0 +1,468 @@
+.add-contractor-container {
+    min-height: 100vh;
+    background: white;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.form-glass-card {
+    width: 100%;
+    max-width: 1200px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+}
+
+/* Progress Header */
+.progress-header {
+    /* background: linear-gradient(135deg, #4f46e5, #7c3aed); */
+    background: linear-gradient(120deg, rgb(8, 120, 8), rgb(34, 193, 34), rgb(187, 255, 0));
+    padding: 30px 40px;
+    color: white;
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.step-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex: 1;
+}
+
+.step-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    z-index: 50;
+    background: rgba(141, 139, 139, 0.99);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.step-circle.active {
+    background: white;
+    color: #4f46e5;
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.step-circle.completed {
+    background: #10b981;
+    color: white;
+}
+
+.step-label {
+    margin-top: 10px;
+    font-weight: 600;
+    font-size: 0.9em;
+    text-align: center;
+}
+
+.step-connector {
+    position: absolute;
+    top: 30px;
+    left: 70%;
+    width: 100%;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.3);
+    z-index: 1;
+}
+
+/* Form Content */
+.form-content-wrapper {
+    background: white;
+    padding: 40px;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-header h1 {
+    color: #1f2937;
+    font-size: 3.5em;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.form-header p {
+    color: rgb(100, 101, 103);
+    font-size: 1.1em;
+}
+
+/* Form Sections */
+.multi-step-form {
+    position: relative;
+}
+
+.form-section {
+    display: none;
+    animation: fadeIn 0.5s ease-in;
+}
+
+.form-section.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-section h3 {
+    color: #374151;
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Form Layout */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+    color: #374151;
+}
+
+.form-grid InputField {
+    color: #374151;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Form Elements */
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #374151;
+    font-size: 0.95em;
+}
+
+.modern-input,
+.modern-textarea {
+    padding: 15px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 1em;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.modern-input:focus,
+.modern-textarea:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    outline: none;
+    transform: translateY(-2px);
+}
+
+.modern-textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 0.85em;
+    color: #6b7280;
+    /* margin-top: 5px; */
+}
+
+.required-star {
+    color: #ef4444;
+    margin-left: 4px;
+}
+
+/* Services Section */
+.services-section {
+    margin-bottom: 30px;
+}
+
+.section-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 15px;
+    display: block;
+    font-size: 1.1em;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.service-card {
+    position: relative;
+    cursor: pointer;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.service-card:hover {
+    border-color: #4f46e5;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.service-checkbox {
+    position: absolute;
+    opacity: 0;
+}
+
+.service-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: 500;
+    color: #374151;
+}
+
+.service-checkbox:checked+.service-content {
+    color: #4f46e5;
+    font-weight: 600;
+}
+
+.service-checkbox:checked~.service-card {
+    border-color: #4f46e5;
+    background: #f0f4ff;
+}
+
+/* Pricing Section */
+.pricing-section h4 {
+    color: #374151;
+    margin-bottom: 20px;
+    font-size: 1.2em;
+}
+
+/* Navigation & Buttons */
+.form-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.nav-button,
+.submit-button {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-button.primary {
+    background: #4f46e5;
+    color: white;
+}
+
+.nav-button.primary:hover {
+    background: #4338ca;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+}
+
+.nav-button.secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.nav-button.secondary:hover {
+    background: #4b5563;
+}
+
+.submit-button {
+    background: #10b981;
+    color: white;
+}
+
+.submit-button:hover:not(:disabled) {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+}
+
+.submit-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .add-contractor-container {
+        padding: 10px;
+    }
+
+    .form-glass-card {
+        width: 100%;
+    }
+
+    .form-content-wrapper {
+        padding: 20px;
+    }
+
+    .progress-header {
+        padding: 20px;
+    }
+
+    .step-circle {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2em;
+    }
+
+    .step-label {
+        font-size: 0.8em;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-navigation {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .nav-button,
+    .submit-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Dark mode support */
+/* @media (prefers-color-scheme: dark) {
+    .form-glass-card {
+        background: rgba(17, 24, 39, 0.95);
+        color: white;
+    }
+
+    .form-header h1,
+    .form-section h3,
+    .form-group label {
+        color: #f9fafb;
+    }
+
+    .modern-input,
+    .modern-textarea {
+        background: #374151;
+        border-color: #4b5563;
+        color: white;
+    }
+
+    .service-card {
+        background: #374151;
+        border-color: #4b5563;
+        color: white;
+    }
+} */
+
+
+/* Real-time validation styles */
+.input-error {
+    border-color: #ff4444 !important;
+    box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.1) !important;
+}
+
+.field-error {
+    color: #ff4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.field-error::before {
+    content: "⚠";
+    font-size: 0.75rem;
+}
+
+/* Service validation error */
+.services-section .field-error {
+    margin-bottom: 1rem;
+}
+
+/* Enhanced focus states for better UX */
+.modern-input:focus,
+.modern-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modern-input.input-error:focus,
+.modern-textarea.input-error:focus {
+    box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.1);
+}

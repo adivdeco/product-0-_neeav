@@ -9,7 +9,7 @@ function Material_market() {
 
     return (
         <div>
-            <h1>page for services & contractor ..</h1>
+            <h1>page for Material_market ..</h1>
         </div>
     )
 }
