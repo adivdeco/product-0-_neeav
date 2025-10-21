@@ -1,27 +1,5 @@
 
 import './App.css'
-// import { Routes, Route, Navigate, useLocation } from "react-router";
-// import Main1 from "./pages/Main1";
-// import SignUp from "./auth/SignUp";
-// import Login from "./auth/Login";
-// import Dashboard from "./pages/Dashbord";
-
-// function App() {
-
-//   return (
-//     <>
-//       <Routes>
-//         <Route path="/" element={<Main1 />} />
-//         <Route path="/register" element={<SignUp />} />
-//         <Route path="/dashboard" element={<Dashboard />} />
-//       </Routes>
-//     </>
-//   )
-// }
-
-// export default App
-
-
 import { Routes, Route, Navigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
@@ -30,7 +8,12 @@ import { checkAuth } from "./authSlice";
 import Login from "./auth/Login";
 import Register from "./auth/Register";
 import Dashboard from "./pages/Dashbord";
-import Main1 from "./pages/Main1";
+// import Main1 from "./pages/Main1";
+import Homepg from './pages/Dashbord';
+import LocalShop from './pages/localShop';
+import Services from './pages/Services';
+import Ai_tools from './pages/Ai_tools';
+import Material_market from './pages/Material_market'
 
 function App() {
   const dispatch = useDispatch();
@@ -45,20 +28,26 @@ function App() {
   return (
     <Routes>
       {/* <Route path="/" element={<Main1 />} /> */}
-      <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
+      <Route path="/" element={isAuthenticated ? <Homepg /> : <Login />} />
 
       <Route
         path="/register"
         element={
-          isAuthenticated ? <Navigate to="/dashboard" /> : <Register />
+          isAuthenticated ? <Homepg /> : <Register />
         }
       />
       <Route
         path="/dashboard"
         element={
-          isAuthenticated ? <Dashboard /> : <Navigate to="/" />
+          isAuthenticated ? <Dashboard /> : <Navigate to="/register" />
         }
       />
+      <Route path='/localShop' element={isAuthenticated ? <LocalShop /> : <Login />} />
+      <Route path='/Services' element={isAuthenticated ? <Services /> : <Login />} />
+      <Route path='/Planning_tools' element={isAuthenticated ? <Ai_tools /> : <Login />} />
+      <Route path='/Material_market' element={isAuthenticated ? <Material_market /> : <Login />} />
+
+
     </Routes>
   );
 }
