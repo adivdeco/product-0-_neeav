@@ -22,7 +22,9 @@
 /* Progress Header */
 .progress-header {
     /* background: linear-gradient(135deg, #4f46e5, #7c3aed); */
-    background: linear-gradient(120deg, rgb(8, 120, 8), rgb(34, 193, 34), rgb(187, 255, 0));
+    /* background: linear-gradient(120deg, rgb(8, 120, 8), rgb(34, 193, 34), rgb(187, 255, 0)); */
+    background: rgb(133, 176, 233);
+    border-radius: 20px;
     padding: 30px 40px;
     color: white;
 }
@@ -47,7 +49,7 @@
     height: 60px;
     border-radius: 50%;
     z-index: 50;
-    background: rgba(141, 139, 139, 0.99);
+    background: rgb(255, 255, 255);
     display: flex;
     align-items: center;
     justify-content: center;

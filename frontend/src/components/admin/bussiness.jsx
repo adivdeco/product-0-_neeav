@@ -1,4 +1,4 @@
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import Navbar from '../home/navbar';
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from 'react-router';
@@ -22,18 +22,21 @@ function Business() {
         }
 
         if (user.role !== 'admin' && user.role !== 'co-admin') {
+            // console.log(error, "error");
+
             toast.error('Access Denied. Business registration requires admin privileges.', {
                 duration: 5000,
                 icon: '🚫',
+                position: 'bottom-right',
                 style: {
                     background: '#fff7ed',
                     color: '#ea580c',
                     border: '1px solid #fdba74',
                 },
-                action: {
-                    label: 'Contact Support',
-                    onClick: () => navigate('/contact')
-                }
+                // action: {
+                //     label: 'Contact Support',
+                //     onClick: () => navigate('/')
+                // }
             });
             return;
         }
@@ -100,6 +103,8 @@ function Business() {
 
             {/* Hero Section */}
             <div className="py-10 px-4 sm:px-6 lg:px-8">
+                <Toaster position="bottom-center" />
+
                 <div className="max-w-7xl mx-auto text-center">
                     <h1 className="text-4xl font-bold text-gray-900 mb-5">
                         Grow Your Business With Us

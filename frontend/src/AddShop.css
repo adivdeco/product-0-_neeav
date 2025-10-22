@@ -1,7 +1,7 @@
 /* Enhanced AddShop.css */
 .add-shop-container.full-screen-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #eeeff6 0%, #e5d2f8 100%);
     padding: 20px;
     display: flex;
     align-items: center;
@@ -21,7 +21,7 @@
 
 /* Progress Header */
 .progress-header {
-    margin-bottom: 30px;
+    margin-bottom: 0px;
 }
 
 .progress-steps {
@@ -43,7 +43,7 @@
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: #e0e0e0;
+    background: rgb(59, 58, 58);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -69,7 +69,7 @@
     margin-top: 8px;
     font-size: 0.9em;
     font-weight: 600;
-    color: #666;
+    color: white;
     text-align: center;
 }
 

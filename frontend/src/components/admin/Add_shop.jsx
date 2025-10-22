@@ -405,9 +405,11 @@ const AddShop = () => {
                                     {index < activeSection ? '✓' : section.icon}
                                 </div>
                                 <span className="step-label">{section.title}</span>
-                                {index < sections.length - 1 && (
-                                    <div className={`step-connector ${index < activeSection ? 'completed' : ''}`}></div>
-                                )}
+                                {
+                                    index < sections.length - 1 && (
+                                        <div className={`step-connector ${index < activeSection ? 'completed' : ''}`}></div>
+                                    )
+                                }
                             </div>
                         ))}
                     </div>
@@ -677,7 +679,7 @@ const AddShop = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 
