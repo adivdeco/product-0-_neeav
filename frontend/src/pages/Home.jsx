@@ -63,14 +63,15 @@ import { FaLocationDot, FaStore, FaRobot, FaRightFromBracket } from "react-icons
 import { FaTools } from "react-icons/fa";
 import { MdDesignServices } from "react-icons/md";
 import { IoSearchSharp } from "react-icons/io5";
+import Navbar from "../components/home/navbar";
 
 export default function Homepg() {
     const dispatch = useDispatch();
     const { user, isAuthenticated, loading, error } = useSelector((state) => state.auth);
 
-    const handleLogout = () => {
-        dispatch(logoutUser());
-    };
+
+    console.log(user);
+
 
     // Sample featured categories data
     const features = [
@@ -118,44 +119,7 @@ export default function Homepg() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
             {/* Header */}
-            <header className="bg-white shadow-sm border-b">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        {/* Logo */}
-                        <div className="flex items-center">
-                            <h1 className="text-2xl font-bold text-blue-800">VyaparAI</h1>
-                            <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Beta</span>
-                        </div>
-
-                        {/* Navigation */}
-                        <nav className="hidden md:flex space-x-8">
-                            <a href="#" className="text-gray-700 hover:text-blue-600 font-medium">For Businesses</a>
-                            <a href="#" className="text-gray-700 hover:text-blue-600 font-medium">Partner with us</a>
-                            <a href="#" className="text-gray-700 hover:text-blue-600 font-medium">Get the App</a>
-                        </nav>
-
-                        {/* Auth Section */}
-                        <div className="flex items-center space-x-4">
-                            {isAuthenticated ? (
-                                <div className="flex items-center space-x-3">
-                                    <span className="text-sm text-gray-700">Welcome, {user?.name || 'User'}</span>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="flex items-center space-x-1 text-sm text-gray-600 hover:text-red-600"
-                                    >
-                                        <FaRightFromBracket />
-                                        <span>Logout</span>
-                                    </button>
-                                </div>
-                            ) : (
-                                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
-                                    Sign In
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <Navbar className="z-50" />
 
             {/* Hero Section */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

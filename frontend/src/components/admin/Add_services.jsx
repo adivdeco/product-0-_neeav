@@ -343,8 +343,7 @@ const AddContractor = () => {
             setActiveSection(0);
 
             // navigate to contractors list or admin page
-            // navigate('/admin/contractors');
-            navigate('/')
+            navigate('useas/addcontractors')
 
         } catch (error) {
             // Handle Zod validation issues returned by parse or axios errors

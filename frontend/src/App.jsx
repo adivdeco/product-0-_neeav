@@ -15,6 +15,7 @@ import Ai_tools from './pages/Ai_tools';
 import Material_market from './pages/Material_market'
 import Add_shop from './components/admin/Add_shop';
 import Add_services from './components/admin/Add_services';
+import Business from './components/admin/bussiness';
 
 function App() {
   const dispatch = useDispatch();
@@ -49,10 +50,11 @@ function App() {
       <Route path='/Material_market' element={isAuthenticated ? <Material_market /> : <Login />} />
       <Route path='/addShop' element={isAuthenticated ? <Add_shop /> : <Login />} />
       <Route path='/addServices' element={isAuthenticated ? <Add_services /> : <Login />} />
-
+      <Route path='/business' element={isAuthenticated ? <Business /> : <Login />} />
     </Routes>
   );
 }
 
 export default App;
+
 
