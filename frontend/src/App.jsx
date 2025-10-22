@@ -16,6 +16,10 @@ import Material_market from './pages/Material_market'
 import Add_shop from './components/admin/Add_shop';
 import Add_services from './components/admin/Add_services';
 import Business from './components/admin/bussiness';
+import ShopHome from './components/shop/shopHome';
+import AddBill from './components/shop/addBill';
+import UpdateBill from './components/shop/updateBill';
+import AllBill from './components/shop/allBills';
 
 function App() {
   const dispatch = useDispatch();
@@ -51,6 +55,13 @@ function App() {
       <Route path='/addShop' element={isAuthenticated ? <Add_shop /> : <Login />} />
       <Route path='/addServices' element={isAuthenticated ? <Add_services /> : <Login />} />
       <Route path='/business' element={isAuthenticated ? <Business /> : <Login />} />
+      {/* shop */}
+      <Route path='/shop' element={isAuthenticated ? <ShopHome /> : <Login />} />
+      <Route path='/shop/addBill' element={isAuthenticated ? <AddBill /> : <Login />} />
+      <Route path='/shop/updateBill' element={isAuthenticated ? < UpdateBill /> : <Login />} />
+      {/* <Route path='/shop/searchBills' element={isAuthenticated ? <AddBill /> : <Login />} /> */}
+      <Route path='/shop/allBills' element={isAuthenticated ? <AllBill /> : <Login />} />
+
     </Routes>
   );
 }

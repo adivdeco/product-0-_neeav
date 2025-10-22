@@ -46,7 +46,7 @@ function Navbar() {
         { icon: FaCog, label: "Settings", href: "/admin/settings", color: "text-gray-600" },
     ];
     const storeMenuItems = [
-        { icon: FaStore, label: "My Shop", href: "/store/myshop", color: "text-emerald-600" },
+        { icon: FaStore, label: "My Shop", href: "/shop", color: "text-emerald-600" },
         { icon: FaTools, label: "Manage Services", href: "/store/myservices", color: "text-amber-600" },
         { icon: FaChartBar, label: "Shop Analytics", href: "/store/analytics", color: "text-purple-600" },
         { icon: FaCog, label: "Store Settings", href: "/store/settings", color: "text-gray-600" },
