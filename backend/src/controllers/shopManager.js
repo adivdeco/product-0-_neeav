@@ -313,7 +313,6 @@ const addContractor = async (req, res) => {
         const pincode = address?.pincode;
 
         // Validation
-
         if (!contractorName || !phone || !email || !city || !state || !pincode || !password) {
             await session.abortTransaction();
             session.endSession();
@@ -339,100 +338,82 @@ const addContractor = async (req, res) => {
             });
         }
 
-        let user = await User.findOne({
-            $or: [{ email: email }, { phone: phone }]
-        }).session(session);
-
-        let tempPasswordPlain = null;
+        // Check if user exists
+        let user = await User.findOne({ $or: [{ email }, { phone }] }).session(session);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         if (!user) {
             // Create new user
-            tempPasswordPlain = password;
-            const hashedPassword = await bcrypt.hash(tempPasswordPlain, 10);
-
             const newUserPayload = {
                 name: contractorName,
-                email: email,
-                phone: phone,
+                email,
+                phone,
                 password: hashedPassword,
                 role: 'contractor',
                 address: {
                     street: address.street,
-                    city: address.city,
-                    state: address.state,
-                    pincode: address.pincode
+                    city,
+                    state,
+                    pincode,
+                    landmark: address.landmark
                 },
                 contractorDetails: {
-                    specialization: services,
-                    yearsOfExperience: experience?.years,
-                    hourlyRate: pricing?.hourlyRate,
+                    specialization: Array.isArray(services) ? services : [],
+                    yearsOfExperience: experience?.years || 0,
+                    hourlyRate: pricing?.hourlyRate || 0,
                     bio: description
                 }
             };
 
             user = await User.create([newUserPayload], { session });
-            // user = user[0];
+            user = user[0];
         } else {
-            // User exists - check if already a contractor
-            if (user.role !== 'contractor') {
-                user = await User.findByIdAndUpdate(user._id, {
+            // ✅ Always update, even if already a contractor
+            user = await User.findByIdAndUpdate(
+                user._id,
+                {
                     $set: {
                         role: 'contractor',
-                        email: email,
-                        phone: phone,
+                        email,
+                        phone,
                         address: {
                             street: address.street,
-                            city: address.city,
-                            state: address.state,
-                            pincode: address.pincode,
+                            city,
+                            state,
+                            pincode,
                             landmark: address.landmark
                         },
-                        contractorDetails: {
-                            specialization: services,
-                            yearsOfExperience: experience?.years,
-                            hourlyRate: pricing?.hourlyRate,
-                            bio: description
-                        }
-
-
+                        'contractorDetails.specialization': Array.isArray(services) ? services : [],
+                        'contractorDetails.yearsOfExperience': experience?.years || 0,
+                        'contractorDetails.hourlyRate': pricing?.hourlyRate || 0,
+                        'contractorDetails.bio': description
                     }
-                }, { new: true, runValidators: true });
-                log('User updated to contractor via findByIdAndUpdate:', { id: user?._id, contractorDetails: user?.contractorDetails });
-            }
+                },
+                { new: true, runValidators: true, session }
+            );
+
+            console.log('✅ User updated via findByIdAndUpdate:', {
+                id: user._id,
+                contractorDetails: user.contractorDetails
+            });
         }
 
         // Create contractor record
         const newContractorPayload = {
-            contractorName,
-            contractorId: user._id,
-            description,
-            contact: {
-                email,
-                phone,
-                alternatePhone: contact?.alternatePhone
-            },
-            address: {
-                street: address.street,
-                city: address.city,
-                state: address.state,
-                pincode: address.pincode,
-                landmark: address.landmark
-            },
-            services,
-            experience,
-            pricing,
-            createdBy: userId
+            ...req.body,
+            createdBy: userId,
+            contractorId: user._id
         };
 
-        const newContractor = await Contractor.create([newContractorPayload], { session });
+        const [newContractor] = await Contractor.create([newContractorPayload], { session });
 
+        // Commit
         await session.commitTransaction();
         session.endSession();
 
         res.status(201).json({
             message: "Contractor added successfully",
-            // contractor: newContractor[0],
-            newContractor,
+            contractor: newContractor,
             user: {
                 _id: user._id,
                 email: user.email,
@@ -440,12 +421,11 @@ const addContractor = async (req, res) => {
                 role: user.role
             }
         });
-
     } catch (error) {
         await session.abortTransaction();
         session.endSession();
 
-        console.error("Error adding contractor:", error);
+        console.error("❌ Error adding contractor:", error);
 
         if (error.code === 11000) {
             return res.status(409).json({
@@ -459,6 +439,7 @@ const addContractor = async (req, res) => {
         });
     }
 };
+
 
 // Get all contractors
 const getContractors = async (req, res) => {

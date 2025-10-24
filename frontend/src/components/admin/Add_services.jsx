@@ -326,7 +326,7 @@ const AddContractor = () => {
             };
 
             // Use axios client to POST
-            const { data } = await axiosClient.post('useas/addcontractors', payload);
+            const { data } = await axiosClient.post('/useas/addcontractors', payload);
 
             toast.success(`✅ Contractor "${data.contractor.contractorName}" added successfully!`, {
                 style: {
@@ -343,31 +343,21 @@ const AddContractor = () => {
             setTouched({});
             setActiveSection(0);
 
-            // navigate to contractors list or admin page
-            navigate('useas/addcontractors')
 
         } catch (error) {
-            // Handle Zod validation issues returned by parse or axios errors
-            if (error?.issues) {
+            if (error.response) {
+                const errorMessage = error.response.data?.message || 'Failed to add shop. Please try again.';
+                toast.error(`❌ ${errorMessage}`);
+            } else if (error.issues) {
                 error.issues.forEach(issue => {
                     const fieldPath = issue.path.join('.');
                     const niceName = fieldPath.split('.').pop().replace(/([A-Z])/g, ' $1').trim();
-                    toast.error(`[${niceName}] ${issue.message}`, {
-                        style: {
-                            background: '#1f2937',
-                            color: '#fff',
-                            border: '1px solid #374151'
-                        }
-                    });
+                    toast.error(`${niceName}: ${issue.message}`);
                 });
+            } else if (error.code === 'ECONNABORTED') {
+                toast.error('❌ Request timeout. Please try again.');
             } else {
-                toast.error(`Error: ${error?.response?.data?.message || error.message}`, {
-                    style: {
-                        background: '#1f2937',
-                        color: '#fff',
-                        border: '1px solid #374151'
-                    }
-                });
+                toast.error(`❌ Error: ${error.message}`);
             }
             console.error('Submission Error:', error);
         } finally {
