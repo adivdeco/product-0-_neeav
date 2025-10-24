@@ -164,8 +164,111 @@ const logOutUser = async (req, res) => {
 
 
 
+const allUsers = async (req, res) => {
+
+    try {
+        // const userId = req.session.userId;
+        const role = req.session.role;
+
+        if (role !== 'co-admin' && role !== "admin") {
+            return res.status(403).json({
+                message: "Forbidden: You do not have access to add bills"
+            });
+        }
+
+
+        const users = await User.find();
+        res.status(200).json({
+            message: "Users retrieved successfully",
+            users
+        });
+
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Internal server error', error });
+    }
+}
+
+const updateUser = async (req, res) => {
+
+    try {
+        const role = req.session.role;
+
+        if (role !== 'co-admin' && role !== "admin") {
+            return res.status(403).json({
+                message: "Forbidden: You do not have access to update users"
+            });
+        }
+
+        // Expect param name `id` (lowercase) as defined in the route
+        const { id } = req.params;
+        const updateData = req.body;
+
+
+        if (Object.prototype.hasOwnProperty.call(updateData, 'role')) {
+            if (req.session.role !== 'admin') {
+                return res.status(403).json({ message: 'Forbidden: only admin can change user roles' });
+            }
+        }
+
+        const user = await User.findByIdAndUpdate(id, updateData, { new: true });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({
+            message: "User updated successfully",
+            user
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Error updating user",
+            error: error.message
+        });
+    }
+
+}
+
+const deleteUser = async (req, res) => {
+
+    try {
+
+        const userId = req.session.userId
+        const role = req.session.role
+
+
+
+        if (role != 'co-admin' && role != "admin") {
+            return res.status(403).send("Forbidden: You do not have access to delete users");
+        }
+
+        const { id } = req.params;
+
+        const user = await User.findByIdAndDelete(id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({
+            message: "User deleted successfully",
+            user
+        });
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).json({
+            message: "Error deleting user",
+            error: error.message
+        });
+    }
+}
 
 
 
 
-module.exports = { registerUser, loginUser, logOutUser, }
+
+
+module.exports = { registerUser, loginUser, logOutUser, allUsers, updateUser, deleteUser }

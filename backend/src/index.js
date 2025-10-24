@@ -35,6 +35,32 @@ app.use('/auth', authRouter),
     app.use('/khata', billsRouter)
 app.use('/useas', ownRouter) // add shop,contractor
 
+// Debug: list registered routes under /auth to help troubleshooting
+// const listRoutes = (router, base = '') => {
+//     const routes = [];
+//     router.stack && router.stack.forEach(layer => {
+//         if (layer.route && layer.route.path) {
+//             const methods = Object.keys(layer.route.methods).join(',').toUpperCase();
+//             routes.push(`${methods} ${base}${layer.route.path}`);
+//         } else if (layer.name === 'router' && layer.handle && layer.handle.stack) {
+//             layer.handle.stack.forEach(sub => {
+//                 if (sub.route && sub.route.path) {
+//                     const methods = Object.keys(sub.route.methods).join(',').toUpperCase();
+//                     routes.push(`${methods} ${base}${sub.route.path}`);
+//                 }
+//             });
+//         }
+//     });
+//     return routes;
+// };
+
+// try {
+//     const authRoutes = listRoutes(authRouter, '/auth');
+//     console.log('Auth routes:', authRoutes);
+// } catch (err) {
+//     console.warn('Could not enumerate auth routes', err);
+// }
+
 
 
 main().then(async () => {

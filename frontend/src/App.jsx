@@ -20,6 +20,8 @@ import ShopHome from './components/shop/shopHome';
 import AddBill from './components/shop/addBill';
 import UpdateBill from './components/shop/updateBill';
 import AllBill from './components/shop/allBills';
+import UserHome from './components/admin/Users_data/user_Home';
+import AllUsers from './components/admin/Users_data/Allusers';
 
 function App() {
   const dispatch = useDispatch();
@@ -61,6 +63,11 @@ function App() {
       <Route path='/shop/updateBill' element={isAuthenticated ? < UpdateBill /> : <Login />} />
       {/* <Route path='/shop/searchBills' element={isAuthenticated ? <AddBill /> : <Login />} /> */}
       <Route path='/shop/allBills' element={isAuthenticated ? <AllBill /> : <Login />} />
+
+      {/* userPage */}
+      {/* <Route path='/admin/user' element={isAuthenticated ? <UserHome /> : <Login />} /> */}
+      <Route path='/admin/user/allusers' element={isAuthenticated ? <AllUsers /> : <Login />} />
+      {/* <Route path='/admin/shop' */}
 
     </Routes>
   );

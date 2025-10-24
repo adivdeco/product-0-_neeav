@@ -39,8 +39,8 @@ function Navbar() {
     }, []);
 
     const adminMenuItems = [
-        { icon: FaUsers, label: "All Users", href: "/admin/users", color: "text-blue-600" },
-        { icon: FaStore, label: "All Shops", href: "/admin/shops", color: "text-emerald-600" },
+        { icon: FaUsers, label: "Users_Data", href: "/admin/user/allusers", color: "text-blue-600" },
+        { icon: FaStore, label: "Shops_Data", href: "/admin/shop", color: "text-emerald-600" },
         { icon: FaTools, label: "All Services", href: "/admin/services", color: "text-amber-600" },
         { icon: FaChartBar, label: "Analytics", href: "/admin/analytics", color: "text-purple-600" },
         { icon: FaCog, label: "Settings", href: "/admin/settings", color: "text-gray-600" },

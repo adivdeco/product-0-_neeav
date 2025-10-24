@@ -64,42 +64,55 @@ const addShopOwner = async (req, res) => {
                 phone,
                 password: hashed,
                 role: 'store_owner',
-                "address.street": address.street,
-                'address.city': address.city,
-                'address.state': address.state,
-                'address.pincode': address.pincode,
-                'storeDetails.storeName': shopName,
-                'storeDetails.productCategories': categories,
+                address: {
+                    street: address.street,
+                    city: address.city,
+                    state: address.state,
+                    pincode: address.pincode
+                },
+                storeDetails: {
+                    storeName: shopName,
+                    productCategories: categories
+                }
                 // avatar: image[0].url
-
             };
 
-            ownerUser = await User.create(newUserPayload)
+            ownerUser = await User.create(newUserPayload);
 
         } else {
-            // user exists: if their role isn't store_owner, optionally promote them
             if (ownerUser.role !== 'store_owner') {
-                ownerUser.role = 'store_owner';
-                // do not change password here
-                await ownerUser.save({ session });
+                // Use findByIdAndUpdate to reliably update nested fields and arrays
+                ownerUser = await User.findByIdAndUpdate(ownerUser._id, {
+                    $set: {
+                        role: 'store_owner',
+                        email: email,
+                        phone: phone,
+                        address: {
+                            street: address.street,
+                            city: address.city,
+                            state: address.state,
+                            pincode: address.pincode
+                        },
+                        storeDetails: {
+                            storeName: shopName,
+                            productCategories: Array.isArray(categories) ? categories : []
+                        }
+                    }
+                }, { new: true, runValidators: true });
+
+                console.log('ownerUser updated via findByIdAndUpdate:', { id: ownerUser?._id, storeDetails: ownerUser?.storeDetails });
             }
         }
 
         // Create shop with ownerId reference
         const newShopPayload = {
             ...req.body,
-            createdBy: userId,       // who created the shop (admin)
+            createdBy: userId,
             ownerId: ownerUser._id
         };
 
         const newShop = await Shop.create(newShopPayload)
 
-
-
-        // const newShop = await Shop.create({
-        //     ...req.body,
-        //     userId: userId // Track who created the shop
-        // });
 
         res.status(201).send({
             message: "New_Shop added  successfully",
@@ -122,7 +135,8 @@ const addShopOwner = async (req, res) => {
             });
         }
 
-        res.sendStatus(500).json({ message: 'Internal server error' });
+        // send a 500 JSON response (avoid chaining .json after sendStatus)
+        res.status(500).json({ message: 'Internal server error' });
     };
 
 }
@@ -299,7 +313,6 @@ const addContractor = async (req, res) => {
         const pincode = address?.pincode;
 
         // Validation
-        console.log(password);
 
         if (!contractorName || !phone || !email || !city || !state || !pincode || !password) {
             await session.abortTransaction();
@@ -358,26 +371,34 @@ const addContractor = async (req, res) => {
             };
 
             user = await User.create([newUserPayload], { session });
-            user = user[0];
+            // user = user[0];
         } else {
             // User exists - check if already a contractor
-            if (user.role === 'contractor') {
-                await session.abortTransaction();
-                session.endSession();
-                return res.status(409).json({
-                    message: "User with this email/phone is already registered as a contractor"
-                });
-            }
+            if (user.role !== 'contractor') {
+                user = await User.findByIdAndUpdate(user._id, {
+                    $set: {
+                        role: 'contractor',
+                        email: email,
+                        phone: phone,
+                        address: {
+                            street: address.street,
+                            city: address.city,
+                            state: address.state,
+                            pincode: address.pincode,
+                            landmark: address.landmark
+                        },
+                        contractorDetails: {
+                            specialization: services,
+                            yearsOfExperience: experience?.years,
+                            hourlyRate: pricing?.hourlyRate,
+                            bio: description
+                        }
 
-            // Update user to contractor role
-            user.role = 'contractor';
-            user.contractorDetails = {
-                specialization: services,
-                yearsOfExperience: experience?.years,
-                hourlyRate: pricing?.hourlyRate,
-                bio: description
-            };
-            await user.save({ session });
+
+                    }
+                }, { new: true, runValidators: true });
+                log('User updated to contractor via findByIdAndUpdate:', { id: user?._id, contractorDetails: user?.contractorDetails });
+            }
         }
 
         // Create contractor record
@@ -410,7 +431,8 @@ const addContractor = async (req, res) => {
 
         res.status(201).json({
             message: "Contractor added successfully",
-            contractor: newContractor[0],
+            // contractor: newContractor[0],
+            newContractor,
             user: {
                 _id: user._id,
                 email: user.email,
@@ -424,6 +446,13 @@ const addContractor = async (req, res) => {
         session.endSession();
 
         console.error("Error adding contractor:", error);
+
+        if (error.code === 11000) {
+            return res.status(409).json({
+                message: 'Contractor with similar details already exists'
+            });
+        }
+
         res.status(500).json({
             message: "Internal server error",
             error: error.message

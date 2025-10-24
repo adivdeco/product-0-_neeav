@@ -117,7 +117,7 @@ const addNewBills = async (req, res) => {
             customerEmail: email,
             billNumber,
             items: items.map(item => ({
-                productId: item.productId,
+                // productId: item.productId,
                 productName: item.productName,
                 quantity: item.quantity,
                 unit: item.unit || 'pcs',
@@ -412,7 +412,7 @@ const getAllBills = async (req, res) => {
 
     } catch (error) {
         console.error('Error in getting all bills:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error', error });
     }
 };
 

@@ -1,12 +1,15 @@
 
 
 
+
+
+
 import toast, { Toaster } from 'react-hot-toast';
-import Navbar from '../home/navbar';
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from 'react-router';
+import Navbar from '../../home/navbar';
 
-function ShopHome() {
+function UserHome() {
     const navigate = useNavigate();
     const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
 
@@ -110,10 +113,10 @@ function ShopHome() {
 
                 <div className="max-w-7xl mx-auto text-center">
                     <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                        All you need for your Shop
+                        Mannage all Users data
                     </h1>
                     <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                        Manage your shop bills efficiently with our comprehensive tools designed for shop owners.
+
                     </p>
 
                 </div>
@@ -127,7 +130,7 @@ function ShopHome() {
                         <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-500 p-8 border border-gray-200 group cursor-pointer transform hover:-translate-y-2">
                             <button
                                 className="w-full bg-transparent hover:bg-gray-50 text-gray-800 font-medium py-4 px-6 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed  "
-                                onClick={() => { navigate('/shop/addBill') }}
+                                onClick={() => { navigate('/admin/user/allusers') }}
                                 disabled={loading}
                             >
                                 <div className="text-center">
@@ -141,10 +144,10 @@ function ShopHome() {
                                     </div>
 
                                     <h3 className="text-xl font-semibold text-gray-800 mb-3 group-hover:text-gray-900 transition-colors duration-300">
-                                        Add Bill
+                                        All Users
                                     </h3>
                                     <p className="text-gray-600 mb-4 leading-relaxed text-sm">
-                                        Add your daily shop bills here.
+                                        View and manage all registered users.
                                     </p>
                                 </div>
                             </button>
@@ -154,7 +157,7 @@ function ShopHome() {
                         <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-500 p-8 border border-gray-200 group cursor-pointer transform hover:-translate-y-2">
                             <button
                                 className="w-full bg-transparent hover:bg-gray-50 text-gray-800 font-medium py-4 px-6 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed  "
-                                onClick={() => { navigate('/shop/allBills') }}
+                                onClick={() => { navigate('/admin/user/updateData') }}
                                 disabled={loading}
                             >
                                 <div className="text-center">
@@ -168,10 +171,10 @@ function ShopHome() {
                                     </div>
 
                                     <h3 className="text-xl font-semibold text-gray-800 mb-3 group-hover:text-gray-900 transition-colors duration-300">
-                                        All Bills
+                                        Update users data
                                     </h3>
                                     <p className="text-gray-600 mb-4 leading-relaxed text-sm">
-                                        Your all bills are here.
+                                        Modify user information as needed.
                                     </p>
                                 </div>
                             </button>
@@ -181,7 +184,7 @@ function ShopHome() {
                         <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-500 p-8 border border-gray-200 group cursor-pointer transform hover:-translate-y-2">
                             <button
                                 className="w-full bg-transparent hover:bg-gray-50 text-gray-800 font-medium py-4 px-6 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed  "
-                                onClick={() => { navigate('/shop/updateBill') }}
+                                onClick={() => { navigate('/admin/user/id') }}
                                 disabled={loading}
                             >
                                 <div className="text-center">
@@ -195,10 +198,10 @@ function ShopHome() {
                                     </div>
 
                                     <h3 className="text-xl font-semibold text-gray-800 mb-3 group-hover:text-gray-900 transition-colors duration-300">
-                                        Update Bills
+                                        User Details
                                     </h3>
                                     <p className="text-gray-600 mb-4 leading-relaxed text-sm">
-                                        Need to update your bills?
+                                        user specific details view.
                                     </p>
                                 </div>
                             </button>
@@ -222,4 +225,4 @@ function ShopHome() {
     );
 }
 
-export default ShopHome;
+export default UserHome;
