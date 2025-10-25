@@ -23,13 +23,12 @@ const calculateItemTotal = (item) => {
 // --- React Component ---
 const AddBillPage = () => {
     const defaultItem = {
-        // productId: '',
         productName: '',
         quantity: 1,
         unit: 'pcs',
         price: 0,
         discount: 0,
-        taxRate: 0
+        taxRate: 0,
     };
 
     const {
@@ -39,9 +38,11 @@ const AddBillPage = () => {
         watch,
         formState: { errors, isSubmitting },
         setValue,
+        getValues, // Add this to debug
     } = useForm({
         resolver: zodResolver(AddBillSchema),
         defaultValues: {
+            date: new Date().toISOString().split('T')[0], // Default to current date
             customerName: '',
             phone: '',
             email: '',
@@ -52,7 +53,7 @@ const AddBillPage = () => {
             packagingCharge: 0,
             amountPaid: 0,
             paymentMethod: 'cash',
-            isCredit: false,
+            isCredit: true,
             creditPeriod: null,
             creditInterestRate: null,
             taxAmount: 0,
@@ -70,6 +71,7 @@ const AddBillPage = () => {
     const watchedPackagingCharge = watch('packagingCharge');
     const watchedAmountPaid = watch('amountPaid');
     const watchedIsCredit = watch('isCredit');
+    const watchedDate = watch('date'); // Watch the date field
 
     // Main Bill Calculation Hook
     const { totalAmount, totalDiscount, totalTaxAmount, grandTotal, remainingAmount } = useMemo(() => {
@@ -106,6 +108,12 @@ const AddBillPage = () => {
     }, [watchedItems, watchedDiscount, watchedDeliveryCharge, watchedPackagingCharge, watchedAmountPaid, setValue]);
 
     const onSubmit = async (data) => {
+        console.log('Form data before submission:', data);
+        console.log('Date being sent:', data.date);
+        console.log('Date type:', typeof data.date);
+        console.log('getValues date:', getValues('date'));
+
+
         const finalData = {
             ...data,
             totalAmount: totalAmount,
@@ -116,27 +124,39 @@ const AddBillPage = () => {
             address: data.address || undefined,
             creditPeriod: data.isCredit ? data.creditPeriod : undefined,
             creditInterestRate: data.isCredit ? data.creditInterestRate : undefined,
+            // ✅ REMOVE THE FALLBACK - just use the date from form data
+            date: data.date || getValues('date') || watchedDate,
         };
 
+        console.log('Final data being sent:', finalData);
+        console.log('=== END DEBUG ===');
 
         try {
-            const { data } = await axiosClient.post('/khata/add_bill', finalData);
+            const response = await axiosClient.post('/khata/add_bill', finalData);
 
-            toast.success(`Bill "${data.customerName}" added successfully! Grand Total: ₹${grandTotal.toFixed(2)}`, {
+            toast.success(`Bill "${response.data.bill?.customerName || 'Bill'}" added successfully! Grand Total: ₹${grandTotal.toFixed(2)}`, {
                 style: {
                     background: '#1f2937',
                     color: '#fff',
                     border: '1px solid #374151',
                 }
             });
-            // Reset form after successful submission
+
             setTimeout(() => {
                 window.location.reload();
             }, 2000);
 
         } catch (error) {
             console.error('Submission Error:', error);
-            toast.error(`Error: ${error.message || 'Could not add bill'}`);
+            console.error('Error response data:', error.response?.data);
+            console.error('Validation errors:', error.response?.data?.errors);
+
+            const errorMessage = error.response?.data?.message ||
+                error.response?.data?.errors?.join(', ') ||
+                error.message ||
+                'Could not add bill';
+
+            toast.error(`Error: ${errorMessage}`);
         }
     };
 
@@ -166,7 +186,28 @@ const AddBillPage = () => {
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                    {/* Date Field - Alternative explicit approach */}
+                    <div className="flex justify-end">
+                        <div className="w-64 transform transition-transform duration-300 hover:scale-[1.02]">
+                            <label htmlFor="date" className={labelClass}>
+                                Bill Date <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                id="date"
+                                type="date"
+                                {...register('date', {
+                                    required: 'Bill date is required',
+                                })}
+                                className={inputClass}
+                            />
+                            {errors.date && <p className={errorClass}>{errors.date.message}</p>}
+                            <p className="text-xs text-gray-500 mt-1">
+                                Selected date: {watchedDate || 'Not set'}
+                            </p>
+                        </div>
+                    </div>
 
+                    {/* Rest of your form remains the same */}
                     {/* 1. Customer Details */}
                     <div className={`${cardClass} animate-slide-up`}>
                         <h2 className={sectionHeaderClass}>Customer Details</h2>

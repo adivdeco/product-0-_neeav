@@ -27,8 +27,6 @@ const addNewBills = async (req, res) => {
         }
 
         const shopId = shop._id;
-        // console.log(shop.ownerId, "ownerId");
-        // console.log(shopId, "shopid");
 
         const {
             customerName,
@@ -38,8 +36,14 @@ const addNewBills = async (req, res) => {
             amountPaid,
             phone,
             email,
-            address
+            address,
+            date  // This is from frontend form
         } = req.body;
+
+        // ✅ DEBUG: Check what date is received
+        console.log('Received date from frontend:', date);
+        console.log('Type of date:', typeof date);
+        console.log('Full request body:', req.body);
 
         // Validate required fields
         if (!customerName || !items || !totalAmount || !grandTotal) {
@@ -65,13 +69,13 @@ const addNewBills = async (req, res) => {
         let customerId;
 
         // Find or create customer
-        if (phone) {
+        if (phone || customerName) {
             let customer = await Customer.findOne({ phone, shopId }).session(session);
 
             if (!customer) {
                 // Create new customer WITH shopId
                 customer = new Customer({
-                    shopId, // ✅ FIXED: Added shopId here
+                    shopId,
                     name: customerName,
                     phone: phone,
                     email: email || '',
@@ -89,8 +93,6 @@ const addNewBills = async (req, res) => {
                 customer.currentBalance += (grandTotal) - (amountPaid);
                 await customer.save({ session });
             }
-
-
         }
 
         // Generate unique bill number
@@ -99,7 +101,6 @@ const addNewBills = async (req, res) => {
         // Calculate additional fields if not provided
         const discount = req.body.discount || 0;
         const taxAmount = req.body.taxAmount || 0;
-        // const amountPaid = req.body.amountPaid || 0;
 
         // Validate payment status logic
         let paymentStatus = req.body.paymentStatus || 'pending';
@@ -109,15 +110,22 @@ const addNewBills = async (req, res) => {
             paymentStatus = 'partial';
         }
 
+        // ✅ Create proper date objects - FIXED LOGIC
+        // Use the date from frontend for both billDate and date fields
+        const selectedDate = date ? new Date(date) : new Date();
+
+        console.log('Setting billDate to:', selectedDate);
+        console.log('Setting date to:', selectedDate);
+
         const newBill = new Bills({
             shopId,
             customerId: customerId || null,
             customerName,
             customerPhone: phone,
             customerEmail: email,
-            billNumber,
+            billNumber: billNumber,
+            billDate: selectedDate, // ✅ Use the selected date
             items: items.map(item => ({
-                // productId: item.productId,
                 productName: item.productName,
                 quantity: item.quantity,
                 unit: item.unit || 'pcs',
@@ -132,7 +140,7 @@ const addNewBills = async (req, res) => {
             amountPaid,
             paymentStatus,
             paymentMethod: req.body.paymentMethod || 'cash',
-            isCredit: req.body.isCredit || true,
+            isCredit: req.body.isCredit ?? true,
             creditPeriod: req.body.creditPeriod,
             creditInterestRate: req.body.creditInterestRate,
             deliveryCharge: req.body.deliveryCharge || 0,
@@ -140,11 +148,28 @@ const addNewBills = async (req, res) => {
             notes: req.body.notes,
             referenceNumber: req.body.referenceNumber,
             dueDate: req.body.dueDate,
+            date: selectedDate, // ✅ Use the same selected date
             createdBy: userId
+        });
+
+        // ✅ DEBUG: Check the bill object before saving
+        console.log('Bill object before save:', {
+            billNumber: newBill.billNumber,
+            billDate: newBill.billDate,
+            date: newBill.date,
+            customerName: newBill.customerName
         });
 
         await newBill.save({ session });
         await session.commitTransaction();
+
+        // ✅ DEBUG: Check the saved bill
+        const savedBill = await Bills.findById(newBill._id);
+        console.log('Bill saved successfully:', {
+            billDate: savedBill.billDate,
+            date: savedBill.date,
+            _id: savedBill._id
+        });
 
         // Populate the bill with customer details before sending response
         const populatedBill = await Bills.findById(newBill._id)
@@ -159,6 +184,11 @@ const addNewBills = async (req, res) => {
     } catch (error) {
         await session.abortTransaction();
         console.error('Error in adding new bill:', error);
+        console.error('Error details:', error.message);
+
+        if (error.name === 'ValidationError') {
+            console.error('Validation errors:', error.errors);
+        }
 
         if (error.code === 11000 && error.keyPattern && error.keyPattern.billNumber) {
             return res.status(400).json({
@@ -186,6 +216,93 @@ const addNewBills = async (req, res) => {
 
 
 
+// const updateBill = async (req, res) => {
+//     const session = await mongoose.startSession();
+//     session.startTransaction();
+
+//     try {
+//         const userId = req.session.userId;
+//         const role = req.session.role;
+
+//         if (role !== 'store_owner' && role !== "admin") {
+//             return res.status(403).json({
+//                 message: "Forbidden: You do not have access to add bills"
+//             });
+//         }
+//         const { billId } = req.params;
+
+//         if (!mongoose.Types.ObjectId.isValid(billId)) {
+//             return res.status(400).json({ message: "Invalid bill ID" });
+//         }
+
+//         const bill = await Bills.findById(billId).session(session);
+//         if (!bill) {
+//             await session.abortTransaction();
+//             return res.status(404).json({ message: "Bill not found" });
+//         }
+
+//         // Check if user has access to this bill's shop
+//         // You might want to add additional authorization checks here
+
+//         // Prevent updating certain fields
+//         const allowedUpdates = [
+//             'paymentStatus', 'amountPaid', 'paymentMethod', 'notes',
+//             'referenceNumber', 'status', 'dueDate'
+//         ];
+
+//         const updates = Object.keys(req.body);
+//         const isValidOperation = updates.every(update => allowedUpdates.includes(update));
+
+//         if (!isValidOperation) {
+//             await session.abortTransaction();
+//             return res.status(400).json({
+//                 message: "Invalid updates! Only certain fields can be updated"
+//             });
+//         }
+
+//         // Handle payment updates
+//         if (req.body.amountPaid !== undefined) {
+//             if (req.body.amountPaid > bill.grandTotal) {
+//                 await session.abortTransaction();
+//                 return res.status(400).json({
+//                     message: "Amount paid cannot exceed grand total"
+//                 });
+//             }
+
+//             // Update payment status based on amount paid
+//             if (req.body.amountPaid >= bill.grandTotal) {
+//                 req.body.paymentStatus = 'paid';
+//             } else if (req.body.amountPaid > 0) {
+//                 req.body.paymentStatus = 'partial';
+//             } else {
+//                 req.body.paymentStatus = 'pending';
+//             }
+//         }
+
+//         updates.forEach(update => bill[update] = req.body[update]);
+//         bill.updatedBy = userId;
+
+//         await bill.save({ session });
+//         await session.commitTransaction();
+
+//         const updatedBill = await Bills.findById(billId)
+//             .populate('customerId', 'name phone email')
+//             .populate('shopId', 'name address');
+
+//         res.json({
+//             message: "Bill updated successfully",
+//             bill: updatedBill
+//         });
+
+//     } catch (error) {
+//         await session.abortTransaction();
+//         console.error('Error in updating bill:', error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     } finally {
+//         session.endSession();
+//     }
+// };
+
 const updateBill = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -195,13 +312,16 @@ const updateBill = async (req, res) => {
         const role = req.session.role;
 
         if (role !== 'store_owner' && role !== "admin") {
+            await session.abortTransaction();
             return res.status(403).json({
-                message: "Forbidden: You do not have access to add bills"
+                message: "Forbidden: You do not have access to update bills"
             });
         }
+
         const { billId } = req.params;
 
         if (!mongoose.Types.ObjectId.isValid(billId)) {
+            await session.abortTransaction();
             return res.status(400).json({ message: "Invalid bill ID" });
         }
 
@@ -212,9 +332,15 @@ const updateBill = async (req, res) => {
         }
 
         // Check if user has access to this bill's shop
-        // You might want to add additional authorization checks here
+        const shop = await Shop.findOne({ ownerId: userId }).session(session);
+        if (!shop || !bill.shopId.equals(shop._id)) {
+            await session.abortTransaction();
+            return res.status(403).json({
+                message: "Forbidden: You don't have access to this bill"
+            });
+        }
 
-        // Prevent updating certain fields
+        // Allowed fields for update
         const allowedUpdates = [
             'paymentStatus', 'amountPaid', 'paymentMethod', 'notes',
             'referenceNumber', 'status', 'dueDate'
@@ -230,9 +356,15 @@ const updateBill = async (req, res) => {
             });
         }
 
+        // Store old values for customer balance calculation
+        const oldAmountPaid = bill.amountPaid;
+        const oldPaymentStatus = bill.paymentStatus;
+
         // Handle payment updates
         if (req.body.amountPaid !== undefined) {
-            if (req.body.amountPaid > bill.grandTotal) {
+            const newAmountPaid = parseFloat(req.body.amountPaid);
+
+            if (newAmountPaid > bill.grandTotal) {
                 await session.abortTransaction();
                 return res.status(400).json({
                     message: "Amount paid cannot exceed grand total"
@@ -240,24 +372,42 @@ const updateBill = async (req, res) => {
             }
 
             // Update payment status based on amount paid
-            if (req.body.amountPaid >= bill.grandTotal) {
+            if (newAmountPaid >= bill.grandTotal) {
                 req.body.paymentStatus = 'paid';
-            } else if (req.body.amountPaid > 0) {
+            } else if (newAmountPaid > 0) {
                 req.body.paymentStatus = 'partial';
             } else {
                 req.body.paymentStatus = 'pending';
             }
+
+            // Update customer balance if it's a credit bill
+            if (bill.isCredit && bill.customerId) {
+                const customer = await Customer.findById(bill.customerId).session(session);
+                if (customer) {
+                    // Remove old balance effect and apply new one
+                    const oldBalanceEffect = bill.grandTotal - oldAmountPaid;
+                    const newBalanceEffect = bill.grandTotal - newAmountPaid;
+
+                    customer.currentBalance = customer.currentBalance + oldBalanceEffect - newBalanceEffect;
+                    await customer.save({ session });
+                }
+            }
         }
 
-        updates.forEach(update => bill[update] = req.body[update]);
+        // Apply updates
+        updates.forEach(update => {
+            bill[update] = req.body[update];
+        });
+
         bill.updatedBy = userId;
+        bill.updatedAt = new Date();
 
         await bill.save({ session });
         await session.commitTransaction();
 
         const updatedBill = await Bills.findById(billId)
             .populate('customerId', 'name phone email')
-            .populate('shopId', 'name address');
+            .populate('shopId', 'shopName address');
 
         res.json({
             message: "Bill updated successfully",
@@ -267,7 +417,19 @@ const updateBill = async (req, res) => {
     } catch (error) {
         await session.abortTransaction();
         console.error('Error in updating bill:', error);
-        res.status(500).json({ message: 'Internal server error' });
+
+        if (error.name === 'ValidationError') {
+            const errors = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({
+                message: "Validation error",
+                errors
+            });
+        }
+
+        res.status(500).json({
+            message: 'Internal server error',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     } finally {
         session.endSession();
     }

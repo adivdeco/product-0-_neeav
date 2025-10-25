@@ -34,7 +34,10 @@ const billSchema = new Schema({
     },
     billDate: {
         type: Date,
-        default: Date.now
+        // default: Date.now
+    },
+    date: {
+        type: Date,
     },
     dueDate: Date,
 
@@ -135,6 +138,7 @@ const billSchema = new Schema({
         default: 'active'
     },
 
+
     // Timestamps
     createdAt: {
         type: Date,
@@ -142,12 +146,10 @@ const billSchema = new Schema({
     },
     updatedAt: {
         type: Date,
-        default: Date.now
+        // default: Date.now
     },
 
-    // For digital signature/verification (future blockchain use)
-    // digitalSignature: String,
-    // billHash: String
+
 });
 
 // Update the updatedAt field before saving
