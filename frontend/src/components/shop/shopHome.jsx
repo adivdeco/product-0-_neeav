@@ -161,9 +161,9 @@ function ShopHome() {
                                     {/* Icon Container */}
                                     <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center overflow-visible group-hover:bg-gray-200 transition-colors duration-300">
                                         <img
-                                            src="https://cdn.prod.website-files.com/655041f226c56cfcfbc201b5/67cfea3d3602abad23288dd5_service-business-examples.jpg"
+                                            src="https://static.vecteezy.com/system/resources/previews/035/880/409/non_2x/monthly-budget-and-financial-planning-icon-in-simple-colored-outline-style-vector.jpg"
                                             alt="Service Provider"
-                                            className="w-20 h-20 object-cover rounded-full group-hover:scale-150 transition-transform duration-500 ease-out"
+                                            className="w-25 h-25 object-cover rounded-full group-hover:scale-150 transition-transform duration-500 ease-out"
                                         />
                                     </div>
 
@@ -181,24 +181,24 @@ function ShopHome() {
                         <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-500 p-8 border border-gray-200 group cursor-pointer transform hover:-translate-y-2">
                             <button
                                 className="w-full bg-transparent hover:bg-gray-50 text-gray-800 font-medium py-4 px-6 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed  "
-                                onClick={() => { navigate('/shop/updateBill') }}
+                                onClick={() => { navigate('/shop/allCustomers') }}
                                 disabled={loading}
                             >
                                 <div className="text-center">
                                     {/* Icon Container */}
-                                    <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden group-hover:bg-gray-200 transition-colors duration-300">
+                                    <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center overflow-visible group-hover:bg-gray-200 transition-colors duration-300">
                                         <img
-                                            src="https://cdn.prod.website-files.com/655041f226c56cfcfbc201b5/67cfea3d3602abad23288dd5_service-business-examples.jpg"
+                                            src="https://img.freepik.com/premium-vector/buyer-with-seller-concept-man-near-cashier-buy-goods-customer-client-market-store-commerce_1002658-3318.jpg"
                                             alt="Service Provider"
-                                            className="w-20 h-20 object-cover rounded-full group-hover:scale-150 transition-transform duration-500 ease-out"
+                                            className="w-25 h-25 object-cover rounded-full group-hover:scale-127 transition-transform duration-500 ease-out"
                                         />
                                     </div>
 
                                     <h3 className="text-xl font-semibold text-gray-800 mb-3 group-hover:text-gray-900 transition-colors duration-300">
-                                        Update Bills
+                                        All Customers
                                     </h3>
                                     <p className="text-gray-600 mb-4 leading-relaxed text-sm">
-                                        Need to update your bills?
+                                        view all your customers here.
                                     </p>
                                 </div>
                             </button>

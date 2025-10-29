@@ -1,4 +1,3 @@
-// src/components/shop/BillDetailsModal.jsx
 import React from 'react';
 import {
     FiX,

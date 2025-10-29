@@ -101,3 +101,21 @@ customerSchema.index({ shopId: 1, name: 1 });
 
 const Customer = mongoose.model('Customer', customerSchema);
 module.exports = Customer;
+
+
+
+// // Instance method to check if customer can take more credit
+// customerSchema.methods.canTakeCredit = function(amount) {
+//     if (!this.creditAllowed) return false;
+//     if (this.creditLimit === 0) return true; // No limit set
+//     return (this.currentBalance + amount) <= this.creditLimit;
+// };
+
+// // Static method to find customers with outstanding balances
+// customerSchema.statics.findWithOutstandingBalance = function(shopId) {
+//     return this.find({
+//         shopId: shopId,
+//         isActive: true,
+//         currentBalance: { $gt: 0 }
+//     });
+// };

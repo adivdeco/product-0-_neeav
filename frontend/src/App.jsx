@@ -18,7 +18,7 @@ import Add_services from './components/admin/Add_services';
 import Business from './components/admin/bussiness';
 import ShopHome from './components/shop/shopHome';
 import AddBill from './components/shop/addBill';
-// import UpdateBill from './components/shop/updateBill';
+import AllCustomers from './components/shop/AllCustomers';
 import AllBill from './components/shop/allBills';
 import UserHome from './components/admin/Users_data/user_Home';
 import AllUsers from './components/admin/Users_data/Allusers';
@@ -60,8 +60,7 @@ function App() {
       {/* shop */}
       <Route path='/shop' element={isAuthenticated ? <ShopHome /> : <Login />} />
       <Route path='/shop/addBill' element={isAuthenticated ? <AddBill /> : <Login />} />
-      {/* <Route path='/shop/updateBill' element={isAuthenticated ? < UpdateBill /> : <Login />} /> */}
-      {/* <Route path='/shop/searchBills' element={isAuthenticated ? <AddBill /> : <Login />} /> */}
+      <Route path='/shop/allCustomers' element={isAuthenticated ? <AllCustomers /> : <Login />} />
       <Route path='/shop/allBills' element={isAuthenticated ? <AllBill /> : <Login />} />
 
       {/* userPage */}
