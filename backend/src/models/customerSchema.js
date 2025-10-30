@@ -28,7 +28,8 @@ const customerSchema = new Schema({
         city: String,
         state: String,
         pincode: String,
-        landmark: String
+        landmark: String,
+        type: String
     },
 
     // Customer type (individual contractor, construction company, etc.)

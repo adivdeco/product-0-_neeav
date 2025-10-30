@@ -177,7 +177,7 @@ function ShopHome() {
                             </button>
                         </div>
 
-                        {/* Update Bills Card */}
+                        {/* All Customers Card */}
                         <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-500 p-8 border border-gray-200 group cursor-pointer transform hover:-translate-y-2">
                             <button
                                 className="w-full bg-transparent hover:bg-gray-50 text-gray-800 font-medium py-4 px-6 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed  "

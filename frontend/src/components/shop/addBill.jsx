@@ -1,11 +1,13 @@
 // AddBillPage.jsx
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import toast, { Toaster } from 'react-hot-toast';
 import axiosClient from '../../api/auth';
 import { AddBillSchema } from '../../api/billValidationSchema';
 import Navbar from '../home/navbar';
+import { Search, User, Phone, MapPin, DollarSign, Check } from 'lucide-react';
+
 
 // --- Utility Function ---
 const calculateItemTotal = (item) => {
@@ -20,8 +22,119 @@ const calculateItemTotal = (item) => {
     };
 };
 
+const CustomerSearchResults = ({
+    customers,
+    onSelectCustomer,
+    searchTerm,
+    isVisible,
+    position
+}) => {
+    if (!isVisible || !searchTerm || customers.length === 0) return null;
+
+    const filteredCustomers = customers.filter(customer =>
+        customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.phone?.includes(searchTerm) ||
+        customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (filteredCustomers.length === 0) return null;
+
+    return (
+        <div
+            className="absolute -mt-96 z-50  w-full max-w-md bg-white dark:bg-black/90 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl max-h-80 overflow-y-auto"
+            style={position}
+        >
+            <div className="p-2  ">
+                <div className="flex  items-center px-3 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                    <Search size={16} className="mr-2" />
+                    {filteredCustomers.length} customers found
+                </div>
+
+                {filteredCustomers.map((customer, index) => (
+                    <div
+                        key={customer._id}
+                        onClick={() => onSelectCustomer(customer)}
+                        className={`p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 ${index < filteredCustomers.length - 1 ? 'border-b border-gray-100 dark:border-gray-700' : ''
+                            }`}
+                    >
+                        <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3">
+
+                                <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                                    <User size={16} className="text-blue-600 dark:text-blue-400" />
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center space-x-2">
+                                        <p className="font-medium text-gray-900 dark:text-white truncate">
+                                            {customer.name}
+                                        </p>
+                                        {customer.type !== 'Individual' && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                                {customer.type}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                                        {customer.phone && (
+                                            <div className="flex items-center space-x-1">
+                                                <Phone size={12} />
+                                                <span>{customer.phone}</span>
+                                            </div>
+                                        )}
+
+                                        {customer.currentBalance > 0 && (
+                                            <div className="flex items-center space-x-1 text-orange-600 dark:text-orange-400">
+                                                <DollarSign size={12} />
+                                                <span>₹{customer.currentBalance}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {customer.address?.city && (
+                                        <div className="mt-1 flex items-center space-x-1 text-xs text-gray-400 dark:text-gray-500">
+                                            <MapPin size={12} />
+                                            <span>
+                                                {customer.address.city}
+                                                {customer.address.state && `, ${customer.address.state}`}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {customer.creditAllowed && (
+                                        <div className="mt-1">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                Credit Allowed
+                                                {customer.creditLimit > 0 && ` (₹${customer.creditLimit})`}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <Check size={16} className="text-green-500 flex-shrink-0 opacity-0 group-hover:opacity-100" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 // --- React Component ---
 const AddBillPage = () => {
+
+
+
+    const [customers, setCustomers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showCustomerResults, setShowCustomerResults] = useState(false);
+    const [searchPosition, setSearchPosition] = useState({});
+    const [selectedCustomer, setSelectedCustomer] = useState(null);
+
     const defaultItem = {
         productName: '',
         quantity: 1,
@@ -71,7 +184,9 @@ const AddBillPage = () => {
     const watchedPackagingCharge = watch('packagingCharge');
     const watchedAmountPaid = watch('amountPaid');
     const watchedIsCredit = watch('isCredit');
-    const watchedDate = watch('date'); // Watch the date field
+    const watchedDate = watch('date');
+    const watchedCustomerName = watch('customerName');
+
 
     // Main Bill Calculation Hook
     const { totalAmount, totalDiscount, totalTaxAmount, grandTotal, remainingAmount } = useMemo(() => {
@@ -107,11 +222,74 @@ const AddBillPage = () => {
         };
     }, [watchedItems, watchedDiscount, watchedDeliveryCharge, watchedPackagingCharge, watchedAmountPaid, setValue]);
 
+    const handleCustomerSearch = (e) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+        setValue('customerName', value);
+
+        if (value.length >= 2) {
+            setShowCustomerResults(true);
+            // Get input position for absolute positioning
+            const input = e.target;
+            const rect = input.getBoundingClientRect();
+            setSearchPosition({
+                top: rect.bottom + window.scrollY,
+                left: rect.left + window.scrollX,
+                width: rect.width
+            });
+        } else {
+            setShowCustomerResults(false);
+        }
+    };
+
+    // Handle customer selection
+    const handleSelectCustomer = (customer) => {
+        setSelectedCustomer(customer);
+        setSearchTerm(customer.name);
+        setShowCustomerResults(false);
+
+        // Auto-fill form fields
+        setValue('customerName', customer.name);
+        setValue('phone', customer.phone || '');
+        setValue('email', customer.email || '');
+
+        // Format address
+        if (customer.address) {
+            const addressParts = [
+                customer.address.street,
+                customer.address.city,
+                customer.address.state,
+                customer.address.pincode
+            ].filter(Boolean);
+            setValue('address', addressParts.join(', '));
+        }
+
+        // Set credit information
+        if (customer.creditAllowed) {
+            setValue('isCredit', true);
+        }
+
+        toast.success(`Customer "${customer.name}" selected!`, {
+            icon: '👤',
+            style: {
+                background: '#1f2937',
+                color: '#fff',
+                border: '1px solid #374151',
+            }
+        });
+    };
+
+    const handleClearCustomer = () => {
+        setSelectedCustomer(null);
+        setSearchTerm('');
+        setValue('customerName', '');
+        setValue('phone', '');
+        setValue('email', '');
+        setValue('address', '');
+        setShowCustomerResults(false);
+    };
+
     const onSubmit = async (data) => {
-        console.log('Form data before submission:', data);
-        console.log('Date being sent:', data.date);
-        console.log('Date type:', typeof data.date);
-        console.log('getValues date:', getValues('date'));
 
 
         const finalData = {
@@ -124,12 +302,8 @@ const AddBillPage = () => {
             address: data.address || undefined,
             creditPeriod: data.isCredit ? data.creditPeriod : undefined,
             creditInterestRate: data.isCredit ? data.creditInterestRate : undefined,
-            // ✅ REMOVE THE FALLBACK - just use the date from form data
             date: data.date || getValues('date') || watchedDate,
         };
-
-        console.log('Final data being sent:', finalData);
-        console.log('=== END DEBUG ===');
 
         try {
             const response = await axiosClient.post('/khata/add_bill', finalData);
@@ -160,6 +334,25 @@ const AddBillPage = () => {
         }
     };
 
+    const fetchCustomers = async () => {
+        try {
+            setLoading(true);
+            const response = await axiosClient.get('/khata/customer');
+            console.log(response.data);
+            setCustomers(response.data.customers || response.data);
+        } catch (err) {
+            setError('Failed to fetch customers');
+            console.error('Error fetching customers:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchCustomers();
+    }, []);
+
+
     // Professional UI Classes
     const inputClass = "w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all duration-300 ease-in-out bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white hover:border-gray-400";
     const labelClass = "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2";
@@ -187,6 +380,7 @@ const AddBillPage = () => {
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
                     {/* Date Field - Alternative explicit approach */}
+
                     <div className="flex justify-end">
                         <div className="w-64 transform transition-transform duration-300 hover:scale-[1.02]">
                             <label htmlFor="date" className={labelClass}>
@@ -207,11 +401,80 @@ const AddBillPage = () => {
                         </div>
                     </div>
 
-                    {/* Rest of your form remains the same */}
-                    {/* 1. Customer Details */}
-                    <div className={`${cardClass} animate-slide-up`}>
-                        <h2 className={sectionHeaderClass}>Customer Details</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                    {/*  Customer Details */}
+                    <div className={`${cardClass} animate-slide-up relative`}>
+                        <h2 className={sectionHeaderClass}>Customer Selection</h2>
+
+                        {/* Selected Customer Badge */}
+                        {selectedCustomer && (
+                            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
+                                            <User size={20} className="text-blue-600 dark:text-blue-400" />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-gray-900 dark:text-white">
+                                                {selectedCustomer.name}
+                                            </p>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                {selectedCustomer.phone} • {selectedCustomer.email}
+                                                {selectedCustomer.currentBalance > 0 && (
+                                                    <span className="ml-2 text-orange-600 dark:text-orange-400">
+                                                        • Balance: ₹{selectedCustomer.currentBalance}
+                                                    </span>
+                                                )}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleClearCustomer}
+                                        className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                                    >
+                                        Change Customer
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Customer Search Input */}
+                        <div className="relative">
+                            <label htmlFor="customerSearch" className={labelClass}>
+                                Search Existing Customer
+                            </label>
+                            <div className="relative">
+                                <input
+                                    id="customerSearch"
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={handleCustomerSearch}
+                                    className={inputClass}
+                                    placeholder="Type customer name, phone, or email..."
+                                    disabled={selectedCustomer}
+                                />
+                                <Search
+                                    size={20}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                                />
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                Start typing to search existing customers. Select one to auto-fill details.
+                            </p>
+
+                            {/* Customer Search Results */}
+                            <CustomerSearchResults
+                                customers={customers}
+                                onSelectCustomer={handleSelectCustomer}
+                                searchTerm={searchTerm}
+                                isVisible={showCustomerResults && !selectedCustomer}
+                                position={searchPosition}
+                            />
+                        </div>
+
+                        {/* Manual Customer Details */}
+                        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <div className="transform transition-transform duration-300 hover:scale-[1.02]">
                                 <label htmlFor="customerName" className={labelClass}>
                                     Customer Name <span className="text-red-500">*</span>
@@ -222,6 +485,7 @@ const AddBillPage = () => {
                                     {...register('customerName')}
                                     className={inputClass}
                                     placeholder="John Doe"
+                                    disabled={selectedCustomer}
                                 />
                                 {errors.customerName && <p className={errorClass}>{errors.customerName.message}</p>}
                             </div>
@@ -233,6 +497,7 @@ const AddBillPage = () => {
                                     {...register('phone')}
                                     className={inputClass}
                                     placeholder="9876543210"
+                                    disabled={selectedCustomer}
                                 />
                                 {errors.phone && <p className={errorClass}>{errors.phone.message}</p>}
                             </div>
@@ -244,6 +509,7 @@ const AddBillPage = () => {
                                     {...register('email')}
                                     className={inputClass}
                                     placeholder="john@example.com"
+                                    disabled={selectedCustomer}
                                 />
                                 {errors.email && <p className={errorClass}>{errors.email.message}</p>}
                             </div>
@@ -255,12 +521,13 @@ const AddBillPage = () => {
                                     {...register('address')}
                                     className={inputClass}
                                     placeholder="City or Full Address"
+                                    disabled={selectedCustomer}
                                 />
                             </div>
                         </div>
                     </div>
 
-                    {/* 2. Bill Items Section */}
+                    {/*  Bill Items Section */}
                     <div className={`${cardClass} animate-slide-up`}>
                         <div className="flex justify-between items-center mb-6">
                             <h2 className={sectionHeaderClass}>Bill Items</h2>
@@ -398,7 +665,7 @@ const AddBillPage = () => {
                         {errors.items && <p className={`${errorClass} text-center mt-3`}>{errors.items.message}</p>}
                     </div>
 
-                    {/* 3. Summary and Payment Section */}
+                    {/*  Summary and Payment Section */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                         {/* Payment & Credit Options */}
@@ -593,9 +860,10 @@ const AddBillPage = () => {
                             </button>
                         </div>
                     </div>
-                </form>
-            </div>
-        </div>
+
+                </form >
+            </div >
+        </div >
     );
 };
 
@@ -616,5 +884,7 @@ const BillSummaryLine = ({ label, value, isNegative = false, isTotal = false, is
         </span>
     </div>
 );
+
+
 
 export default AddBillPage;

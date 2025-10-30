@@ -40,10 +40,9 @@ const addNewBills = async (req, res) => {
             date  // This is from frontend form
         } = req.body;
 
-        // ✅ DEBUG: Check what date is received
-        console.log('Received date from frontend:', date);
-        console.log('Type of date:', typeof date);
-        console.log('Full request body:', req.body);
+        // ✅ DEBUG: Check what address is received
+        console.log('Received address from frontend:', address);
+
 
         // Validate required fields
         if (!customerName || !items || !totalAmount || !grandTotal) {
@@ -110,12 +109,10 @@ const addNewBills = async (req, res) => {
             paymentStatus = 'partial';
         }
 
-        // ✅ Create proper date objects - FIXED LOGIC
-        // Use the date from frontend for both billDate and date fields
+
         const selectedDate = date ? new Date(date) : new Date();
 
-        console.log('Setting billDate to:', selectedDate);
-        console.log('Setting date to:', selectedDate);
+
 
         const newBill = new Bills({
             shopId,
@@ -152,24 +149,24 @@ const addNewBills = async (req, res) => {
             createdBy: userId
         });
 
-        // ✅ DEBUG: Check the bill object before saving
-        console.log('Bill object before save:', {
-            billNumber: newBill.billNumber,
-            billDate: newBill.billDate,
-            date: newBill.date,
-            customerName: newBill.customerName
-        });
+        // // ✅ DEBUG: Check the bill object before saving
+        // console.log('Bill object before save:', {
+        //     billNumber: newBill.billNumber,
+        //     billDate: newBill.billDate,
+        //     date: newBill.date,
+        //     customerName: newBill.customerName
+        // });
 
         await newBill.save({ session });
         await session.commitTransaction();
 
         // ✅ DEBUG: Check the saved bill
-        const savedBill = await Bills.findById(newBill._id);
-        console.log('Bill saved successfully:', {
-            billDate: savedBill.billDate,
-            date: savedBill.date,
-            _id: savedBill._id
-        });
+        // const savedBill = await Bills.findById(newBill._id);
+        // console.log('Bill saved successfully:', {
+        //     billDate: savedBill.billDate,
+        //     date: savedBill.date,
+        //     _id: savedBill._id
+        // });
 
         // Populate the bill with customer details before sending response
         const populatedBill = await Bills.findById(newBill._id)

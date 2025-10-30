@@ -53,6 +53,7 @@ const CustomersPage = () => {
         try {
             setLoading(true);
             const response = await axiosClient.get('/khata/customer');
+            console.log(response.data);
             setCustomers(response.data.customers || response.data);
         } catch (err) {
             setError('Failed to fetch customers');
