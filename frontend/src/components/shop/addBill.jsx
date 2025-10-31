@@ -7,9 +7,10 @@ import axiosClient from '../../api/auth';
 import { AddBillSchema } from '../../api/billValidationSchema';
 import Navbar from '../home/navbar';
 import { Search, User, Phone, MapPin, DollarSign, Check } from 'lucide-react';
+import { generateCustomerEmail, shouldGenerateEmail } from '../../utils/emailGenerator';
 
 
-// --- Utility Function ---
+
 const calculateItemTotal = (item) => {
     const basePrice = item.quantity * item.price;
     const discountAmount = basePrice * (item.discount / 100);
@@ -92,13 +93,20 @@ const CustomerSearchResults = ({
                                         )}
                                     </div>
 
-                                    {customer.address?.city && (
+                                    {customer.address && (
                                         <div className="mt-1 flex items-center space-x-1 text-xs text-gray-400 dark:text-gray-500">
                                             <MapPin size={12} />
-                                            <span>
-                                                {customer.address.city}
-                                                {customer.address.state && `, ${customer.address.state}`}
-                                            </span>
+
+                                            {customer.address && typeof customer.address === 'string' ? (
+                                                <p>{customer.address}</p>
+                                            ) : (
+                                                <>
+                                                    {customer.address.city}
+                                                    {customer.address.state && `, ${customer.address.state}`}
+                                                </>
+                                            )}
+
+
                                         </div>
                                     )}
 
@@ -122,9 +130,9 @@ const CustomerSearchResults = ({
     );
 };
 
-// --- React Component ---
-const AddBillPage = () => {
 
+
+const AddBillPage = () => {
 
 
     const [customers, setCustomers] = useState([]);
@@ -134,6 +142,8 @@ const AddBillPage = () => {
     const [showCustomerResults, setShowCustomerResults] = useState(false);
     const [searchPosition, setSearchPosition] = useState({});
     const [selectedCustomer, setSelectedCustomer] = useState(null);
+    const [isEmailManuallyEdited, setIsEmailManuallyEdited] = useState(false);
+
 
     const defaultItem = {
         productName: '',
@@ -185,7 +195,16 @@ const AddBillPage = () => {
     const watchedAmountPaid = watch('amountPaid');
     const watchedIsCredit = watch('isCredit');
     const watchedDate = watch('date');
-    const watchedCustomerName = watch('customerName');
+    const watchCustomerName = watch('customerName');
+    const watchPhone = watch('phone');
+    const watchEmail = watch('email');
+
+    useEffect(() => {
+        if (!isEmailManuallyEdited && shouldGenerateEmail(watchEmail, selectedCustomer) && watchCustomerName) {
+            const generatedEmail = generateCustomerEmail(watchCustomerName, watchPhone);
+            setValue('email', generatedEmail);
+        }
+    }, [watchCustomerName, watchPhone, watchEmail, selectedCustomer, setValue, isEmailManuallyEdited]);
 
 
     // Main Bill Calculation Hook
@@ -254,12 +273,14 @@ const AddBillPage = () => {
         setValue('email', customer.email || '');
 
         // Format address
-        if (customer.address) {
+        if (typeof customer.address === 'string') {
+            setValue('address', customer.address);
+        } else {
             const addressParts = [
-                customer.address.street,
-                customer.address.city,
-                customer.address.state,
-                customer.address.pincode
+                customer.address?.street,
+                customer.address?.city,
+                customer.address?.state,
+                customer.address?.pincode
             ].filter(Boolean);
             setValue('address', addressParts.join(', '));
         }
@@ -489,6 +510,7 @@ const AddBillPage = () => {
                                 />
                                 {errors.customerName && <p className={errorClass}>{errors.customerName.message}</p>}
                             </div>
+
                             <div className="transform transition-transform duration-300 hover:scale-[1.02]">
                                 <label htmlFor="phone" className={labelClass}>Phone</label>
                                 <input
@@ -501,18 +523,43 @@ const AddBillPage = () => {
                                 />
                                 {errors.phone && <p className={errorClass}>{errors.phone.message}</p>}
                             </div>
+
                             <div className="transform transition-transform duration-300 hover:scale-[1.02]">
-                                <label htmlFor="email" className={labelClass}>Email</label>
+                                <div className="flex justify-between items-center">
+                                    <label htmlFor="email" className={labelClass}>
+                                        Email
+                                        <span className="text-xs text-blue-600 ml-1">(Auto-generated)</span>
+                                    </label>
+                                    {watchEmail && !isEmailManuallyEdited && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const newEmail = generateCustomerEmail(watchCustomerName, watchPhone);
+                                                setValue('email', newEmail);
+                                            }}
+                                            className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
+                                        >
+                                            Regenerate
+                                        </button>
+                                    )}
+                                </div>
                                 <input
                                     id="email"
                                     type="email"
                                     {...register('email')}
                                     className={inputClass}
-                                    placeholder="john@example.com"
+                                    placeholder="Auto-generated email"
                                     disabled={selectedCustomer}
+                                    onFocus={() => setIsEmailManuallyEdited(true)}
                                 />
+                                {watchEmail && !isEmailManuallyEdited && (
+                                    <p className="text-xs text-green-600 mt-1">
+                                        ✓ Unique email for bill tracking
+                                    </p>
+                                )}
                                 {errors.email && <p className={errorClass}>{errors.email.message}</p>}
                             </div>
+
                             <div className="lg:col-span-1 transform transition-transform duration-300 hover:scale-[1.02]">
                                 <label htmlFor="address" className={labelClass}>Address</label>
                                 <input

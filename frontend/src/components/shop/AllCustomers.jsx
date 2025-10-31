@@ -36,13 +36,14 @@ const CustomersPage = () => {
         phone: '',
         email: '',
         type: 'Individual',
-        address: {
-            street: '',
-            city: '',
-            state: '',
-            pincode: '',
-            landmark: ''
-        },
+        // address: {
+        //     street: '',
+        //     city: '',
+        //     state: '',
+        //     pincode: '',
+        //     landmark: ''
+        // },
+        address: '',
         creditAllowed: false,
         creditLimit: 0,
         gstNumber: ''
@@ -99,7 +100,8 @@ const CustomersPage = () => {
                 phone: '',
                 email: '',
                 type: 'Individual',
-                address: { street: '', city: '', state: '', pincode: '', landmark: '' },
+                // address: { street: '', city: '', state: '', pincode: '', landmark: '' },
+                address: '',
                 creditAllowed: false,
                 creditLimit: 0,
                 gstNumber: ''
@@ -584,11 +586,17 @@ const CustomersPage = () => {
                                         <div className="flex items-start space-x-2">
                                             <MapPin className="text-gray-400 mt-1" size={16} />
                                             <div>
-                                                {selectedCustomer.address.street && <p>{selectedCustomer.address.street}</p>}
-                                                {selectedCustomer.address.city && <p>{selectedCustomer.address.city}</p>}
-                                                {selectedCustomer.address.state && <p>{selectedCustomer.address.state}</p>}
-                                                {selectedCustomer.address.pincode && <p>PIN: {selectedCustomer.address.pincode}</p>}
-                                                {selectedCustomer.address.landmark && <p>Landmark: {selectedCustomer.address.landmark}</p>}
+                                                {selectedCustomer.address && typeof selectedCustomer.address === 'string' ? (
+                                                    <p>{selectedCustomer.address}</p>
+                                                ) : (
+                                                    <>
+                                                        {selectedCustomer.address.street && <p>{selectedCustomer.address.street}</p>}
+                                                        {selectedCustomer.address.city && <p>{selectedCustomer.address.city}</p>}
+                                                        {selectedCustomer.address.state && <p>{selectedCustomer.address.state}</p>}
+                                                        {selectedCustomer.address.pincode && <p>PIN: {selectedCustomer.address.pincode}</p>}
+                                                        {selectedCustomer.address.landmark && <p>Landmark: {selectedCustomer.address.landmark}</p>}
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

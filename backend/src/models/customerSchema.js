@@ -24,11 +24,11 @@ const customerSchema = new Schema({
 
     // Address information
     address: {
-        street: String,
-        city: String,
-        state: String,
-        pincode: String,
-        landmark: String,
+        // street: String,
+        // city: String,
+        // state: String,
+        // pincode: String,
+        // landmark: String,
         type: String
     },
 
