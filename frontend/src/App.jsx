@@ -20,8 +20,9 @@ import ShopHome from './components/shop/shopHome';
 import AddBill from './components/shop/addBill';
 import AllCustomers from './components/shop/AllCustomers';
 import AllBill from './components/shop/allBills';
-import UserHome from './components/admin/Users_data/user_Home';
+// import UserHome from './components/admin/Users_data/user_Home';
 import AllUsers from './components/admin/Users_data/Allusers';
+import ContractorProfile from './pages/allContractor'
 
 function App() {
   const dispatch = useDispatch();
@@ -51,9 +52,13 @@ function App() {
         }
       />
       <Route path='/localShop' element={isAuthenticated ? <LocalShop /> : <Login />} />
+
       <Route path='/Services' element={isAuthenticated ? <Services /> : <Login />} />
+      <Route path="/contractor/:id" element={<ContractorProfile />} />
+
       <Route path='/Planning_tools' element={isAuthenticated ? <Ai_tools /> : <Login />} />
       <Route path='/Material_market' element={isAuthenticated ? <Material_market /> : <Login />} />
+
       <Route path='/addShop' element={isAuthenticated ? <Add_shop /> : <Login />} />
       <Route path='/addServices' element={isAuthenticated ? <Add_services /> : <Login />} />
       <Route path='/business' element={isAuthenticated ? <Business /> : <Login />} />

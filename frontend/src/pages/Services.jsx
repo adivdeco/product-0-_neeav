@@ -1,9 +1,11 @@
 import { useCallback, useState, useEffect } from "react";
 import { useSelector } from 'react-redux';
 import axiosClient from '../api/auth';
-// import FullScreenLoader from '../components/FullScreenLoader';
-// import InlineLoader from '../components/InlineLoader';
 import Loading from "../components/Loader";
+import { MdVerified } from "react-icons/md";
+import { FiMapPin } from "react-icons/fi";
+import { Navigate } from "react-router";
+import { Link } from "react-router";
 
 
 function ContractorPage() {
@@ -16,13 +18,13 @@ function ContractorPage() {
     });
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+    const [showFilters, setShowFilters] = useState(false);
     const [filters, setFilters] = useState({
         service: '',
         city: '',
         search: ''
     });
 
-    // Available services from your schema
     const availableServices = [
         'Masonry',
         'Plumbing',
@@ -51,7 +53,7 @@ function ContractorPage() {
             }).toString();
 
             const { data } = await axiosClient.get(`/useas/contractors?${params}`);
-
+            console.log(data)
             setContractorData({
                 contractors: data.contractors || [],
                 totalPages: data.totalPages || 1,
@@ -162,7 +164,6 @@ function ContractorPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            {/* Inline loading for pagination */}
             {/* {loading && contractorData.contractors.length > 0 && (
                 <div className="py-8">
                     <Loading text="Loading more contractors..." />
@@ -170,7 +171,7 @@ function ContractorPage() {
             )} */}
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Header */}
+
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">
                         Professional Contractors
@@ -178,39 +179,50 @@ function ContractorPage() {
                     <p className="text-gray-600">
                         Find trusted contractors for your construction needs
                     </p>
-                    {contractorData.total > 0 && (
+                    {/* {contractorData.total > 0 && (
                         <p className="text-sm text-gray-500 mt-2">
                             Showing {contractorData.contractors.length} of {contractorData.total} contractors
                         </p>
-                    )}
+                    )} */}
                 </div>
 
                 {/* Filters Section */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        {/* Search Filter */}
+                <div className="bg-white rounded-2xl shadow-md p-4 md:p-6 mb-6 transition-all">
+                    {/*  (collapsible for mobile) */}
+                    <div className="flex items-center justify-between mb-4 md:mb-6">
+                        <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
+                        <button
+                            className="md:hidden text-sm text-blue-600 font-medium focus:outline-none"
+                            onClick={() => setShowFilters((prev) => !prev)}
+                        >
+                            {showFilters ? 'Hide' : 'Show'}
+                        </button>
+                    </div>
+
+
+                    <div
+                        className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 transition-all duration-300 ${showFilters ? 'block' : 'hidden md:grid'
+                            }`}
+                    >
+
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Search Contractors
-                            </label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
                             <input
                                 type="text"
                                 placeholder="Search by name or description..."
                                 value={filters.search}
                                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             />
                         </div>
 
-                        {/* Service Filter */}
+
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Service Type
-                            </label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Service Type</label>
                             <select
                                 value={filters.service}
                                 onChange={(e) => handleFilterChange('service', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
                             >
                                 <option value="">All Services</option>
                                 {availableServices.map((service) => (
@@ -221,62 +233,60 @@ function ContractorPage() {
                             </select>
                         </div>
 
-                        {/* City Filter */}
+
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                City
-                            </label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
                             <input
                                 type="text"
                                 placeholder="Enter city..."
                                 value={filters.city}
                                 onChange={(e) => handleFilterChange('city', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             />
                         </div>
 
-                        {/* Clear Filters */}
+
                         <div className="flex items-end">
                             <button
                                 onClick={clearFilters}
-                                className="w-full px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200 font-medium"
+                                className="w-full px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors duration-200 text-sm font-medium shadow-sm"
                             >
                                 Clear Filters
                             </button>
                         </div>
                     </div>
 
-                    {/* Active Filters Display */}
+                    {/* Active Filters Chips */}
                     {(filters.service || filters.city || filters.search) && (
                         <div className="mt-4 flex flex-wrap gap-2">
                             {filters.service && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    Service: {filters.service}
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                    {filters.service}
                                     <button
                                         onClick={() => handleFilterChange('service', '')}
-                                        className="ml-2 hover:text-blue-600"
+                                        className="ml-2 hover:text-blue-600 font-bold"
                                     >
                                         ×
                                     </button>
                                 </span>
                             )}
                             {filters.city && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    City: {filters.city}
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                    {filters.city}
                                     <button
                                         onClick={() => handleFilterChange('city', '')}
-                                        className="ml-2 hover:text-green-600"
+                                        className="ml-2 hover:text-green-600 font-bold"
                                     >
                                         ×
                                     </button>
                                 </span>
                             )}
                             {filters.search && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                    Search: {filters.search}
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                                    {filters.search}
                                     <button
                                         onClick={() => handleFilterChange('search', '')}
-                                        className="ml-2 hover:text-purple-600"
+                                        className="ml-2 hover:text-purple-600 font-bold"
                                     >
                                         ×
                                     </button>
@@ -285,6 +295,7 @@ function ContractorPage() {
                         </div>
                     )}
                 </div>
+
 
                 {/* Contractors Grid */}
                 {contractorData.contractors.length === 0 && !loading ? (
@@ -314,103 +325,96 @@ function ContractorPage() {
                             {contractorData.contractors.map((contractor) => (
                                 <div
                                     key={contractor._id}
-                                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200"
+                                    className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-blue-100"
                                 >
                                     {/* Contractor Image */}
-                                    <div className="relative h-48 bg-gray-200">
+                                    <div className="relative h-48 md:h-52 bg-gray-100">
                                         <img
                                             src={getPrimaryImage(contractor.images)}
                                             alt={contractor.contractorName}
-                                            className="w-full h-full object-cover"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                             onError={(e) => {
                                                 e.target.src = getDefaultImage();
                                             }}
                                         />
-                                        <div className="absolute top-4 right-4 flex flex-col space-y-2">
+
+                                        <div className="absolute top-3 right-3 flex flex-col space-y-2 items-end">
                                             {getAvailabilityBadge(contractor.availability)}
                                             <span
-                                                className={`px-2 py-1 rounded-full text-xs font-semibold ${contractor.isVerified
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-yellow-100 text-yellow-800'
-                                                    }`}
+                                                className={`${contractor.isVerified ? 'text-blue-500 bg-white' : ''} px-2 py-1 rounded-full text-[15px] font-medium shadow-sm`}
                                             >
-                                                {contractor.isVerified ? 'Verified' : 'Pending'}
+                                                {contractor.isVerified ? <MdVerified /> : null}
                                             </span>
                                         </div>
+
                                     </div>
 
-                                    {/* Contractor Content */}
-                                    <div className="p-6">
-                                        {/* Name and Rating */}
-                                        <div className="flex justify-between items-start mb-1">
-                                            <h2 className="text-xl font-bold text-gray-900 truncate">
+
+                                    <div className="px-3 py-1 md:p-3">
+
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h2 className="text-lg md:text-xl font-semibold text-gray-900 truncate">
                                                 {contractor.contractorName}
                                             </h2>
                                             <div className="flex items-center space-x-1">
                                                 {renderStars(contractor.rating)}
-                                                <span className="text-sm text-gray-600 ml-1">
+                                                <span className="text-xs text-gray-500 ml-1">
                                                     ({contractor.rating?.count || 0})
                                                 </span>
                                             </div>
                                         </div>
 
-                                        {/* Experience */}
-
-
-                                        {/* Description */}
-                                        <p className="text-gray-700 text-sm mb-1 line-clamp-2">
-                                            {contractor.description || "Professional contractor with expertise in various construction services."}
+                                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                                            {contractor.description ||
+                                                'Experienced contractor providing reliable construction and renovation services.'}
                                         </p>
 
-                                        {/* Services */}
-                                        <div className="mb-4">
-                                            <h4 className="font-semibold text-gray-900 mb-1">
-                                                Services:
+
+                                        <div className="mb-3">
+                                            <h4 className="text-xs font-semibold text-gray-800  tracking-wide mb-1">
+                                                Services
                                             </h4>
-                                            <div className="flex flex-wrap gap-2">
+                                            <div className="flex flex-wrap gap-1.5">
                                                 {contractor.services?.slice(0, 3).map((service, index) => (
                                                     <span
                                                         key={index}
-                                                        className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full"
+                                                        className="px-2.5 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full"
                                                     >
                                                         {service}
                                                     </span>
                                                 ))}
                                                 {contractor.services?.length > 3 && (
-                                                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                                    <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
                                                         +{contractor.services.length - 3} more
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
 
-                                        {/* Pricing */}
-                                        {/* <div className="mb-4">
-                                            <p className="text-sm text-gray-600">
-                                                <span className="font-semibold">Pricing:</span>{' '}
-                                                {formatPricing(contractor.pricing)}
-                                            </p>
-                                        </div> */}
 
-                                        {/* Location */}
-                                        <div className="border-t pt-3">
-                                            <div className="flex justify-between items-center text-sm text-gray-600">
-                                                {/* <span>📞 {contractor.contact?.phone}</span> */}
-                                                <span>📍 {contractor.address?.city}</span>
-                                            </div>
+                                        <div className="border-t border-gray-100 pt-3 flex items-center justify-between text-sm text-gray-600">
+                                            <span className="flex items-center">
+                                                < FiMapPin className="w-4 h-4 mr-1 text-blue-500" />
+                                                {contractor.address?.city || 'Location'}
+                                            </span>
                                         </div>
 
-                                        {/* Action Buttons */}
-                                        <div className="flex space-x-2 mt-4">
-                                            <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors duration-200 font-semibold text-sm">
+
+                                        <div className="mt-4 flex gap-2">
+                                            <Link
+                                                to={`/contractor/${contractor._id}`}
+                                                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-2.5 px-4 rounded-xl transition-all duration-200 font-semibold text-sm shadow-sm text-center"
+                                            >
                                                 View Profile
-                                            </button>
-                                            <button className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors duration-200 font-semibold text-sm">
-                                                Contact
+                                            </Link>
+                                            <button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-700 hover:to-green-600 text-white py-2.5 px-4 rounded-xl transition-all duration-200 font-semibold text-sm shadow-sm">
+                                                Book Contractor
                                             </button>
                                         </div>
+
                                     </div>
                                 </div>
+
                             ))}
                         </div>
 

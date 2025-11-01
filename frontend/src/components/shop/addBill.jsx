@@ -389,12 +389,11 @@ const AddBillPage = () => {
             <div className="container mx-auto p-4 sm:p-6 lg:p-8">
                 <Toaster position="top-right" />
 
-                {/* Header with Animation */}
                 <div className="mb-8 transform transition-all duration-500 ease-in-out">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 animate-fade-in">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2 animate-fade-in">
                         Create New Bill
                     </h1>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-sm sm:text-xl text-gray-600 dark:text-gray-400">
                         Create professional invoices with detailed item breakdown
                     </p>
                 </div>
@@ -402,8 +401,8 @@ const AddBillPage = () => {
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
                     {/* Date Field - Alternative explicit approach */}
 
-                    <div className="flex justify-end">
-                        <div className="w-64 transform transition-transform duration-300 hover:scale-[1.02]">
+                    <div className="flex justify-start">
+                        <div className="w-44 transform transition-transform duration-300 hover:scale-[1.02]">
                             <label htmlFor="date" className={labelClass}>
                                 Bill Date <span className="text-red-500">*</span>
                             </label>
@@ -657,7 +656,7 @@ const AddBillPage = () => {
                                                     {...register(`items.${index}.price`, { valueAsNumber: true })}
                                                     className={`${inputClass} !p-2 !text-right`}
                                                     min="0"
-                                                    step="0.01"
+                                                    step="1"
                                                 />
                                                 {getItemError(index, 'price') && (
                                                     <p className={errorClass}>{getItemError(index, 'price')}</p>
@@ -670,7 +669,7 @@ const AddBillPage = () => {
                                                     className={`${inputClass} !p-2 !text-center`}
                                                     min="0"
                                                     max="100"
-                                                    step="0.1"
+                                                    step="1"
                                                 />
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
@@ -679,7 +678,7 @@ const AddBillPage = () => {
                                                     {...register(`items.${index}.taxRate`, { valueAsNumber: true })}
                                                     className={`${inputClass} !p-2 !text-center`}
                                                     min="0"
-                                                    step="0.1"
+                                                    step="1"
                                                 />
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap font-semibold text-gray-900 dark:text-white text-right">
@@ -852,8 +851,23 @@ const AddBillPage = () => {
                                 <BillSummaryLine label="Delivery Charge" value={watchedDeliveryCharge} />
                                 <BillSummaryLine label="Packaging Charge" value={watchedPackagingCharge} />
 
-                                <div className="border-t-2 border-gray-800 dark:border-gray-200 pt-4 mt-4">
-                                    <BillSummaryLine label="GRAND TOTAL" value={grandTotal} isGrandTotal />
+                                <div className="border-t-2 flex justify-between items-center text-white border-gray-800 dark:border-gray-200 pt-4 mt-4">
+                                    {/* <BillSummaryLine
+                                        label="GRAND TOTAL"
+                                        value={
+                                            new Intl.NumberFormat('en-IN', {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2,
+                                            }).format(Math.abs(grandTotal))
+                                        }
+                                        isGrandTotal
+                                    /> */}
+                                    <p className='text-2xl font-bold mt-1'>Total</p>
+
+                                    <p className={`text-2xl font-bold mt-1 `}>
+                                        ₹{new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(grandTotal))}
+                                    </p>
+
                                 </div>
                             </div>
 
@@ -868,13 +882,13 @@ const AddBillPage = () => {
                                     {...register('amountPaid', { valueAsNumber: true })}
                                     className={`${inputClass} text-2xl font-bold !p-4`}
                                     min="0"
-                                    step="0.01"
+                                    step="1"
                                     placeholder={grandTotal.toFixed(2)}
                                 />
                                 {errors.amountPaid && <p className={errorClass}>{errors.amountPaid.message}</p>}
                             </div>
 
-                            {/* Remaining Amount */}
+                            { /* Remaining Amount */}
                             <div className={`mt-4 p-4 rounded-xl text-center transition-all duration-300 ${remainingAmount > 0
                                 ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
                                 : 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
@@ -886,7 +900,7 @@ const AddBillPage = () => {
                                     ? 'text-red-600 dark:text-red-400'
                                     : 'text-green-600 dark:text-green-400'
                                     }`}>
-                                    ₹{remainingAmount.toFixed(2)}
+                                    {remainingAmount < 0 ? '-' : ''}₹{new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(remainingAmount))}
                                 </p>
                             </div>
 

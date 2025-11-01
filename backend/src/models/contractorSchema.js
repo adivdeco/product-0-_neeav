@@ -115,7 +115,11 @@ const contractorSchema = new Schema({
                 min: 1,
                 max: 5
             },
-            comment: String,
+            comment: {
+                type: String,
+                required: true,
+                maxlength: 500
+            },
             createdAt: {
                 type: Date,
                 default: Date.now
