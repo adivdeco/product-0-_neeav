@@ -413,17 +413,36 @@ function ContractorProfilePage() {
                                         {contractor.rating.reviews.map((review, index) => (
                                             <div key={index} className="border-b border-gray-200 pb-6 last:border-b-0">
                                                 <div className="flex justify-between items-start mb-3">
-                                                    <div className="flex items-center">
-                                                        {renderStars({ average: review.rating })}
-                                                        <span className="ml-2 text-gray-600 font-medium">
-                                                            {review.rating}/5
-                                                        </span>
+                                                    <div>
+
+                                                        {review.userId ? (
+                                                            <div>
+                                                                <p>{review.userId?.name}</p>
+                                                                <p>{review.userId?.email}</p>
+                                                                <p>{review.userId?.phone}</p>
+                                                                <p>{review.userId?.avatar}</p>
+                                                            </div>
+                                                        ) : 'Anonymous'}
+
+
                                                     </div>
+
+                                                    <p className="text-gray-600 leading-relaxed">{review.comment}</p>
+
+
                                                     <span className="text-sm text-gray-500">
                                                         {new Date(review.createdAt).toLocaleDateString()}
                                                     </span>
+
                                                 </div>
-                                                <p className="text-gray-600 leading-relaxed">{review.comment}</p>
+
+                                                <div className="flex items-center">
+                                                    {renderStars({ average: review.rating })}
+                                                    <span className="ml-2 text-gray-600 font-medium">
+                                                        {review.rating}/5
+                                                    </span>
+                                                </div>
+
                                             </div>
                                         ))}
                                     </div>

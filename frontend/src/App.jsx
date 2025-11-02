@@ -54,7 +54,7 @@ function App() {
       <Route path='/localShop' element={isAuthenticated ? <LocalShop /> : <Login />} />
 
       <Route path='/Services' element={isAuthenticated ? <Services /> : <Login />} />
-      <Route path="/contractor/:id" element={<ContractorProfile />} />
+      <Route path="/contractor/:id" element={isAuthenticated ? <ContractorProfile /> : <Login />} />
 
       <Route path='/Planning_tools' element={isAuthenticated ? <Ai_tools /> : <Login />} />
       <Route path='/Material_market' element={isAuthenticated ? <Material_market /> : <Login />} />

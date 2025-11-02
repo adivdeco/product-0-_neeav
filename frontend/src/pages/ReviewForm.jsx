@@ -18,6 +18,8 @@ const ReviewForm = ({ contractorId, onReviewAdded }) => {
             setError('Please login to submit a review');
             return;
         }
+        console.log(user);
+
 
         if (rating === 0) {
             setError('Please select a rating');

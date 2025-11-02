@@ -94,6 +94,7 @@ const contractorSchema = new Schema({
         enum: ['available', 'busy', 'on-leave'],
         default: 'available'
     },
+
     rating: {
         average: {
             type: Number,
@@ -126,6 +127,7 @@ const contractorSchema = new Schema({
             }
         }]
     },
+
     pricing: {
         hourlyRate: Number,
         dailyRate: Number,
