@@ -21,7 +21,12 @@ import {
     FiDollarSign,
     FiCheckCircle
 } from "react-icons/fi";
+import { motion } from "framer-motion";
+import { Star } from "lucide-react";
 import ReviewForm from "./ReviewForm";
+
+
+
 
 function ContractorProfilePage() {
     const { id } = useParams();
@@ -66,24 +71,19 @@ function ContractorProfilePage() {
         );
     };
 
-    const renderStars = (rating) => {
+    const renderStars = (count) => {
         const stars = [];
-        const averageRating = rating?.average || 0;
-
         for (let i = 1; i <= 5; i++) {
             stars.push(
-                <span key={i}>
-                    {i <= Math.floor(averageRating) ? (
-                        <MdStar className="text-yellow-400 text-xl" />
-                    ) : i <= averageRating ? (
-                        <MdStar className="text-yellow-300 text-xl" />
-                    ) : (
-                        <MdStarBorder className="text-gray-300 text-xl" />
-                    )}
-                </span>
+                <Star
+                    key={i}
+                    size={18}
+                    className={`${i <= count ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                        } transition-colors duration-200`}
+                />
             );
         }
-        return stars;
+        return <div className="flex items-center space-x-1">{stars}</div>;
     };
 
     const getDefaultImage = () => {
@@ -99,7 +99,7 @@ function ContractorProfilePage() {
         if (!showContactModal || !contractor) return null;
 
         return (
-            <div className="fixed w-100 inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="fixed  inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
                 <div className="bg-white rounded-2xl max-w-md w-full py-6 px-3 transform transition-all">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-xl font-bold text-gray-900">Contact Information</h3>
@@ -176,6 +176,9 @@ function ContractorProfilePage() {
         return <Navigate to="/contractors" replace />;
     }
 
+
+
+
     return (
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -211,7 +214,7 @@ function ContractorProfilePage() {
                                     <div className="flex items-center gap-4">
                                         {getAvailabilityBadge(contractor.availability)}
                                         <div className="flex items-center  display:flex mt-2">
-                                            {renderStars(contractor.rating)}
+                                            {renderStars(contractor.rating.average)}
                                             <span className="ml-2 text-gray-600 text-sm">
                                                 ({contractor.rating?.count || 0} reviews)
                                             </span>
@@ -396,64 +399,73 @@ function ContractorProfilePage() {
                         )}
 
                         {activeTab === 'reviews' && (
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-6">Customer Reviews</h3>
-
-                                {/* Add Review Form */}
-                                <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
-                                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Add Your Review</h4>
-                                    <ReviewForm
-                                        contractorId={contractor._id}
-                                        onReviewAdded={fetchContractor}
-                                    />
+                            <div className="space-y-10">
+                                {/* Header */}
+                                <div className="text-center md:text-left">
+                                    <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
+                                        Customer Reviews
+                                    </h3>
+                                    <div className="mt-1 h-1 w-16 bg-blue-500 rounded-full mx-auto md:mx-0"></div>
                                 </div>
 
-                                {contractor.rating?.reviews && contractor.rating.reviews.length > 0 ? (
+                                {/* Review Form */}
+                                <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-2xl shadow-sm p-6 transition-all hover:shadow-md">
+                                    <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                                        Add Your Review
+                                    </h4>
+                                    <ReviewForm contractorId={contractor._id} onReviewAdded={fetchContractor} />
+                                </div>
+
+                                {/* Review List */}
+                                {contractor.rating?.reviews?.length > 0 ? (
                                     <div className="space-y-6">
                                         {contractor.rating.reviews.map((review, index) => (
-                                            <div key={index} className="border-b border-gray-200 pb-6 last:border-b-0">
-                                                <div className="flex justify-between items-start mb-3">
-                                                    <div>
-
-                                                        {review.userId ? (
-                                                            <div>
-                                                                <p>{review.userId?.name}</p>
-                                                                <p>{review.userId?.email}</p>
-                                                                <p>{review.userId?.phone}</p>
-                                                                <p>{review.userId?.avatar}</p>
-                                                            </div>
-                                                        ) : 'Anonymous'}
-
-
+                                            <motion.div
+                                                key={index}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.3, delay: index * 0.05 }}
+                                                className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300"
+                                            >
+                                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                                                    {/* User Info */}
+                                                    <div className="flex items-center space-x-4">
+                                                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold text-lg">
+                                                            {review.userId?.name?.charAt(0).toUpperCase() || "U"}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-semibold text-gray-900">
+                                                                {review.userId?.name || "Anonymous User"}
+                                                            </p>
+                                                            <p className="text-xs text-gray-500">
+                                                                {review.userId?.email ? "Verified Customer" : "Registered User"}
+                                                            </p>
+                                                        </div>
                                                     </div>
 
-                                                    <p className="text-gray-600 leading-relaxed">{review.comment}</p>
-
-
-                                                    <span className="text-sm text-gray-500">
-                                                        {new Date(review.createdAt).toLocaleDateString()}
-                                                    </span>
-
+                                                    {/* Rating & Date */}
+                                                    <div className="flex flex-col items-start sm:items-end text-gray-600">
+                                                        {renderStars(review.rating)}
+                                                        <span className="text-xs mt-1 text-gray-500">
+                                                            {new Date(review.createdAt).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
                                                 </div>
 
-                                                <div className="flex items-center">
-                                                    {renderStars({ average: review.rating })}
-                                                    <span className="ml-2 text-gray-600 font-medium">
-                                                        {review.rating}/5
-                                                    </span>
+                                                <div className="mt-4 border-t border-gray-100 pt-4">
+                                                    <p className="text-gray-700 leading-relaxed">{review.comment}</p>
                                                 </div>
-
-                                            </div>
+                                            </motion.div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-12">
-                                        <div className="text-gray-400 text-6xl mb-4">⭐</div>
-                                        <h4 className="text-lg font-semibold text-gray-600 mb-2">
+                                    <div className="text-center py-16 bg-gray-50 border border-dashed border-gray-200 rounded-2xl">
+                                        <div className="text-6xl mb-4 text-gray-300">⭐</div>
+                                        <h4 className="text-lg font-semibold text-gray-700 mb-1">
                                             No reviews yet
                                         </h4>
-                                        <p className="text-gray-500">
-                                            Be the first to review this contractor
+                                        <p className="text-gray-500 text-sm">
+                                            Be the first to share your experience with this contractor!
                                         </p>
                                     </div>
                                 )}

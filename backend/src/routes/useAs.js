@@ -160,7 +160,8 @@ ownRouter.post('/:id/reviews', async (req, res) => {
         await contractor.save();
 
         const populated = await Contractor.findById(contractor._id)
-            .populate('rating.reviews.userId', 'name email phone avatar');
+            .populate('rating.reviews.userId', 'name email phone avatar')
+
 
         const savedReview = populated.rating.reviews[populated.rating.reviews.length - 1];
 
@@ -170,6 +171,8 @@ ownRouter.post('/:id/reviews', async (req, res) => {
             averageRating: populated.rating.average,
             totalReviews: populated.rating.count
         });
+        console.log(JSON.stringify(populated.rating.reviews[4], null, 2));
+
 
 
     } catch (error) {
