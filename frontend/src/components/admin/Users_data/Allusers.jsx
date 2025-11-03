@@ -6,9 +6,12 @@ import { ToastContainer, toast } from 'react-toastify';
 import axiosClient from "../../../api/auth";
 import { UserUpdateSchema } from "../../../api/userValidationSchema";
 import Navbar from "../../home/navbar";
+import ImageUpload from "./ImageUpload";
 
 function AllUsers() {
     const [users, setUsers] = useState([]);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [avatarUrl, setAvatarUrl] = useState('');
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -170,6 +173,14 @@ function AllUsers() {
         setShowUpdateModal(true);
     };
 
+    const handleAvatarUpdate = (url) => {
+        console.log('Avatar URL received:', url);
+        setAvatarUrl(url);
+
+        // Also update the form data immediately
+        setValue('avatar', url);
+    };
+
     const handleUpdateSubmit = async (data) => {
         try {
             // Check if selectedUser and _id exist
@@ -178,8 +189,13 @@ function AllUsers() {
                 return;
             }
 
-            console.log("Updating user with ID:", selectedUser._id);
-            console.log("Update data:", data);
+            const updateData = {
+                ...data,
+                avatar: avatarUrl || data.avatar // Use new avatar URL if available, otherwise keep existing
+            };
+
+            console.log('Updating user with ID:', selectedUser?._id);
+            console.log('Update data:', updateData);
 
             // Only allow admin to change roles
             if (currentUserRole !== "admin") {
@@ -189,6 +205,13 @@ function AllUsers() {
             const response = await axiosClient.put(`/auth/update_user/${selectedUser._id}`, data);
 
             console.log("Update response:", response);
+
+            if (response.status === 200) {
+                toast.success(response.data.message || 'User updated successfully');
+                setShowUpdateModal(false);
+                fetchUsers(); // Refresh the user list
+                setAvatarUrl(''); // Reset avatar URL
+            }
 
             // Update local state
             setUsers(users.map(user =>
@@ -239,6 +262,13 @@ function AllUsers() {
             </div>
         );
     }
+
+    // const handleFileUpdate = (event) => {
+    //     const files = Array.from(event.target.files);
+    //     if (!files || files.length === 0) return;
+    //     setSelectedFiles(files);
+    //     // Your existing handleFileUpdate logic
+    // };
 
     return (
         <div className="min-h-screen bg-gray-50 ">
@@ -790,6 +820,18 @@ function AllUsers() {
                                     </div>
                                 )}
 
+                                {/* Media Upload */}
+                                <div className="border-t pt-6">
+                                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Profile Image</h4>
+                                    <ImageUpload
+                                        userId={selectedUser?._id}
+                                        onUploadSuccess={(results) => {
+                                            console.log('Upload successful:', results);
+                                        }}
+                                        onAvatarUpdate={handleAvatarUpdate} // Add this prop
+                                    />
+                                </div>
+
                                 {/* Submit Buttons */}
                                 <div className="flex space-x-3 pt-6 border-t">
                                     <button
@@ -812,7 +854,8 @@ function AllUsers() {
                     </div>
                 </div>
             )}
-        </div>
+
+        </div >
     );
 }
 

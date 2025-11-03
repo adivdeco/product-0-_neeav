@@ -1,96 +1,94 @@
-import { motion } from "framer-motion";
-import { Star } from "lucide-react";
-import ReviewForm from "./ReviewForm";
+uploadData.put('/user/:userId/avatar', uploadSingle, async (req, res) => {
+    try {
+        const userId = req.params.userId;
 
-export default function ReviewSection({ contractor, activeTab, fetchContractor }) {
-    if (activeTab !== "reviews") return null;
-
-    const renderStars = (count) => {
-        const stars = [];
-        for (let i = 1; i <= 5; i++) {
-            stars.push(
-                <Star
-                    key={i}
-                    size={18}
-                    className={`${i <= count ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-                        } transition-colors duration-200`}
-                />
-            );
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
         }
-        return <div className="flex items-center space-x-1">{stars}</div>;
-    };
 
-    return (
-        <div className="space-y-10">
-            {/* Header */}
-            <div className="text-center md:text-left">
-                <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
-                    Customer Reviews
-                </h3>
-                <div className="mt-1 h-1 w-16 bg-blue-500 rounded-full mx-auto md:mx-0"></div>
+        // Find user and update avatar
+        const user = await User.findByIdAndUpdate(
+            userId,
+            {
+                avatar: req.file.path,
+                updatedAt: new Date()
+            },
+            { new: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({
+            message: 'Avatar updated successfully',
+            avatar: user.avatar,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            }
+        });
+
+    } catch (error) {
+        console.error('Avatar update error:', error);
+        res.status(500).json({ message: 'Avatar update failed', error: error.message });
+    }
+});
+
+
+
+<div className="border-t pt-6">
+    <h4 className="text-lg font-semibold text-gray-900 mb-4">Profile Image</h4>
+    <div className="space-y-4">
+        {/* File Input - Fixed positioning */}
+        <div className="relative border-2 border-dashed border-gray-300 rounded-2xl p-6 transition-all duration-300 hover:border-blue-400 hover:bg-blue-50 group">
+            <input
+                type="file"
+                onChange={handleFileUpdate}
+                multiple
+                accept="image/*"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+            />
+
+            <div className="flex flex-col items-center justify-center space-y-3">
+                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+
+                <div className="text-center">
+                    <p className="text-lg font-semibold text-gray-700">Upload images</p>
+                    <p className="text-sm text-gray-500 mt-1">Click or drag photos here</p>
+                </div>
             </div>
+        </div>
 
-            {/* Review Form */}
-            <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-2xl shadow-sm p-6 transition-all hover:shadow-md">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                    Add Your Review
-                </h4>
-                <ReviewForm contractorId={contractor._id} onReviewAdded={fetchContractor} />
-            </div>
-
-            {/* Review List */}
-            {contractor.rating?.reviews?.length > 0 ? (
-                <div className="space-y-6">
-                    {contractor.rating.reviews.map((review, index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: index * 0.05 }}
-                            className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300"
-                        >
-                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-                                {/* User Info */}
-                                <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold text-lg">
-                                        {review.userId?.name?.charAt(0).toUpperCase() || "U"}
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900">
-                                            {review.userId?.name || "Anonymous User"}
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            {review.userId?.email ? "Verified Customer" : "Registered User"}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Rating & Date */}
-                                <div className="flex flex-col items-start sm:items-end text-gray-600">
-                                    {renderStars(review.rating)}
-                                    <span className="text-xs mt-1 text-gray-500">
-                                        {new Date(review.createdAt).toLocaleDateString()}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="mt-4 border-t border-gray-100 pt-4">
-                                <p className="text-gray-700 leading-relaxed">{review.comment}</p>
-                            </div>
-                        </motion.div>
+        {/* Preview Area */}
+        {selectedFiles.length > 0 && (
+            <div>
+                <p className="text-sm font-medium text-gray-700 mb-3">Selected Files:</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {selectedFiles.map((file, index) => (
+                        <div key={index} className="relative group">
+                            <img
+                                src={URL.createObjectURL(file)}
+                                alt={file.name}
+                                className="w-full h-24 object-cover rounded-lg"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== index))}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-sm"
+                            >
+                                ×
+                            </button>
+                            <p className="text-xs text-gray-500 mt-1 truncate">{file.name}</p>
+                        </div>
                     ))}
                 </div>
-            ) : (
-                <div className="text-center py-16 bg-gray-50 border border-dashed border-gray-200 rounded-2xl">
-                    <div className="text-6xl mb-4 text-gray-300">⭐</div>
-                    <h4 className="text-lg font-semibold text-gray-700 mb-1">
-                        No reviews yet
-                    </h4>
-                    <p className="text-gray-500 text-sm">
-                        Be the first to share your experience with this contractor!
-                    </p>
-                </div>
-            )}
-        </div>
-    );
-}
+            </div>
+        )}
+    </div>
+</div>

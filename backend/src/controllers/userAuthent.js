@@ -200,7 +200,7 @@ const updateUser = async (req, res) => {
             });
         }
 
-        // Expect param name `id` (lowercase) as defined in the route
+
         const { id } = req.params;
         const updateData = req.body;
 
@@ -211,7 +211,7 @@ const updateUser = async (req, res) => {
             }
         }
 
-        const user = await User.findByIdAndUpdate(id, updateData, { new: true });
+        const user = await User.findByIdAndUpdate(id, updateData, { new: true }).select('-password');
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -219,7 +219,12 @@ const updateUser = async (req, res) => {
 
         res.status(200).json({
             message: "User updated successfully",
-            user
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                avatar: user.avatar,
+            }
         });
 
     } catch (error) {

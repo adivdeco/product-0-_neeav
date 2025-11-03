@@ -24,7 +24,8 @@ const { getCorsOptions } = require("./config/corsOptions");
 
 const authRouter = require('./routes/userAuth')
 const billsRouter = require('./routes/khata')
-const ownRouter = require('./routes/useAs')
+const ownRouter = require('./routes/useAs');
+const uploadData = require('./routes/cloudData');
 
 app.use(cors(getCorsOptions()));
 app.use(express.json());
@@ -34,6 +35,8 @@ app.use(cookieParser());
 app.use('/auth', authRouter),
     app.use('/khata', billsRouter)
 app.use('/useas', ownRouter) // add shop,contractor
+
+app.use('/upload', uploadData)
 
 // Debug: list registered routes under /auth to help troubleshooting
 // const listRoutes = (router, base = '') => {
