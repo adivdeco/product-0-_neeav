@@ -24,15 +24,6 @@ const userSchema = new Schema({
         default: null,
     },
 
-    // phone: {
-    //     type: String,
-    //     validate: {
-    //         validator: function (v) {
-    //             return /^[6-9]\d{9}$/.test(v);
-    //         },
-    //         message: props => `${props.value} is not a valid Indian phone number!`
-    //     }
-    // },
 
     password: {
         type: String,

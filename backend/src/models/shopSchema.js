@@ -161,14 +161,24 @@ const shopSchema = new Schema({
         }
     },
 
+    // images: [{
+    //     url: String,
+    //     caption: String,
+    //     isPrimary: {
+    //         type: Boolean,
+    //         default: false
+    //     }
+    // }],
+    avatar: {
+        type: String,
+        default: ""
+    },
+
     images: [{
-        url: String,
-        caption: String,
-        isPrimary: {
-            type: Boolean,
-            default: false
-        }
+        type: String,
+        default: ""
     }],
+
 
     // Status
     isActive: {

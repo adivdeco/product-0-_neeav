@@ -4,6 +4,8 @@ import { shopSchema, CATEGORIES_ENUM, WORKING_DAYS_ENUM } from '../../api/shopVa
 import 'react-toastify/dist/ReactToastify.css';
 import '../../AddShop.css';
 import axiosClient from '../../api/auth';
+import ImageUpload from '../admin/Users_data/ImageUpload';
+import ImgUpload from './ImgUpload'
 
 const initialShopState = {
     shopName: '',
@@ -101,6 +103,8 @@ const TextareaField = ({
 const AddShop = () => {
     const [shopData, setShopData] = useState(initialShopState);
     const [loading, setLoading] = useState(false);
+    const [avatarUrl, setAvatarUrl] = useState('');
+    const [ImagesUrl, setImagesUrl] = useState([])
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
     const [activeSection, setActiveSection] = useState(0);
@@ -111,6 +115,42 @@ const AddShop = () => {
         { id: 'address', title: 'Address', icon: '📍' },
         { id: 'categories', title: 'Categories & Hours', icon: '🏷️' }
     ];
+
+    const handleAvatarUpdate = (url) => {
+        console.log('Avatar URL received:', url);
+        setAvatarUrl(url);
+    };
+
+
+    const handleOtherImages = (imagesArray) => {
+        console.log("Other images received:", imagesArray);
+
+        // Add safety check
+        if (!imagesArray) {
+            console.error("No images array received");
+            toast.error("No images received from upload");
+            return;
+        }
+
+        // Extract URLs from the images array safely
+        const imageUrls = imagesArray.map(img => {
+            if (typeof img === 'string') {
+                return img; // If it's already a URL string
+            } else if (img && img.url) {
+                return img.url; // If it's an object with url property
+            }
+            return null;
+        }).filter(url => url !== null); // Remove any null values
+
+        console.log("Processed image URLs:", imageUrls);
+
+        setImagesUrl(imageUrls);
+
+        if (imageUrls.length === 0) {
+            toast.warning("No valid image URLs found in upload");
+        }
+    };
+
 
     // Real-time validation function
     const validateField = useCallback((path, value) => {
@@ -334,9 +374,12 @@ const AddShop = () => {
                 address: validatedData.address,
                 categories: validatedData.categories,
                 businessHours: validatedData.businessHours,
+                image: avatarUrl || "", // avtar
+                image2: ImagesUrl || []
+
             };
 
-            // 3. API Call with Axios
+
             const response = await axiosClient.post('/useas/addshopowners', payload, {
                 headers: { 'Content-Type': 'application/json' },
                 timeout: 10000
@@ -348,6 +391,8 @@ const AddShop = () => {
             setErrors({});
             setTouched({});
             setActiveSection(0);
+            setAvatarUrl(''); // Reset avatar URL
+            setImagesUrl([]);
 
         } catch (error) {
             if (error.response) {
@@ -461,6 +506,19 @@ const AddShop = () => {
                                 onBlurHandler={handleBlur}
                                 error={getError('description')}
                             />
+
+                            <div className="border-t pt-6">
+                                <h4 className="text-lg font-semibold text-gray-900 mb-4">Profile Image</h4>
+
+                                <ImageUpload
+
+                                    onUploadSuccess={(results) => {
+                                        console.log('Upload successful:', results);
+                                    }}
+                                    onAvatarUpdate={handleAvatarUpdate}
+                                />
+                            </div>
+
                         </div>
 
                         {/* Contact & Login */}
@@ -511,6 +569,17 @@ const AddShop = () => {
                                     onChangeHandler={handleChange}
                                     onBlurHandler={handleBlur}
                                     error={getError('contact.password')}
+                                />
+                            </div>
+                            <div className="border-t pt-6">
+                                <h4 className="text-lg font-semibold text-gray-900 mb-4">Store Images</h4>
+
+                                <ImgUpload
+
+                                    onUploadSuccess={(results) => {
+                                        console.log('Upload successful:', results);
+                                    }}
+                                    onAvatarUpdate={handleOtherImages}
                                 />
                             </div>
                         </div>

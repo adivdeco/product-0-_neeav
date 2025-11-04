@@ -146,18 +146,29 @@ const contractorSchema = new Schema({
         },
         expiryDate: Date
     }],
+    // images: [{
+    //     url: String,
+    //     caption: String,
+    //     type: {
+    //         type: String,
+    //         enum: ['profile', 'work-sample', 'license']
+    //     },
+    //     isPrimary: {
+    //         type: Boolean,
+    //         default: false
+    //     }
+    // }],
+
+    avatar: {
+        type: String,
+        default: ""
+    },
+
     images: [{
-        url: String,
-        caption: String,
-        type: {
-            type: String,
-            enum: ['profile', 'work-sample', 'license']
-        },
-        isPrimary: {
-            type: Boolean,
-            default: false
-        }
+        type: String,
+        default: ""
     }],
+
     isVerified: {
         type: Boolean,
         default: false

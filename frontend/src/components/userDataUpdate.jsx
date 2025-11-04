@@ -1,50 +1,8 @@
-uploadData.put('/user/:userId/avatar', uploadSingle, async (req, res) => {
-    try {
-        const userId = req.params.userId;
-
-        if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded' });
-        }
-
-        // Find user and update avatar
-        const user = await User.findByIdAndUpdate(
-            userId,
-            {
-                avatar: req.file.path,
-                updatedAt: new Date()
-            },
-            { new: true }
-        );
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        res.status(200).json({
-            message: 'Avatar updated successfully',
-            avatar: user.avatar,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email
-            }
-        });
-
-    } catch (error) {
-        console.error('Avatar update error:', error);
-        res.status(500).json({ message: 'Avatar update failed', error: error.message });
-    }
-});
-
-
-
 import React, { useState, useEffect } from 'react';
 import Navbar from './home/navbar';
 import axiosClient from '../api/auth';
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from 'react-toastify';
-
-
 
 const UserProfileUpdate = () => {
     const [userData, setUserData] = useState({
@@ -64,22 +22,28 @@ const UserProfileUpdate = () => {
     const dispatch = useDispatch();
     const { user, isAuthenticated } = useSelector((state) => state.auth);
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
     const [imagePreview, setImagePreview] = useState('');
-    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [selectedFile, setSelectedFile] = useState(null);
     const [uploadProgress, setUploadProgress] = useState(0);
 
-
-
     useEffect(() => {
-        const data = user
-        if (data) {
-            setUserData(data);
-            setImagePreview(data.avatar || '');
+        if (user) {
+            setUserData({
+                name: user.name || '',
+                email: user.email || '',
+                phone: user.phone || '',
+                address: {
+                    street: user.address?.street || '',
+                    city: user.address?.city || '',
+                    state: user.address?.state || '',
+                    pincode: user.address?.pincode || '',
+                    country: user.address?.country || 'In, Bihar 821115'
+                },
+                avatar: user.avatar || ''
+            });
+            setImagePreview(user.avatar || '');
         }
-        console.log(data);
-    }, []);
-
+    }, [user]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -104,29 +68,35 @@ const UserProfileUpdate = () => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('File size should be less than 5MB');
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                toast.error('Please select an image file');
+                return;
+            }
+
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImagePreview(reader.result);
             };
             reader.readAsDataURL(file);
-
-
+            setSelectedFile(file);
         }
-        console.log("files", file);
-
-        setSelectedFiles(file);
     };
 
     const uploadToCloudinary = async (file) => {
         const formData = new FormData();
         formData.append('avatar', file);
-        console.log("formData", formData);
-
 
         try {
             const response = await axiosClient.post('/upload/avatar', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}` // Add auth header if needed
                 },
                 onUploadProgress: (progressEvent) => {
                     const progress = Math.round(
@@ -144,32 +114,37 @@ const UserProfileUpdate = () => {
     };
 
     const handleUpload = async () => {
-        if (selectedFiles.length === 0) return;
+        if (!selectedFile) {
+            toast.error('Please select a file first');
+            return;
+        }
 
         setUploading(true);
         setUploadProgress(0);
 
         try {
-            // Upload only the first file for avatar
-            const result = await uploadToCloudinary(selectedFiles);
-            console.log("result", result);
+            const result = await uploadToCloudinary(selectedFile);
+            console.log("Upload result:", result);
 
-            const cloudinaryUrl = result.imageUrl;
+            const cloudinaryUrl = result.imageUrl || result.url || result.data?.url;
 
-            console.log('Cloudinary upload successful:', cloudinaryUrl);
+            if (!cloudinaryUrl) {
+                throw new Error('No image URL returned from server');
+            }
 
             setUserData(prev => ({
                 ...prev,
                 avatar: cloudinaryUrl
             }));
 
-            setSelectedFiles([]);
+            setImagePreview(cloudinaryUrl);
+            setSelectedFile(null);
 
-            toast.success('Avatar uploaded successfully! URL is ready to be saved.');
+            toast.success('Avatar uploaded successfully!');
 
         } catch (error) {
             console.error('Upload failed:', error);
-            toast.error('Upload failed. Please try again.');
+            toast.error(error.response?.data?.message || 'Upload failed. Please try again.');
         } finally {
             setUploading(false);
             setUploadProgress(0);
@@ -179,49 +154,40 @@ const UserProfileUpdate = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setMessage('');
 
         try {
-            const formData = new FormData();
+            const submitData = {
+                ...userData,
+                address: userData.address
+            };
 
-            // Append all user data
-            Object.keys(userData).forEach(key => {
-                if (key === 'address') {
-                    formData.append('address', JSON.stringify(userData.address));
-                } else if (key === 'avatar' && userData.avatar instanceof File) {
-                    formData.append('avatar', userData.avatar);
-                } else {
-                    formData.append(key, userData[key]);
+            console.log("Submitting data:", submitData);
+
+            const response = await axiosClient.put('/auth/profile', submitData, {
+                headers: {
+                    'Content-Type': 'application/json',
                 }
             });
 
-            const response = await axiosClient.put('/auth/profile', formData);
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setMessage('Profile updated successfully!');
-                // Update local state with returned user data
-                setUserData(data.user);
-                if (data.user.avatar) {
-                    setImagePreview(data.user.avatar);
-                }
+            if (response.data) {
+                toast.success('Profile updated successfully!');
+                // You might want to update Redux store here
+                // dispatch(updateUser(response.data.user));
             } else {
-                setMessage(data.message || 'Error updating profile');
+                throw new Error('No data returned from server');
             }
         } catch (error) {
-            setMessage('Error updating profile');
             console.error('Update error:', error);
+            toast.error(error.response?.data?.message || 'Error updating profile');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 ">
+        <div className="min-h-screen bg-gray-50">
             <nav className="bg-white shadow-sm mb-8">
                 <Navbar />
-
             </nav>
 
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -234,7 +200,7 @@ const UserProfileUpdate = () => {
 
                     {/* Profile Image Section */}
                     <div className="px-6 py-6 border-b border-gray-200">
-                        <div className="flex items-center space-x-6">
+                        <div className="flex items-center space-x-6 mb-4">
                             <div className="relative">
                                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 border-4 border-white shadow-sm overflow-hidden">
                                     {imagePreview ? (
@@ -242,14 +208,17 @@ const UserProfileUpdate = () => {
                                             src={imagePreview}
                                             alt="Profile"
                                             className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                e.target.nextSibling.style.display = 'flex';
+                                            }}
                                         />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                            <span className="text-2xl font-semibold text-gray-400">
-                                                {userData.name ? userData.name.charAt(0).toUpperCase() : 'U'}
-                                            </span>
-                                        </div>
-                                    )}
+                                    ) : null}
+                                    <div className={`w-full h-full flex items-center justify-center bg-gray-100 ${imagePreview ? 'hidden' : 'flex'}`}>
+                                        <span className="text-2xl font-semibold text-gray-400">
+                                            {userData.name ? userData.name.charAt(0).toUpperCase() : 'U'}
+                                        </span>
+                                    </div>
                                 </div>
                                 <label
                                     htmlFor="avatar-upload"
@@ -273,11 +242,17 @@ const UserProfileUpdate = () => {
                                 <p className="text-gray-600 text-sm mt-1">
                                     JPG, GIF or PNG. Max size of 5MB.
                                 </p>
+                                {selectedFile && (
+                                    <p className="text-green-600 text-sm mt-1">
+                                        File selected: {selectedFile.name}
+                                    </p>
+                                )}
                             </div>
                         </div>
 
+                        {/* Upload Progress */}
                         {uploading && (
-                            <div className="bg-gray-100 rounded-lg p-4">
+                            <div className="mb-4">
                                 <div className="flex justify-between text-sm text-gray-600 mb-2">
                                     <span>Uploading...</span>
                                     <span>{uploadProgress}%</span>
@@ -290,27 +265,21 @@ const UserProfileUpdate = () => {
                                 </div>
                             </div>
                         )}
-                        <button
-                            onClick={handleUpload}
-                            disabled={uploading || selectedFiles.length === 0}
-                            className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {uploading ? 'Uploading...' : 'Upload Avatar'}
-                        </button>
 
+                        {/* Upload Button */}
+                        {selectedFile && !uploading && (
+                            <button
+                                onClick={handleUpload}
+                                disabled={uploading}
+                                className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+                            >
+                                Upload Avatar
+                            </button>
+                        )}
                     </div>
 
                     {/* Form Section */}
                     <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                        {message && (
-                            <div className={`p-4 rounded-lg ${message.includes('successfully')
-                                ? 'bg-green-50 text-green-800 border border-green-200'
-                                : 'bg-red-50 text-red-800 border border-red-200'
-                                }`}>
-                                {message}
-                            </div>
-                        )}
-
                         {/* Personal Information */}
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Personal Information</h3>

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import axiosClient from '../../../api/auth';
+import axiosClient from '../../api/auth';
 import { toast } from 'react-toastify';
 
 const ImageUpload = ({ userId, onUploadSuccess, onAvatarUpdate }) => {
@@ -15,14 +15,19 @@ const ImageUpload = ({ userId, onUploadSuccess, onAvatarUpdate }) => {
 
     };
 
-    const uploadToCloudinary = async (file) => {
+    const uploadToCloudinary = async (files) => {
         const formData = new FormData();
-        formData.append('avatar', file);
-        console.log("formData", formData);
+        files.forEach(file => {
+            formData.append('images', file);
 
+        })
+        console.log("formData entries:");
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ', ' + pair[1]);
+        }
 
         try {
-            const response = await axiosClient.post('/upload/avatar', formData, {
+            const response = await axiosClient.post('/upload/multiple', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -48,28 +53,33 @@ const ImageUpload = ({ userId, onUploadSuccess, onAvatarUpdate }) => {
         setUploadProgress(0);
 
         try {
-            // Upload only the first file for avatar
-            const result = await uploadToCloudinary(selectedFiles[0]);
+
+            const result = await uploadToCloudinary(selectedFiles);
             console.log("result", result);
 
-            const cloudinaryUrl = result.imageUrl;
 
-            console.log('Cloudinary upload successful:', cloudinaryUrl);
+            if (result.images && result.images.length > 0) {
+                const cloudinaryUrl = result.images;
 
-            // Call the parent callback to update the form data
-            if (onAvatarUpdate) {
-                onAvatarUpdate(cloudinaryUrl);
+                console.log('Cloudinary upload successful:', cloudinaryUrl);
+
+                // Call the parent callback to update the form data
+                if (onAvatarUpdate) {
+                    onAvatarUpdate(cloudinaryUrl);
+                }
+
+                // Call success callback
+                if (onUploadSuccess) {
+                    onUploadSuccess([result]);
+                }
+
+                // Clear selected files
+                setSelectedFiles([]);
+
+                toast.success('Avatar uploaded successfully! URL is ready to be saved.');
+            } else {
+                throw new Error('No images returned from server');
             }
-
-            // Call success callback
-            if (onUploadSuccess) {
-                onUploadSuccess([result]);
-            }
-
-            // Clear selected files
-            setSelectedFiles([]);
-
-            toast.success('Avatar uploaded successfully! URL is ready to be saved.');
 
         } catch (error) {
             console.error('Upload failed:', error);
@@ -92,7 +102,7 @@ const ImageUpload = ({ userId, onUploadSuccess, onAvatarUpdate }) => {
                 <input
                     type="file"
                     onChange={handleFileChange}
-                    // multiple
+                    multiple
                     disabled={uploading}
                     accept="image/*"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"

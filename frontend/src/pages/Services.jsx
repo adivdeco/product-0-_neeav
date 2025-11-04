@@ -142,8 +142,9 @@ function ContractorPage() {
     };
 
     const getPrimaryImage = (images) => {
-        const primaryImage = images?.find(img => img.isPrimary);
-        return primaryImage?.url || images?.[0]?.url || getDefaultImage();
+        // const primaryImage = images?.find(img => img.isPrimary);
+        // return primaryImage?.url || images?.[0]?.url || getDefaultImage();
+        return images
     };
 
     const formatPricing = (pricing) => {
@@ -330,7 +331,7 @@ function ContractorPage() {
                                     {/* Contractor Image */}
                                     <div className="relative h-48 md:h-52 bg-gray-100">
                                         <img
-                                            src={getPrimaryImage(contractor.images)}
+                                            src={getPrimaryImage(contractor.avatar)}
                                             alt={contractor.contractorName}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                             onError={(e) => {

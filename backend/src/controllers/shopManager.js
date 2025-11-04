@@ -19,7 +19,8 @@ const addShopOwner = async (req, res) => {
             return res.status(403).send("Forbidden: You do not have asses to addShop ")
         }
 
-        const { shopName, contact, address, ownerName, categories, image } = req.body;
+        const { shopName, contact, address, ownerName, categories, image, image2 } = req.body;
+
         const phone = contact?.phone;
         const email = contact?.email;
         const password = contact?.password
@@ -73,8 +74,8 @@ const addShopOwner = async (req, res) => {
                 storeDetails: {
                     storeName: shopName,
                     productCategories: categories
-                }
-                // avatar: image[0].url
+                },
+                avatar: image
             };
 
             ownerUser = await User.create(newUserPayload);
@@ -96,11 +97,13 @@ const addShopOwner = async (req, res) => {
                         storeDetails: {
                             storeName: shopName,
                             productCategories: Array.isArray(categories) ? categories : []
-                        }
+                        },
+                        avatar: image
+
                     }
                 }, { new: true, runValidators: true });
 
-                console.log('ownerUser updated via findByIdAndUpdate:', { id: ownerUser?._id, storeDetails: ownerUser?.storeDetails });
+                console.log('ownerUser updated via findByIdAndUpdate:', { id: ownerUser?._id, storeDetails: ownerUser?.storeDetails, });
             }
         }
 
@@ -108,7 +111,10 @@ const addShopOwner = async (req, res) => {
         const newShopPayload = {
             ...req.body,
             createdBy: userId,
-            ownerId: ownerUser._id
+            ownerId: ownerUser._id,
+            avatar: image,
+            images: image2
+
         };
 
         const newShop = await Shop.create(newShopPayload)
@@ -120,7 +126,8 @@ const addShopOwner = async (req, res) => {
             ownerUser: {
                 _id: ownerUser._id,
                 email: ownerUser.email,
-                name: ownerUser.name
+                name: ownerUser.name,
+                avatar: ownerUser.avatar
             }
         });
 
@@ -305,7 +312,7 @@ const addContractor = async (req, res) => {
             return res.status(403).send("Forbidden: You do not have access to add contractor");
         }
 
-        const { contractorName, contact, address, services, description, experience, pricing, password } = req.body;
+        const { contractorName, contact, address, services, description, experience, pricing, password, image, image2 } = req.body;
         const phone = contact?.phone;
         const email = contact?.email;
         const city = address?.city;
@@ -362,7 +369,8 @@ const addContractor = async (req, res) => {
                     yearsOfExperience: experience?.years || 0,
                     hourlyRate: pricing?.hourlyRate || 0,
                     bio: description
-                }
+                },
+                avatar: image
             };
 
             user = await User.create([newUserPayload], { session });
@@ -386,7 +394,8 @@ const addContractor = async (req, res) => {
                         'contractorDetails.specialization': Array.isArray(services) ? services : [],
                         'contractorDetails.yearsOfExperience': experience?.years || 0,
                         'contractorDetails.hourlyRate': pricing?.hourlyRate || 0,
-                        'contractorDetails.bio': description
+                        'contractorDetails.bio': description,
+                        avatar: image
                     }
                 },
                 { new: true, runValidators: true, session }
@@ -402,7 +411,9 @@ const addContractor = async (req, res) => {
         const newContractorPayload = {
             ...req.body,
             createdBy: userId,
-            contractorId: user._id
+            contractorId: user._id,
+            avatar: image,
+            images: image2
         };
 
         const [newContractor] = await Contractor.create([newContractorPayload], { session });
@@ -418,7 +429,9 @@ const addContractor = async (req, res) => {
                 _id: user._id,
                 email: user.email,
                 name: user.name,
-                role: user.role
+                role: user.role,
+                avatar: ownerUser.avatar
+
             }
         });
     } catch (error) {

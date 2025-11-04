@@ -168,7 +168,7 @@ function AllUsers() {
         setValue("contractorDetails.skills", user.contractorDetails?.skills || []);
         setValue("contractorDetails.bio", user.contractorDetails?.bio || "");
 
-        setValue("avatar", user.avatar || "");
+        // setValue("avatar", user.avatar || "");
 
         setShowUpdateModal(true);
     };
@@ -183,7 +183,7 @@ function AllUsers() {
 
     const handleUpdateSubmit = async (data) => {
         try {
-            // Check if selectedUser and _id exist
+
             if (!selectedUser || !selectedUser._id) {
                 toast.error("User ID is missing. Please try again.");
                 return;
@@ -355,8 +355,10 @@ function AllUsers() {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-4">
                                                 <div className="flex-shrink-0">
-                                                    <div className="w-12 h-12 bg-gradient-to-r from-gray-600 to-gray-800 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                                                        {user.name?.charAt(0).toUpperCase() || 'U'}
+                                                    <div className="w-16 h-16 bg-gradient-to-r from-gray-600 to-gray-800 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                                                        {user.avatar ? <img src={user.avatar} alt="" className=" h-full w-full rounded-full object-cover border-2 border-gray-200"
+                                                        /> : user.name?.charAt(0).toUpperCase()}
+
                                                     </div>
                                                 </div>
                                                 <div className="flex-1 min-w-0">

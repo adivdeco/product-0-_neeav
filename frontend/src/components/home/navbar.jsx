@@ -49,7 +49,7 @@ function Navbar() {
         { icon: FaStore, label: "My Shop", href: "/shop", color: "text-emerald-600" },
         { icon: FaTools, label: "Manage Services", href: "/store/myservices", color: "text-amber-600" },
         { icon: FaChartBar, label: "Shop Analytics", href: "/store/analytics", color: "text-purple-600" },
-        { icon: FaCog, label: "Store Settings", href: "/store/settings", color: "text-gray-600" },
+        { icon: FaCog, label: "Store Settings", href: "/setting/shop", color: "text-gray-600" },
     ];
 
     const getAvatarUrl = () => {
@@ -166,7 +166,7 @@ function Navbar() {
                                             {/* Regular User Menu */}
                                             < div className="px-4 py-2">
                                                 <a
-                                                    href="/profile"
+                                                    href="/setting/user"
                                                     className="flex items-center space-x-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 group"
                                                 >
                                                     <FaUser className="w-4 h-4 text-gray-600 group-hover:text-blue-600" />

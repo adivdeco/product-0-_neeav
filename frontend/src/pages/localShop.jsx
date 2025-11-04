@@ -127,7 +127,7 @@ function LocalShop() {
                                     <div className="relative h-48 bg-gray-200">
                                         <img
                                             src={
-                                                shop.images?.[0]?.url || getDefaultImage()
+                                                shop.avatar || getDefaultImage()
                                             }
                                             alt={shop.shopName}
                                             className="w-full h-full object-cover"
