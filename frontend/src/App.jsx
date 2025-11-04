@@ -25,6 +25,7 @@ import AllUsers from './components/admin/Users_data/Allusers';
 import ContractorProfile from './pages/allContractor'
 import UserProfileUpdate from './components/userDataUpdate';
 import ShopProfileUpdate from './components/shopDataUpdate';
+import ContractorProfileUpdate from './components/contractorDataUpdate';
 
 function App() {
   const dispatch = useDispatch();
@@ -79,6 +80,8 @@ function App() {
       {/* updates */}
       <Route path='/setting/user' element={isAuthenticated ? <UserProfileUpdate /> : <Login />} />
       <Route path='/setting/shop' element={isAuthenticated ? <ShopProfileUpdate /> : <Login />} />
+      <Route path='/setting/Contractor' element={isAuthenticated ? <ContractorProfileUpdate /> : <Login />} />
+
     </Routes>
   );
 }

@@ -1,6 +1,6 @@
 const express = require('express');
 // const User = require('../models/userSchema.js')
-const { registerUser, loginUser, logOutUser, allUsers, updateUser, deleteUser, updateContractorServices, updateShopData, updateUserProfile, getShopProfile } = require('../controllers/userAuthent.js');
+const { registerUser, loginUser, logOutUser, allUsers, updateUser, deleteUser, updateContractorServices, updateShopData, updateUserProfile, getShopProfile, getContractorProfile } = require('../controllers/userAuthent.js');
 const User = require('../models/userSchema.js');
 
 const authRouter = express.Router();
@@ -20,7 +20,7 @@ authRouter.put('/contractor/services', updateContractorServices);
 authRouter.put('/shop/data', updateShopData);
 
 authRouter.get('/profile', getShopProfile);
-
+authRouter.get('/Conttactor_Profile', getContractorProfile)
 
 authRouter.get('/check-session', async (req, res) => {
     if (req.session && req.session.userId) {

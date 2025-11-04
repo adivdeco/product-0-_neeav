@@ -364,7 +364,18 @@ const updateUserProfile = async (req, res) => {
 const updateContractorServices = async (req, res) => {
     try {
         const userId = req.session.userId;
-        const { services, description, experience, pricing } = req.body;
+        const {
+            contractorName,
+            description,
+            contact,
+            address,
+            services,
+            experience,
+            availability,
+            pricing,
+            avatar,
+            images
+        } = req.body;
 
         // Validate that user is a contractor
         const user = await User.findById(userId);
@@ -374,15 +385,23 @@ const updateContractorServices = async (req, res) => {
             });
         }
 
+        const updateFields = {
+            ...(contractorName && { contractorName }),
+            ...(description && { description }),
+            ...(contact && { contact }),
+            ...(address && { address }),
+            ...(services && { services }),
+            ...(experience && { experience }),
+            ...(availability && { availability }),
+            ...(pricing && { pricing }),
+            ...(avatar && { avatar }),
+            ...(images && { images }),
+            updatedAt: new Date()
+        };
+
         const contractor = await Contractor.findOneAndUpdate(
             { contractorId: userId },
-            {
-                services,
-                description,
-                experience,
-                pricing,
-                updatedAt: new Date()
-            },
+            updateFields,
             { new: true, runValidators: true }
         );
 
@@ -393,14 +412,14 @@ const updateContractorServices = async (req, res) => {
         }
 
         res.status(200).json({
-            message: "Contractor services updated successfully",
+            message: "Contractor profile updated successfully",
             contractor
         });
 
     } catch (error) {
-        console.error('Error updating contractor services:', error);
+        console.error('Error updating contractor profile:', error);
         res.status(500).json({
-            message: "Error updating contractor services",
+            message: "Error updating contractor profile",
             error: error.message
         });
     }
@@ -514,6 +533,7 @@ const updateShopData = async (req, res) => {
         });
     }
 };
+
 const getShopProfile = async (req, res) => {
     try {
         const userId = req.session.userId;
@@ -548,4 +568,38 @@ const getShopProfile = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, updateContractorServices, updateShopData, updateUserProfile, loginUser, logOutUser, allUsers, updateUser, deleteUser, getShopProfile }
+const getContractorProfile = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+
+        // Validate that user is a store owner
+        const user = await User.findById(userId);
+        if (user.role !== 'contractor') {
+            return res.status(403).json({
+                message: "Access denied. User is not a store owner"
+            });
+        }
+
+        const contractor = await Contractor.findOne({ contractorId: userId });
+
+        if (!contractor) {
+            return res.status(404).json({
+                message: "contractor profile not found"
+            });
+        }
+
+        res.status(200).json({
+            message: "contractor profile retrieved successfully",
+            contractor
+        });
+
+    } catch (error) {
+        console.error('Error fetching contractor profile:', error);
+        res.status(500).json({
+            message: "Error fetching contractor profile",
+            error: error.message
+        });
+    }
+};
+
+module.exports = { registerUser, updateContractorServices, updateShopData, updateUserProfile, loginUser, logOutUser, allUsers, updateUser, deleteUser, getShopProfile, getContractorProfile }
