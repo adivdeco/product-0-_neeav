@@ -24,7 +24,7 @@ import {
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import ReviewForm from "./ReviewForm";
-
+import QuoteRequestForm from "../components/notifactionService/QuoteRequestForm";
 
 
 
@@ -35,6 +35,7 @@ function ContractorProfilePage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
     const [showContactModal, setShowContactModal] = useState(false);
+    const [showQuoteForm, setShowQuoteForm] = useState(false);
 
 
 
@@ -162,6 +163,7 @@ function ContractorProfilePage() {
                             Call Now
                         </a>
                     </div> */}
+
                     <h1 className="text-2xl font-bold flex text-center rounded-2xl bg-yellow-50   mb-4">This service is under maintenance 🚧 ./. 🚧</h1>
                 </div>
             </div>
@@ -177,7 +179,11 @@ function ContractorProfilePage() {
     }
 
 
-
+    const handleQuoteSuccess = (response) => {
+        console.log('Quote request successful:', response);
+        // You can show a success message here
+        alert('Quote request sent successfully! The contractor will contact you soon.');
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
@@ -294,9 +300,14 @@ function ContractorProfilePage() {
                                 >
                                     Contact Contractor
                                 </button>
-                                <button className="flex-1 border-2 border-blue-600 text-blue-600 py-4 px-6 rounded-xl font-semibold hover:bg-blue-50 transition-all duration-200">
+
+                                <button
+                                    onClick={() => setShowQuoteForm(true)}
+                                    className="flex-1 border-2 border-blue-600 text-blue-600 py-4 px-6 rounded-xl font-semibold hover:bg-blue-50 transition-all duration-200"
+                                >
                                     Request Quote
                                 </button>
+
                             </div>
                         </div>
                     </div>
@@ -443,7 +454,7 @@ function ContractorProfilePage() {
                                                         </div>
                                                     </div>
 
-                                                    {/* Rating & Date */}
+                                                    {/* Rating & Date  */}
                                                     <div className="flex flex-col items-start sm:items-end text-gray-600">
                                                         {renderStars(review.rating)}
                                                         <span className="text-xs mt-1 text-gray-500">
@@ -475,42 +486,67 @@ function ContractorProfilePage() {
                         {activeTab === 'documents' && (
                             <div>
                                 <h3 className="text-xl font-bold text-gray-900 mb-6">Documents & Certifications</h3>
-                                {contractor.documents && contractor.documents.length > 0 ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {contractor.documents.map((doc, index) => (
-                                            <div key={index} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-                                                <div className="flex justify-between items-start mb-3">
-                                                    <div>
-                                                        <h4 className="font-semibold text-gray-900 capitalize">
-                                                            {doc.type}
-                                                        </h4>
-                                                        {doc.documentNumber && (
-                                                            <p className="text-sm text-gray-600 mt-1">
-                                                                Number: {doc.documentNumber}
-                                                            </p>
-                                                        )}
-                                                        {doc.expiryDate && (
-                                                            <p className="text-sm text-gray-600">
-                                                                Expires: {new Date(doc.expiryDate).toLocaleDateString()}
-                                                            </p>
-                                                        )}
+
+                                {contractor.images && contractor.images.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        {contractor.images.map((doc, index) => {
+                                            const url = typeof doc === "string" ? doc : (doc || doc || "");
+                                            const rawName = (doc && (doc.name || doc.filename || doc.title)) || url.split("/").pop() || `Document-${index + 1}`;
+                                            const extMatch = rawName.match(/\.(\w+)(?:$|\?)/);
+                                            const ext = extMatch ? extMatch[1].toUpperCase() : "";
+                                            const uploadedAt = (doc && doc.uploadedAt) ? new Date(doc.uploadedAt).toLocaleDateString() : (doc && doc.createdAt) ? new Date(doc.createdAt).toLocaleDateString() : "";
+
+                                            return (
+                                                <div
+                                                    key={index}
+                                                    className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                                                >
+                                                    <div className="relative aspect-w-16 aspect-h-10 bg-gray-100">
+                                                        <img
+                                                            src={url}
+                                                            alt={rawName}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => { e.currentTarget.src = getDefaultImage(); }}
+                                                        />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end p-3">
+                                                            <div className="w-full flex justify-between items-center gap-2">
+                                                                <a
+                                                                    href={url}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="bg-white/90 text-gray-800 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-white"
+                                                                >
+                                                                    View
+                                                                </a>
+                                                                <a
+                                                                    href={url}
+                                                                    download={rawName}
+                                                                    className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700"
+                                                                >
+                                                                    Download
+                                                                </a>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    {doc.verified && (
-                                                        <FiCheckCircle className="h-6 w-6 text-green-500" />
-                                                    )}
+
+                                                    <div className="p-3">
+                                                        <div className="flex items-start justify-between">
+                                                            <div className="min-w-0">
+                                                                {/* <p className="text-sm font-semibold text-gray-900 truncate">{rawName}</p> */}
+                                                                <p className="text-xs text-gray-500 mt-1">
+                                                                    {/* {uploadedAt ? `Uploaded: ${uploadedAt}` : "Uploaded date unavailable"} */}
+                                                                </p>
+                                                            </div>
+                                                            <div className="ml-3 flex-shrink-0">
+                                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                                                                    {/* {ext || "FILE"} */} glimps of some best work
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                {doc.fileUrl && (
-                                                    <a
-                                                        href={doc.fileUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm"
-                                                    >
-                                                        View Document →
-                                                    </a>
-                                                )}
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 ) : (
                                     <div className="text-center py-12">
@@ -529,6 +565,13 @@ function ContractorProfilePage() {
                 </div>
             </div>
 
+            {showQuoteForm && (
+                <QuoteRequestForm
+                    contractor={contractor}
+                    onClose={() => setShowQuoteForm(false)}
+                    onSuccess={handleQuoteSuccess}
+                />
+            )}
             {/* Contact Modal */}
             <ContactModal />
         </div>

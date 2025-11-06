@@ -4,8 +4,8 @@ import axiosClient from '../api/auth';
 import Loading from "../components/Loader";
 import { MdVerified } from "react-icons/md";
 import { FiMapPin } from "react-icons/fi";
-import { Navigate } from "react-router";
 import { Link } from "react-router";
+import QuoteRequestForm from "../components/notifactionService/QuoteRequestForm";
 
 
 function ContractorPage() {
@@ -24,6 +24,9 @@ function ContractorPage() {
         city: '',
         search: ''
     });
+    const [selectedContractor, setSelectedContractor] = useState(null);
+    const [showQuoteForm, setShowQuoteForm] = useState(false);
+
 
     const availableServices = [
         'Masonry',
@@ -156,6 +159,18 @@ function ContractorPage() {
             return pricing.projectRate;
         }
         return 'Contact for pricing';
+    };
+
+    const handleBookContractor = (contractor) => {
+        setSelectedContractor(contractor);
+        setShowQuoteForm(true);
+    };
+
+    const handleQuoteSuccess = (response) => {
+        console.log('Quote request successful:', response);
+        alert('Quote request sent successfully! The contractor will contact you soon.');
+        setShowQuoteForm(false);
+        setSelectedContractor(null);
     };
 
     // Show full-screen loader only on initial load
@@ -330,14 +345,22 @@ function ContractorPage() {
                                 >
                                     {/* Contractor Image */}
                                     <div className="relative h-48 md:h-52 bg-gray-100">
-                                        <img
-                                            src={getPrimaryImage(contractor.avatar)}
-                                            alt={contractor.contractorName}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                            onError={(e) => {
-                                                e.target.src = getDefaultImage();
-                                            }}
-                                        />
+                                        {contractor.avatar && contractor.avatar ?
+                                            <img
+                                                src={getPrimaryImage(contractor.avatar)}
+                                                alt={contractor.contractorName}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                onError={(e) => {
+                                                    e.target.src = getDefaultImage();
+                                                }}
+                                            /> : <img
+                                                src={getDefaultImage()}
+                                                alt={contractor.contractorName}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                onError={(e) => {
+                                                    e.target.src = getDefaultImage();
+                                                }}
+                                            />}
 
                                         <div className="absolute top-3 right-3 flex flex-col space-y-2 items-end">
                                             {getAvailabilityBadge(contractor.availability)}
@@ -408,9 +431,14 @@ function ContractorPage() {
                                             >
                                                 View Profile
                                             </Link>
-                                            <button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-700 hover:to-green-600 text-white py-2.5 px-4 rounded-xl transition-all duration-200 font-semibold text-sm shadow-sm">
+
+                                            <button
+                                                onClick={() => handleBookContractor(contractor)}
+                                                className="flex-1 bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-700 hover:to-green-600 text-white py-2.5 px-4 rounded-xl transition-all duration-200 font-semibold text-sm shadow-sm"
+                                            >
                                                 Book Contractor
                                             </button>
+
                                         </div>
 
                                     </div>
@@ -459,6 +487,17 @@ function ContractorPage() {
                     </>
                 )}
             </div>
+            {/* Quote Request Form Modal */}
+            {showQuoteForm && selectedContractor && (
+                <QuoteRequestForm
+                    contractor={selectedContractor}
+                    onClose={() => {
+                        setShowQuoteForm(false);
+                        setSelectedContractor(null);
+                    }}
+                    onSuccess={handleQuoteSuccess}
+                />
+            )}
         </div>
     );
 }
