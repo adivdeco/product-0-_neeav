@@ -1,12 +1,13 @@
-// // src/hooks/useNotifications.js
+
+
+
+
+// src/hooks/useNotifications.js - UPDATED FOR FCM
 import { useEffect, useState, useRef } from "react";
 import { socket } from "../socket";
-import { getFcmToken, onMessageListener } from "../firebase";
+import { getFcmToken, onMessageListener, requestPermission } from "../firebase";
 import axiosClient from "../api/auth";
 
-
-
-// src/hooks/useNotifications.js - FIXED VERSION
 export default function useNotifications(userId) {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -14,22 +15,20 @@ export default function useNotifications(userId) {
     const [userInteracted, setUserInteracted] = useState(false);
 
     useEffect(() => {
-        console.log("🔔 useNotifications: INIT with userId:", userId);
+        // console.log("🔔 useNotifications: INIT with userId:", userId);
 
         // Initialize audio
         audioRef.current = new Audio("/notifaction.mp3");
         audioRef.current.preload = "auto";
 
         // Listen for user interaction to unlock audio
-
         const handleFirstInteraction = () => {
-            console.log("✅ User interacted - audio unlocked");
+            // console.log("✅ User interacted - audio unlocked");
             setUserInteracted(true);
 
-            // Play silent sound to unlock audio context
-            audioRef.current.volume = 0.1;
+            audioRef.current.volume = 0.001;
             audioRef.current.play().then(() => {
-                console.log("✅ Audio context unlocked");
+                // console.log("✅ Audio context unlocked");
                 audioRef.current.pause();
                 audioRef.current.currentTime = 0;
                 audioRef.current.volume = 1.0;
@@ -38,10 +37,11 @@ export default function useNotifications(userId) {
             });
         };
 
+
         document.addEventListener('click', handleFirstInteraction, { once: true });
 
         if (!userId) {
-            console.log("❌ useNotifications: No userId, skipping setup");
+            // console.log("❌ useNotifications: No userId, skipping setup");
             setLoading(false);
             return;
         }
@@ -52,14 +52,16 @@ export default function useNotifications(userId) {
             try {
                 setLoading(true);
 
-                // Load existing notifications
+                // 1. Load existing notifications
+                // console.log("📥 useNotifications: Loading existing notifications...");
                 const response = await axiosClient.get(`/notifications/${userId}`);
                 if (isSubscribed) {
-                    console.log("✅ useNotifications: Loaded", response.data?.length, "notifications");
+                    // console.log("✅ useNotifications: Loaded", response.data?.length, "notifications");
                     setNotifications(response.data || []);
                 }
 
-                // Setup socket
+                // 2. Setup socket
+                // console.log("🔌 useNotifications: Setting up socket...");
                 socket.auth = { userId };
                 socket.connect();
 
@@ -69,19 +71,32 @@ export default function useNotifications(userId) {
                 });
 
                 socket.emit("register", userId);
-                console.log("✅ useNotifications: Socket registered for user:", userId);
+                // console.log("✅ useNotifications: Socket registered for user:", userId);
 
-                // Setup FCM
-                const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-                if (vapidKey) {
+                // 3. Setup FCM with enhanced error handling
+                // console.log("📱 useNotifications: Setting up FCM...");
+
+                // Check if service workers are supported
+                if ('serviceWorker' in navigator) {
                     try {
-                        const token = await getFcmToken(vapidKey);
+                        // Request permission and get token
+                        const token = await requestPermission();
+
                         if (token) {
-                            await axiosClient.post('/notifications/notiUpdate', { userId, token });
+                            console.log("💾 Saving FCM token to backend...");
+                            await axiosClient.post('/notifications/notiUpdate', {
+                                userId,
+                                token
+                            });
+                            console.log("✅ FCM token saved to backend");
+                        } else {
+                            console.warn("⚠️ No FCM token obtained");
                         }
                     } catch (fcmError) {
-                        console.error("❌ useNotifications: FCM setup failed:", fcmError);
+                        console.error("❌ FCM setup failed:", fcmError);
                     }
+                } else {
+                    console.warn("❌ Service Workers not supported - FCM unavailable");
                 }
 
             } catch (error) {
@@ -93,28 +108,25 @@ export default function useNotifications(userId) {
 
         initializeNotifications();
 
-        // Enhanced audio playback with user interaction check
+        // Enhanced audio playback
         const playNotificationSound = async () => {
-            console.log("🔊 Attempting to play notification sound...");
-            console.log("👤 User interacted:", userInteracted);
-
             if (!userInteracted) {
-                console.log("⏸️ Audio blocked: user hasn't interacted with page yet");
+                // console.log("⏸️ Audio blocked: user hasn't interacted with page yet");
                 return;
             }
 
             try {
                 audioRef.current.currentTime = 0;
                 await audioRef.current.play();
-                console.log("✅ Notification sound played successfully");
+                console.log("✅ Notification sound played");
             } catch (error) {
                 console.error("❌ Failed to play notification sound:", error);
             }
         };
 
-        // Socket event handlers
+        // Socket event handler
         const onSocketNotif = (notif) => {
-            console.log("🔔 useNotifications: REAL-TIME notification via socket:", notif);
+            // console.log("🔔 useNotifications: REAL-TIME notification via socket:", notif);
             playNotificationSound();
             setNotifications(prev => [notif, ...prev]);
         };
@@ -135,10 +147,14 @@ export default function useNotifications(userId) {
 
         // Subscribe to events
         socket.on("new_notification", onSocketNotif);
-        onMessageListener(onFcmMessage);
+
+        // Only setup FCM listener if supported
+        if ('serviceWorker' in navigator) {
+            onMessageListener(onFcmMessage);
+        }
 
         return () => {
-            console.log("🧹 useNotifications: Cleaning up...");
+            // console.log("🧹 useNotifications: Cleaning up...");
             isSubscribed = false;
             socket.off("new_notification", onSocketNotif);
             socket.disconnect();
@@ -148,9 +164,3 @@ export default function useNotifications(userId) {
 
     return { notifications, setNotifications, loading };
 }
-
-
-
-
-
-// Your existing backend code - ALREADY CORRECT!

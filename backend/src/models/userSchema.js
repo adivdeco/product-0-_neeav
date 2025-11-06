@@ -128,6 +128,12 @@ const userSchema = new Schema({
         default: '',
     },
 
+    fcmToken: {
+        type: String,
+        default: null,
+    },
+
+
     createdAt: {
         type: Date,
         default: Date.now,

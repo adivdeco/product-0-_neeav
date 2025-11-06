@@ -3,6 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../../authSlice";
 import { useState, useRef, useEffect } from "react";
 import { LogOut, LogOutIcon } from "lucide-react";
+import NotificationBell from './NotificationBell';
+import useNotifications from '../../hooks/useNotifications';
+import SocketDebugger from "../SocketDebugger";
 
 function Navbar() {
     const dispatch = useDispatch();
@@ -11,7 +14,8 @@ function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const dropdownRef = useRef(null);
     const mobileMenuRef = useRef(null);
-
+    const userId = user?._id; // from redux state
+    const { notifications } = useNotifications(userId);
     const handleLogout = () => {
         dispatch(logoutUser());
     };
@@ -202,6 +206,13 @@ function Navbar() {
                             >
                                 Sign In
                             </a>
+                        )}
+                        {/* Your existing nav content */}
+                        <NotificationBell notifications={notifications} />
+
+                        {/* Add debugger for development */}
+                        {process.env.NODE_ENV === 'development' && (
+                            <SocketDebugger userId={userId} />
                         )}
                     </div>
 

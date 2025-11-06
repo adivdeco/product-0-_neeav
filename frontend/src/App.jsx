@@ -1,4 +1,3 @@
-
 import './App.css'
 import { Routes, Route, Navigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
@@ -27,6 +26,7 @@ import UserProfileUpdate from './components/userDataUpdate';
 import ShopProfileUpdate from './components/shopDataUpdate';
 import ContractorProfileUpdate from './components/contractorDataUpdate';
 
+
 function App() {
   const dispatch = useDispatch();
   const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
@@ -38,6 +38,9 @@ function App() {
   if (loading) return <p className="text-center mt-20">Checking session...</p>;
 
   return (
+
+
+
     <Routes>
       {/* <Route path="/" element={<Main1 />} /> */}
       <Route path="/" element={isAuthenticated ? <Homepg /> : <Login />} />
@@ -76,16 +79,13 @@ function App() {
       <Route path='/admin/user/allusers' element={isAuthenticated ? <AllUsers /> : <Login />} />
       {/* <Route path='/admin/shop' */}
 
-
       {/* updates */}
       <Route path='/setting/user' element={isAuthenticated ? <UserProfileUpdate /> : <Login />} />
       <Route path='/setting/shop' element={isAuthenticated ? <ShopProfileUpdate /> : <Login />} />
       <Route path='/setting/Contractor' element={isAuthenticated ? <ContractorProfileUpdate /> : <Login />} />
-
     </Routes>
+
   );
 }
 
 export default App;
-
-
