@@ -5,7 +5,6 @@ import Loading from "../components/Loader";
 import { MdVerified } from "react-icons/md";
 import { FiMapPin } from "react-icons/fi";
 import { Link } from "react-router";
-import QuoteRequestForm from "../components/notifactionService/QuoteRequestForm";
 
 
 function ContractorPage() {
@@ -487,17 +486,7 @@ function ContractorPage() {
                     </>
                 )}
             </div>
-            {/* Quote Request Form Modal */}
-            {showQuoteForm && selectedContractor && (
-                <QuoteRequestForm
-                    contractor={selectedContractor}
-                    onClose={() => {
-                        setShowQuoteForm(false);
-                        setSelectedContractor(null);
-                    }}
-                    onSuccess={handleQuoteSuccess}
-                />
-            )}
+
         </div>
     );
 }

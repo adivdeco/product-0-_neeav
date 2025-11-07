@@ -122,7 +122,6 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const http = require('http');
-const { Server } = require('socket.io');
 require('dotenv').config({ quiet: true });
 
 const main = require('./config/db');
@@ -133,8 +132,7 @@ const authRouter = require('./routes/userAuth');
 const billsRouter = require('./routes/khata');
 const ownRouter = require('./routes/useAs');
 const uploadData = require('./routes/cloudData');
-const noticeRouter = require('./routes/notificationRoutes');
-const notifyDataRouter = require('./routes/serviceRequestRoutes')
+
 
 const app = express();
 
@@ -165,84 +163,17 @@ app.use('/auth', authRouter);
 app.use('/khata', billsRouter);
 app.use('/useas', ownRouter);
 app.use('/upload', uploadData);
-app.use('/notifications', noticeRouter)
-app.use('/service-requests', notifyDataRouter)
-
-// --- Create HTTP server & bind Socket.IO ---
-const server = http.createServer(app);
 
 
-const io = new Server(server, {
-    cors: { origin: process.env.CORS_ORIGINS, methods: ['GET', 'POST'] },
-});
 
-global.users = new Map();
 
-io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
 
-    // Register user with their ID
-    socket.on('register', (userId, callback) => {
-        if (!userId) {
-            console.log('❌ Register: No userId provided');
-            if (callback) callback({ success: false, error: 'No userId' });
-            return;
-        }
-
-        // Store user ID with socket ID
-        global.users.set(userId.toString(), socket.id);
-
-        console.log(`✅ User ${userId} registered with socket ${socket.id}`);
-        console.log(`📊 Total connected users: ${global.users.size}`);
-
-        // Send confirmation to client
-        if (callback) {
-            callback({
-                success: true,
-                userId: userId,
-                socketId: socket.id,
-                message: 'Successfully registered for real-time notifications'
-            });
-        }
-
-        // Also emit a separate event for confirmation
-        socket.emit('userRegistered', {
-            userId: userId,
-            socketId: socket.id,
-            timestamp: new Date().toISOString()
-        });
-    });
-
-    // Handle disconnection
-    socket.on('disconnect', (reason) => {
-        console.log('User disconnected:', socket.id, 'Reason:', reason);
-
-        // Remove from connected users
-        for (let [userId, socketId] of global.users.entries()) {
-            if (socketId === socket.id) {
-                global.users.delete(userId);
-                console.log(`🗑️ User ${userId} removed from connected users`);
-                break;
-            }
-        }
-
-        console.log(`📊 Remaining connected users: ${global.users.size}`);
-    });
-
-    // Handle connection errors
-    socket.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
-    });
-});
-
-// make io globally available (useful in controllers)
-global.io = io;
 
 // --- Start the app ---
 main()
     .then(() => {
-        server.listen(process.env.PORT, () => {
-            console.log(`🚀 Server running with Socket.IO on port ${process.env.PORT}`);
+        app.listen(process.env.PORT, () => {
+            console.log(`🚀 Server running  on port ${process.env.PORT}`);
         });
     })
     .catch((err) => {
