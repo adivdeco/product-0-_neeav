@@ -15,7 +15,7 @@ const initializeMessaging = async () => {
     try {
         if (await isSupported()) {
             messaging = getMessaging(app);
-            console.log("✅ FCM supported and initialized");
+            // console.log("✅ FCM supported and initialized");
         } else {
             console.warn("❌ FCM not supported in this environment");
         }
@@ -29,26 +29,26 @@ initializeMessaging();
 export const requestPermission = async () => {
     try {
         if (!messaging) {
-            console.warn("Messaging not available");
+            // console.warn("Messaging not available");
             return null;
         }
 
         // Request notification permission
         const permission = await Notification.requestPermission();
-        console.log("🔔 Notification permission:", permission);
+        // console.log("🔔 Notification permission:", permission);
 
         if (permission === "granted") {
-            console.log("✅ Notification permission granted");
+            // console.log("✅ Notification permission granted");
 
             // Register service worker
             try {
                 const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-                console.log("✅ Service Worker registered:", registration);
+                // console.log("✅ Service Worker registered:", registration);
 
                 // Get FCM token
                 const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
                 if (!vapidKey) {
-                    console.error("❌ VAPID key not found in environment variables");
+                    // console.error("❌ VAPID key not found in environment variables");
                     return null;
                 }
 
@@ -57,7 +57,7 @@ export const requestPermission = async () => {
                     serviceWorkerRegistration: registration
                 });
 
-                console.log("📱 FCM Token obtained:", token);
+                // console.log("📱 FCM Token obtained:", token);
                 return token;
 
             } catch (swError) {
@@ -78,13 +78,13 @@ export const requestPermission = async () => {
 export const getFcmToken = async (vapidKey) => {
     try {
         if (!messaging) {
-            console.warn("Messaging not available");
+            // console.warn("Messaging not available");
             return null;
         }
 
         const permission = await Notification.requestPermission();
         if (permission !== "granted") {
-            console.warn("Notification permission denied");
+            // console.warn("Notification permission denied");
             return null;
         }
 
@@ -92,7 +92,7 @@ export const getFcmToken = async (vapidKey) => {
         let registration = await navigator.serviceWorker.getRegistration();
         if (!registration) {
             registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-            console.log("✅ Service Worker registered for FCM");
+            // console.log("✅ Service Worker registered for FCM");
         }
 
         const token = await getToken(messaging, {
@@ -100,21 +100,21 @@ export const getFcmToken = async (vapidKey) => {
             serviceWorkerRegistration: registration
         });
 
-        console.log("✅ FCM Token generated");
+        // console.log("✅ FCM Token generated");
         return token;
     } catch (err) {
-        console.error("❌ FCM token error", err);
+        // console.error("❌ FCM token error", err);
         return null;
     }
 };
 
 export function onMessageListener(callback) {
     if (!messaging) {
-        console.warn("Messaging not available for onMessage");
+        // console.warn("Messaging not available for onMessage");
         return;
     }
     onMessage(messaging, (payload) => {
-        console.log("📱 Foreground message received:", payload);
+        // console.log("📱 Foreground message received:", payload);
         callback(payload);
     });
 }

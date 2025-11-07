@@ -25,8 +25,7 @@ import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import ReviewForm from "./ReviewForm";
 import QuoteRequestForm from "../components/notifactionService/QuoteRequestForm";
-
-
+import { socket } from "../socket"; // Import socket
 
 function ContractorProfilePage() {
     const { id } = useParams();
@@ -36,8 +35,85 @@ function ContractorProfilePage() {
     const [activeTab, setActiveTab] = useState('overview');
     const [showContactModal, setShowContactModal] = useState(false);
     const [showQuoteForm, setShowQuoteForm] = useState(false);
+    const [socketStatus, setSocketStatus] = useState('disconnected');
 
+    // Socket connection management for contractors
+    useEffect(() => {
+        if (!user || user.role !== 'contractor') return;
 
+        console.log(`🏗️ ContractorProfilePage: Ensuring socket connection for ${user._id}`);
+
+        const updateSocketStatus = () => {
+            setSocketStatus(socket.connected ? 'connected' : 'disconnected');
+        };
+
+        // Initial status
+        updateSocketStatus();
+
+        // Ensure socket is connected
+        if (!socket.connected) {
+            console.log('🔄 ContractorProfilePage: Connecting socket...');
+            socket.connect();
+        }
+
+        // Register contractor with socket
+        const registerContractor = () => {
+            if (socket.connected && user._id) {
+                socket.emit('register', user._id, (response) => {
+                    if (response && response.success) {
+                        console.log('✅ ContractorProfilePage: Contractor registered successfully');
+                    } else {
+                        console.log('⚠️ ContractorProfilePage: Registration response:', response);
+                    }
+                });
+            }
+        };
+
+        // Socket event listeners
+        const handleConnect = () => {
+            console.log('✅ ContractorProfilePage: Socket connected');
+            updateSocketStatus();
+            registerContractor();
+        };
+
+        const handleDisconnect = (reason) => {
+            console.log('❌ ContractorProfilePage: Socket disconnected:', reason);
+            updateSocketStatus();
+        };
+
+        const handleNewNotification = (notification) => {
+            console.log('🔔 ContractorProfilePage: Received real-time notification:', notification);
+            // You can show a toast or update UI here when a new quote request comes in
+            if (notification.type === 'service_request') {
+                console.log('📋 New quote request received!');
+                // Optional: Show a toast notification
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('New Quote Request!', {
+                        body: notification.message,
+                        icon: '/logo.png',
+                        tag: 'new-quote-request'
+                    });
+                }
+            }
+        };
+
+        // Register event listeners
+        socket.on('connect', handleConnect);
+        socket.on('disconnect', handleDisconnect);
+        socket.on('new_notification', handleNewNotification);
+
+        // Register immediately if already connected
+        if (socket.connected) {
+            registerContractor();
+        }
+
+        return () => {
+            // Cleanup event listeners
+            socket.off('connect', handleConnect);
+            socket.off('disconnect', handleDisconnect);
+            socket.off('new_notification', handleNewNotification);
+        };
+    }, [user]);
 
     const fetchContractor = useCallback(async () => {
         try {
@@ -96,6 +172,46 @@ function ContractorProfilePage() {
         return primaryImage?.url || images?.[0]?.url || getDefaultImage();
     };
 
+    // Contractor Connection Status Banner
+    const ConnectionStatusBanner = () => {
+        if (user?.role !== 'contractor') return null;
+
+        return (
+            <div className={`mb-4 p-3 rounded-lg border ${socketStatus === 'connected'
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-yellow-50 border-yellow-200'
+                }`}>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                        <div className={`w-3 h-3 rounded-full mr-2 ${socketStatus === 'connected' ? 'bg-green-500' : 'bg-yellow-500'
+                            }`}></div>
+                        <span className="font-medium text-sm">
+                            {socketStatus === 'connected'
+                                ? '✅ Real-time notifications active'
+                                : '⚠️ Notifications offline - refresh if issues persist'
+                            }
+                        </span>
+                    </div>
+                    <button
+                        onClick={() => {
+                            if (socket.connected) {
+                                socket.disconnect();
+                            } else {
+                                socket.connect();
+                            }
+                        }}
+                        className={`text-xs px-2 py-1 rounded ${socketStatus === 'connected'
+                                ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                : 'bg-green-100 text-green-700 hover:bg-green-200'
+                            }`}
+                    >
+                        {socketStatus === 'connected' ? 'Disconnect' : 'Connect'}
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
     const ContactModal = () => {
         if (!showContactModal || !contractor) return null;
 
@@ -112,58 +228,6 @@ function ContractorProfilePage() {
                         </button>
                     </div>
 
-                    {/* <div className="space-y-4">
-                        <div className="flex items-center p-3 bg-blue-50 rounded-xl">
-                            <MdPhone className="h-6 w-6 text-blue-600 mr-3" />
-                            <div>
-                                <p className="text-sm text-gray-600">Phone</p>
-                                <p className="font-semibold text-gray-900">{contractor.contact?.phone}</p>
-                                {contractor.contact?.alternatePhone && (
-                                    <p className="font-medium text-gray-700 text-sm mt-1">
-                                        Alternate: {contractor.contact.alternatePhone}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex items-center p-3 bg-green-50 rounded-xl">
-                            <MdEmail className="h-6 w-6 text-green-600 mr-3" />
-                            <div>
-                                <p className="text-sm text-gray-600">Email</p>
-                                <p className="font-semibold text-gray-900">{contractor.contact?.email}</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start p-3 bg-purple-50 rounded-xl">
-                            <MdLocationOn className="h-6 w-6 text-purple-600 mr-3 mt-1" />
-                            <div>
-                                <p className="text-sm text-gray-600">Address</p>
-                                <p className="font-semibold text-gray-900">
-                                    {contractor.address?.street}, {contractor.address?.city}<br />
-                                    {contractor.address?.state} - {contractor.address?.pincode}
-                                    {contractor.address?.landmark && (
-                                        <><br />Landmark: {contractor.address.landmark}</>
-                                    )}
-                                </p>
-                            </div>
-                        </div>
-                    </div> */}
-
-                    {/* <div className="mt-6 flex gap-3">
-                        <button
-                            onClick={() => setShowContactModal(false)}
-                            className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
-                        >
-                            Close
-                        </button>
-                        <a
-                            href={`tel:${contractor.contact?.phone}`}
-                            className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors text-center"
-                        >
-                            Call Now
-                        </a>
-                    </div> */}
-
                     <h1 className="text-2xl font-bold flex text-center rounded-2xl bg-yellow-50   mb-4">This service is under maintenance 🚧 ./. 🚧</h1>
                 </div>
             </div>
@@ -178,7 +242,6 @@ function ContractorProfilePage() {
         return <Navigate to="/contractors" replace />;
     }
 
-
     const handleQuoteSuccess = (response) => {
         console.log('Quote request successful:', response);
         // You can show a success message here
@@ -188,6 +251,9 @@ function ContractorProfilePage() {
     return (
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Connection Status Banner for Contractors */}
+                <ConnectionStatusBanner />
+
                 {/* Header Section */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
                     <div className="flex flex-col lg:flex-row gap-6">

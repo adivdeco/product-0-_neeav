@@ -1,28 +1,3 @@
-curl - X POST http://localhost:3000/notifications/send \
--H "Content-Type: application/json" \
--d '{
-"senderId": "68c2b25a4b3cb2fc6552348a",
-    "receiverId": "690996ddfeb4dec7a92ebd1c",
-        "title": "🔔 New Service Request from John Doe",
-            "message": "Project: Home Renovation | Timeline: 2 weeks | Budget: Contact for pricing",
-                "type": "service_request",
-                    "projectType": "Home Renovation",
-                        "workDescription": "Complete home renovation including kitchen remodeling, bathroom upgrades, and living room painting. Need professional contractor for quality work.",
-                            "timeline": "2 weeks",
-                                "startDate": "2024-12-15",
-                                    "address": "123 Main Street, Sector 15, Gurgaon, Haryana - 122001",
-                                        "specialRequirements": "Eco-friendly materials preferred. Need work completion before Christmas. Parking space available for workers.",
-                                            "urgency": "high",
-                                                "contractorName": "Sharma Construction",
-                                                    "customerName": "John Doe",
-                                                        "customerPhone": "+91-9876543210",
-                                                            "customerEmail": "john.doe@example.com"
-  }'
-
-
-
-
-
 // src/components/DebugSocketConnection.jsx
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';

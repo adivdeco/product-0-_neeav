@@ -345,7 +345,7 @@ export default function PWAInstallPrompt() {
                 console.log('📱 Installation outcome:', outcome);
 
                 if (outcome === 'accepted') {
-                    console.log('✅ PWA installed successfully');
+                    // console.log('✅ PWA installed successfully');
                     setShowPrompt(false);
                     setDismissed(true);
                     localStorage.setItem('pwaPromptDismissed', 'true');
@@ -363,20 +363,20 @@ export default function PWAInstallPrompt() {
     };
 
     const dismissPrompt = () => {
-        console.log('❌ Prompt dismissed by user');
+        // console.log('❌ Prompt dismissed by user');
         setShowPrompt(false);
         setDismissed(true);
         localStorage.setItem('pwaPromptDismissed', 'true');
     };
 
     const dismissTemporarily = () => {
-        console.log('⏸️ Prompt dismissed temporarily');
+        // console.log('⏸️ Prompt dismissed temporarily');
         setShowPrompt(false);
         // Show again after 7 days instead of 24 hours
         setTimeout(() => {
             setDismissed(false);
             localStorage.removeItem('pwaPromptDismissed');
-        }, 7 * 24 * 60 * 60 * 1000);
+        }, 60 * 60 * 1000);
     };
 
     // Don't show if already installed or permanently dismissed

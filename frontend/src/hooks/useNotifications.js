@@ -1,8 +1,4 @@
-
-
-
-
-// src/hooks/useNotifications.js - UPDATED FOR FCM
+// src/hooks/useNotifications.js - UPDATED WITH DEBUGGING
 import { useEffect, useState, useRef } from "react";
 import { socket } from "../socket";
 import { getFcmToken, onMessageListener, requestPermission } from "../firebase";
@@ -15,33 +11,10 @@ export default function useNotifications(userId) {
     const [userInteracted, setUserInteracted] = useState(false);
 
     useEffect(() => {
-        // console.log("🔔 useNotifications: INIT with userId:", userId);
-
-        // Initialize audio
-        audioRef.current = new Audio("/notifaction.mp3");
-        audioRef.current.preload = "auto";
-
-        // Listen for user interaction to unlock audio
-        const handleFirstInteraction = () => {
-            // console.log("✅ User interacted - audio unlocked");
-            setUserInteracted(true);
-
-            audioRef.current.volume = 0.001;
-            audioRef.current.play().then(() => {
-                // console.log("✅ Audio context unlocked");
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-                audioRef.current.volume = 1.0;
-            }).catch(err => {
-                console.error("❌ Audio unlock failed:", err);
-            });
-        };
-
-
-        document.addEventListener('click', handleFirstInteraction, { once: true });
+        console.log("🔔 useNotifications: INIT with userId:", userId);
 
         if (!userId) {
-            // console.log("❌ useNotifications: No userId, skipping setup");
+            console.log("❌ useNotifications: No userId, skipping setup");
             setLoading(false);
             return;
         }
@@ -52,51 +25,75 @@ export default function useNotifications(userId) {
             try {
                 setLoading(true);
 
-                // 1. Load existing notifications
-                // console.log("📥 useNotifications: Loading existing notifications...");
+                // Load existing notifications
+                console.log("📥 useNotifications: Loading existing notifications...");
                 const response = await axiosClient.get(`/notifications/${userId}`);
                 if (isSubscribed) {
-                    // console.log("✅ useNotifications: Loaded", response.data?.length, "notifications");
+                    console.log("✅ useNotifications: Loaded", response.data?.length, "notifications");
+                    console.log("📋 Notifications data:", response.data);
                     setNotifications(response.data || []);
                 }
 
-                // 2. Setup socket
-                // console.log("🔌 useNotifications: Setting up socket...");
-                socket.auth = { userId };
-                socket.connect();
+                // Setup socket with better error handling
+                console.log("🔌 useNotifications: Setting up socket connection...");
 
-                await new Promise((resolve) => {
-                    if (socket.connected) resolve();
-                    socket.once('connect', resolve);
+                socket.auth = { userId };
+
+                if (!socket.connected) {
+                    console.log("🔄 useNotifications: Connecting socket...");
+                    socket.connect();
+                }
+
+                // Wait for connection with timeout
+                await new Promise((resolve, reject) => {
+                    if (socket.connected) {
+                        console.log("✅ useNotifications: Socket already connected");
+                        resolve();
+                        return;
+                    }
+
+                    const timeout = setTimeout(() => {
+                        reject(new Error("Socket connection timeout after 5s"));
+                    }, 5000);
+
+                    socket.once('connect', () => {
+                        clearTimeout(timeout);
+                        console.log("✅ useNotifications: Socket connected successfully:", socket.id);
+                        resolve();
+                    });
+
+                    socket.once('connect_error', (error) => {
+                        clearTimeout(timeout);
+                        console.error("❌ useNotifications: Socket connection failed:", error);
+                        reject(error);
+                    });
                 });
 
-                socket.emit("register", userId);
-                // console.log("✅ useNotifications: Socket registered for user:", userId);
+                // Register user with socket
+                console.log("📝 useNotifications: Registering user with socket server:", userId);
+                socket.emit("register", userId, (response) => {
+                    console.log("📝 useNotifications: Registration callback:", response);
+                    if (response && response.success) {
+                        console.log("✅ useNotifications: User registered successfully with socket");
+                    } else {
+                        console.log("⚠️ useNotifications: Registration response:", response);
+                    }
+                });
 
-                // 3. Setup FCM with enhanced error handling
-                // console.log("📱 useNotifications: Setting up FCM...");
-
-                // Check if service workers are supported
+                // Setup FCM
                 if ('serviceWorker' in navigator) {
                     try {
-                        // Request permission and get token
+                        console.log("🔥 useNotifications: Setting up FCM...");
                         const token = await requestPermission();
-
                         if (token) {
-                            console.log("💾 Saving FCM token to backend...");
-                            await axiosClient.post('/notifications/notiUpdate', {
-                                userId,
-                                token
-                            });
-                            console.log("✅ FCM token saved to backend");
+                            await axiosClient.post('/notifications/notiUpdate', { userId, token });
+                            console.log("✅ useNotifications: FCM token saved to backend");
                         } else {
-                            console.warn("⚠️ No FCM token obtained");
+                            console.log("⚠️ useNotifications: No FCM token obtained");
                         }
                     } catch (fcmError) {
-                        console.error("❌ FCM setup failed:", fcmError);
+                        console.error("❌ useNotifications: FCM setup failed:", fcmError);
                     }
-                } else {
-                    console.warn("❌ Service Workers not supported - FCM unavailable");
                 }
 
             } catch (error) {
@@ -108,57 +105,73 @@ export default function useNotifications(userId) {
 
         initializeNotifications();
 
-        // Enhanced audio playback
-        const playNotificationSound = async () => {
-            if (!userInteracted) {
-                // console.log("⏸️ Audio blocked: user hasn't interacted with page yet");
-                return;
-            }
-
-            try {
-                audioRef.current.currentTime = 0;
-                await audioRef.current.play();
-                console.log("✅ Notification sound played");
-            } catch (error) {
-                console.error("❌ Failed to play notification sound:", error);
-            }
-        };
-
-        // Socket event handler
+        // Socket event handler for notifications
         const onSocketNotif = (notif) => {
-            // console.log("🔔 useNotifications: REAL-TIME notification via socket:", notif);
-            playNotificationSound();
+            console.log("🔔 useNotifications: REAL-TIME notification via socket:", notif);
+
+            // Play sound if user has interacted
+            if (userInteracted && audioRef.current) {
+                try {
+                    audioRef.current.currentTime = 0;
+                    audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+                } catch (error) {
+                    console.error("❌ Audio playback failed:", error);
+                }
+            }
+
+            // Show browser notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(notif.title, {
+                    body: notif.message,
+                    icon: '/logo.png',
+                    tag: 'new-notification'
+                });
+            }
+
+            // Add to state
             setNotifications(prev => [notif, ...prev]);
         };
 
-        // FCM foreground handler
-        const onFcmMessage = (payload) => {
-            console.log("📱 useNotifications: FCM foreground message:", payload);
-            const notif = {
-                title: payload?.notification?.title || 'Notification',
-                message: payload?.notification?.body || 'New message',
-                data: payload?.data,
-                isRead: false,
-                createdAt: new Date()
-            };
-            playNotificationSound();
-            setNotifications(prev => [notif, ...prev]);
-        };
+        // Socket event listeners
+        socket.on("connect", () => {
+            console.log("🔌 useNotifications: Socket connected, re-registering user:", userId);
+            socket.emit("register", userId);
+        });
 
-        // Subscribe to events
+        socket.on("disconnect", (reason) => {
+            console.log("🔌 useNotifications: Socket disconnected:", reason);
+        });
+
+        socket.on("userRegistered", (data) => {
+            console.log("✅ useNotifications: Server confirmed user registration:", data);
+        });
+
         socket.on("new_notification", onSocketNotif);
 
-        // Only setup FCM listener if supported
+        // FCM message listener
         if ('serviceWorker' in navigator) {
-            onMessageListener(onFcmMessage);
+            onMessageListener((payload) => {
+                console.log("📱 useNotifications: FCM foreground message:", payload);
+                const notif = {
+                    _id: Date.now().toString(),
+                    title: payload?.notification?.title || 'Notification',
+                    message: payload?.notification?.body || 'New message',
+                    type: payload?.data?.type || 'system',
+                    data: payload?.data,
+                    isRead: false,
+                    createdAt: new Date()
+                };
+                setNotifications(prev => [notif, ...prev]);
+            });
         }
 
         return () => {
-            // console.log("🧹 useNotifications: Cleaning up...");
+            console.log("🧹 useNotifications: Cleaning up...");
             isSubscribed = false;
             socket.off("new_notification", onSocketNotif);
-            socket.disconnect();
-            document.removeEventListener('click', handleFirstInteraction);
+            socket.off("connect");
+            socket.off("disconnect");
+            socket.off("userRegistered");
         };
     }, [userId, userInteracted]);
 

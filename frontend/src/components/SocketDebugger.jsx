@@ -1,64 +1,148 @@
-// src/components/SocketDebugger.jsx
+// src/components/DebugSocketConnection.jsx
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { socket } from '../socket';
 
-export default function SocketDebugger({ userId }) {
+export default function DebugSocketConnection() {
+    const { user } = useSelector((state) => state.auth);
     const [socketStatus, setSocketStatus] = useState('disconnected');
-    const [lastNotification, setLastNotification] = useState(null);
+    const [connectionHistory, setConnectionHistory] = useState([]);
 
     useEffect(() => {
-        if (!userId) return;
+        if (!user) return;
 
-        console.log('🔌 SocketDebugger: Setting up socket for user:', userId);
+        const updateStatus = () => {
+            const status = socket.connected ? 'connected' : 'disconnected';
+            setSocketStatus(status);
 
-        socket.on('connect', () => {
-            console.log('✅ Socket connected:', socket.id);
-            setSocketStatus('connected');
-        });
+            // Add to history
+            setConnectionHistory(prev => [
+                ...prev.slice(-9), // Keep last 10 entries
+                {
+                    time: new Date().toLocaleTimeString(),
+                    status: status,
+                    socketId: socket.id
+                }
+            ]);
+        };
 
-        socket.on('disconnect', () => {
-            console.log('❌ Socket disconnected');
-            setSocketStatus('disconnected');
-        });
+        // Initial status
+        updateStatus();
 
-        socket.on('new_notification', (data) => {
-            console.log('🔔 REAL-TIME: Socket notification received:', data);
-            setLastNotification(data);
-        });
+        // Socket event listeners
+        const handleConnect = () => {
+            console.log('✅ Debug: Socket connected', socket.id);
+            updateStatus();
+        };
 
-        // Connect socket
-        socket.auth = { userId };
-        socket.connect();
-        socket.emit('register', userId);
+        const handleDisconnect = (reason) => {
+            console.log('❌ Debug: Socket disconnected', reason);
+            updateStatus();
+        };
+
+        const handleUserRegistered = (data) => {
+            console.log('✅ Debug: User registered confirmation', data);
+        };
+
+        socket.on('connect', handleConnect);
+        socket.on('disconnect', handleDisconnect);
+        socket.on('userRegistered', handleUserRegistered);
 
         return () => {
-            socket.off('connect');
-            socket.off('disconnect');
-            socket.off('new_notification');
+            socket.off('connect', handleConnect);
+            socket.off('disconnect', handleDisconnect);
+            socket.off('userRegistered', handleUserRegistered);
         };
-    }, [userId]);
+    }, [user]);
+
+    if (!user) return null;
 
     return (
         <div style={{
             position: 'fixed',
-            bottom: '10px',
-            left: '10px',
-            background: socketStatus === 'connected' ? '#d4edda' : '#f8d7da',
-            padding: '10px',
-            border: '1px solid #ccc',
-            borderRadius: '5px',
+            top: 10,
+            right: 10,
+            background: '#f8f9fa',
+            padding: '12px',
+            borderRadius: '8px',
+            zIndex: 10000,
+            border: '1px solid #dee2e6',
             fontSize: '12px',
-            zIndex: 1000,
-            maxWidth: '300px'
+            maxWidth: '350px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+            fontFamily: 'monospace'
         }}>
-            <strong>Socket Status: {socketStatus}</strong>
-            {lastNotification && (
-                <div style={{ marginTop: '5px' }}>
-                    <div>📨 Last Notification:</div>
-                    <div><strong>{lastNotification.title}</strong></div>
-                    <div>{lastNotification.message}</div>
+            <div style={{ marginBottom: '8px', fontWeight: 'bold', color: '#495057' }}>
+                🔌 Socket Debug - {user.role}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                <div>
+                    <strong>Status:</strong>
+                    <span style={{
+                        color: socketStatus === 'connected' ? '#28a745' : '#dc3545',
+                        fontWeight: 'bold',
+                        marginLeft: '4px'
+                    }}>
+                        {socketStatus === 'connected' ? '✅ CONNECTED' : '❌ DISCONNECTED'}
+                    </span>
+                </div>
+                <div>
+                    <strong>User ID:</strong>
+                    <div style={{ fontSize: '10px', wordBreak: 'break-all' }}>
+                        {user._id}
+                    </div>
+                </div>
+            </div>
+
+            <div style={{ marginBottom: '8px' }}>
+                <strong>Socket ID:</strong>
+                <div style={{ fontSize: '10px', wordBreak: 'break-all' }}>
+                    {socket.id || 'None'}
+                </div>
+            </div>
+
+            {connectionHistory.length > 0 && (
+                <div style={{ borderTop: '1px solid #dee2e6', paddingTop: '8px' }}>
+                    <strong>Recent:</strong>
+                    <div style={{ maxHeight: '80px', overflowY: 'auto', fontSize: '10px' }}>
+                        {connectionHistory.slice().reverse().map((entry, index) => (
+                            <div key={index} style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                color: entry.status === 'connected' ? '#28a745' : '#dc3545'
+                            }}>
+                                <span>{entry.time}</span>
+                                <span>{entry.status}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
+
+            <div style={{ borderTop: '1px solid #dee2e6', paddingTop: '8px', marginTop: '8px' }}>
+                <button
+                    onClick={() => {
+                        if (socket.connected) {
+                            socket.disconnect();
+                        } else {
+                            socket.connect();
+                        }
+                    }}
+                    style={{
+                        background: socket.connected ? '#dc3545' : '#28a745',
+                        color: 'white',
+                        border: 'none',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '10px',
+                        cursor: 'pointer',
+                        width: '100%'
+                    }}
+                >
+                    {socket.connected ? 'Disconnect' : 'Connect'}
+                </button>
+            </div>
         </div>
     );
 }

@@ -16,6 +16,8 @@ const getFcmTokenByUserId = async (userId) => {
     }
 };
 
+
+
 // Helper function to update user's FCM token
 const updateUserFcmToken = async (req, res) => {
     try {
@@ -53,34 +55,6 @@ const updateUserFcmToken = async (req, res) => {
         });
     }
 };
-
-// Get user notifications
-const getUserNotifications = async (req, res) => {
-    try {
-        const { userId } = req.params;
-
-        if (!userId) {
-            return res.status(400).json({
-                success: false,
-                error: "User ID is required"
-            });
-        }
-
-        const notifications = await Notification.find({ receiverId: userId })
-            .sort({ createdAt: -1 })
-            .limit(50)
-            .populate('senderId', 'name email');
-
-        res.json(notifications);
-    } catch (error) {
-        console.error("Error fetching notifications:", error);
-        res.status(500).json({
-            success: false,
-            error: "Server error"
-        });
-    }
-};
-
 // Create notification
 const createNotification = async (req, res) => {
     try {
@@ -144,7 +118,7 @@ const createNotification = async (req, res) => {
                 status: "pending"
             });
 
-            console.log("✅ Service request created:", serviceRequest._id);
+            // console.log("✅ Service request created:", serviceRequest._id);
         }
 
         // Create notification
@@ -157,7 +131,7 @@ const createNotification = async (req, res) => {
             data: serviceRequest ? { serviceRequestId: serviceRequest._id } : {}
         });
 
-        console.log("✅ Notification created:", notification._id);
+        // console.log("✅ Notification created:", notification._id);
 
         // 1️⃣ Send live notification if user is online (Socket.IO)
         const socketId = global.users?.get(receiverId.toString());
@@ -168,7 +142,7 @@ const createNotification = async (req, res) => {
                 serviceRequest: serviceRequest ? serviceRequest.toObject() : null
             };
             global.io.to(socketId).emit("new_notification", socketData);
-            console.log("🔔 Real-time notification sent via socket to:", receiverId);
+            // console.log("🔔 Real-time notification sent via socket to:", receiverId);
         } else {
             console.log("⚠️ User not connected via socket:", receiverId);
         }
@@ -189,7 +163,7 @@ const createNotification = async (req, res) => {
                         ...(serviceRequest && { serviceRequestId: serviceRequest._id.toString() })
                     },
                 });
-                console.log("📱 Push notification sent via FCM to:", receiverId);
+                // console.log("📱 Push notification sent via FCM to:", receiverId);
             } catch (fcmError) {
                 console.error("❌ FCM Error:", fcmError);
                 // Don't fail the request if FCM fails
@@ -214,9 +188,94 @@ const createNotification = async (req, res) => {
     }
 };
 
+
+// Get user notifications
+const getUserNotifications = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                error: "User ID is required"
+            });
+        }
+
+        const notifications = await Notification.find({ receiverId: userId })
+            .sort({ createdAt: -1 })
+            .limit(50)
+            .populate('senderId', 'name email');
+
+        res.json(notifications);
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
+        res.status(500).json({
+            success: false,
+            error: "Server error"
+        });
+    }
+};
+
+
+
+
+
+
+// Add this function to notificationController.js
+const debugUserNotifications = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        console.log("🔍 DEBUG: Fetching notifications for user:", userId);
+
+        const notifications = await Notification.find({ receiverId: userId })
+            .sort({ createdAt: -1 })
+            .populate('senderId', 'name email');
+
+        console.log("📋 DEBUG: Found notifications:", notifications.length);
+
+        notifications.forEach((notif, index) => {
+            console.log(`Notification ${index + 1}:`, {
+                id: notif._id,
+                type: notif.type,
+                title: notif.title,
+                hasData: !!notif.data,
+                data: notif.data,
+                sender: notif.senderId
+            });
+        });
+
+        res.json({
+            success: true,
+            count: notifications.length,
+            notifications
+        });
+    } catch (error) {
+        console.error("Debug error:", error);
+        res.status(500).json({ success: false, error: "Debug failed" });
+    }
+};
+// Add to notificationController.js
+const debugConnectedUsers = (req, res) => {
+    const connectedUsers = Array.from(global.users.entries()).map(([userId, socketId]) => ({
+        userId,
+        socketId
+    }));
+
+    res.json({
+        totalConnected: global.users.size,
+        connectedUsers
+    });
+};
+
+
+
+
 module.exports = {
     createNotification,
     updateUserFcmToken,
     getUserNotifications,
-    getFcmTokenByUserId // Export if needed elsewhere
+    getFcmTokenByUserId,
+    debugUserNotifications,
+    debugConnectedUsers // Export if needed elsewhere
 };
