@@ -1,0 +1,218 @@
+// routes/workRequests.js
+const express = require('express');
+const WorkRequest = require('../models/workRequest');
+const Notification = require('../models/notification');
+const User = require('../models/userSchema');
+const WorkRoute = express.Router();
+
+// Create work request
+WorkRoute.post('/', async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        if (!userId) {
+            return res.status(401).json({ message: 'Authentication required' });
+        }
+
+        const { title, description, category, assignedContractor, budget, location, timeline } = req.body;
+
+        // Validate assigned contractor exists and is actually a contractor
+        const contractor = await User.findById(assignedContractor);
+        if (!contractor || contractor.role !== 'contractor') {
+            return res.status(400).json({ message: 'Invalid contractor selected' });
+        }
+
+        const workRequest = await WorkRequest.create({
+            title,
+            description,
+            category,
+            user: userId,
+            assignedContractor,
+            budget,
+            location,
+            timeline
+        });
+
+        // Populate user info for notification
+        const user = await User.findById(userId).select('name');
+
+        // Create notification for contractor
+        const notification = await Notification.create({
+            user: assignedContractor,
+            type: 'work_request',
+            title: 'New Work Request',
+            message: `You have a new ${category} request from ${user.name}`,
+            relatedRequest: workRequest._id,
+            actionRequired: true,
+            priority: 'high'
+        });
+
+        // Real-time notification to contractor
+        const contractorSocketId = global.users.get(assignedContractor.toString());
+        if (contractorSocketId) {
+            global.io.to(contractorSocketId).emit('new_notification', {
+                notification,
+                unreadCount: await Notification.countDocuments({
+                    user: assignedContractor,
+                    isRead: false
+                })
+            });
+        }
+
+        res.status(201).json({
+            message: 'Work request created successfully',
+            workRequest
+        });
+
+    } catch (error) {
+        console.error('Create work request error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// Get contractor's work requests
+WorkRoute.get('/contractor-requests', async (req, res) => {
+    try {
+        const contractorId = req.session.userId;
+        if (!contractorId) {
+            return res.status(401).json({ message: 'Authentication required' });
+        }
+
+        const { status, page = 1, limit = 10 } = req.query;
+
+        const filter = { assignedContractor: contractorId };
+        if (status) filter.status = status;
+
+        const requests = await WorkRequest.find(filter)
+            .populate('user', 'name email phone avatar')
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const total = await WorkRequest.countDocuments(filter);
+
+        res.json({
+            requests,
+            totalPages: Math.ceil(total / limit),
+            currentPage: page,
+            total
+        });
+
+    } catch (error) {
+        console.error('Get contractor requests error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// Accept work request
+WorkRoute.put('/:id/accept', async (req, res) => {
+    try {
+        const contractorId = req.session.userId;
+        const { id } = req.params;
+
+        const workRequest = await WorkRequest.findOne({
+            _id: id,
+            assignedContractor: contractorId,
+            status: 'pending'
+        });
+
+        if (!workRequest) {
+            return res.status(404).json({ message: 'Request not found or already processed' });
+        }
+
+        // Update contractor availability
+        await User.findByIdAndUpdate(contractorId, {
+            'contractorDetails.availability': 'busy',
+            'contractorDetails.currentWork': id
+        });
+
+        workRequest.status = 'accepted';
+        workRequest.acceptedBy = contractorId;
+        await workRequest.save();
+
+        // Notify user
+        await Notification.create({
+            user: workRequest.user,
+            type: 'request_accepted',
+            title: 'Request Accepted',
+            message: `Your ${workRequest.category} request has been accepted`,
+            relatedRequest: workRequest._id,
+            priority: 'medium'
+        });
+        // After accepting work request, add:
+        const userSocketId = global.users.get(workRequest.user.toString());
+        if (userSocketId) {
+            global.io.to(userSocketId).emit('request_accepted', {
+                workRequest,
+                notification: {
+                    title: 'Request Accepted',
+                    message: `Your ${workRequest.category} request has been accepted by contractor`
+                }
+            });
+        }
+
+        res.json({
+            message: 'Work request accepted successfully',
+            workRequest
+        });
+
+    } catch (error) {
+        console.error('Accept work request error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// Reject work request
+WorkRoute.put('/:id/reject', async (req, res) => {
+    try {
+        const contractorId = req.session.userId;
+        const { id } = req.params;
+        const { reason } = req.body;
+
+        const workRequest = await WorkRequest.findOne({
+            _id: id,
+            assignedContractor: contractorId,
+            status: 'pending'
+        });
+
+        if (!workRequest) {
+            return res.status(404).json({ message: 'Request not found or already processed' });
+        }
+
+        workRequest.status = 'rejected';
+        workRequest.rejectedBy = contractorId;
+        workRequest.rejectionReason = reason;
+        await workRequest.save();
+
+        // Notify user
+        await Notification.create({
+            user: workRequest.user,
+            type: 'request_rejected',
+            title: 'Request Declined',
+            message: `Your ${workRequest.category} request was declined. ${reason ? `Reason: ${reason}` : ''}`,
+            relatedRequest: workRequest._id,
+            priority: 'medium'
+        });
+
+        // After rejecting work request, add:
+        const userSocketId = global.users.get(workRequest.user.toString());
+        if (userSocketId) {
+            global.io.to(userSocketId).emit('request_rejected', {
+                workRequest,
+                notification: {
+                    title: 'Request Declined',
+                    message: `Your ${workRequest.category} request was declined`
+                }
+            });
+        }
+        res.json({
+            message: 'Work request declined successfully',
+            workRequest
+        });
+
+    } catch (error) {
+        console.error('Reject work request error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+module.exports = WorkRoute;

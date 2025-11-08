@@ -42,15 +42,7 @@ const userSchema = new Schema({
         city: String,
         state: String,
         pincode: String,
-        // pincode: {
-        //     type: String,
-        //     validate: {
-        //         validator: function (v) {
-        //             return /^\d{6}$/.test(v);
-        //         },
-        //         message: props => `${props.value} is not a valid pincode!`
-        //     }
-        // },
+
         country: { type: String, default: "In, Bihar 821115" },
 
     },
@@ -118,6 +110,15 @@ const userSchema = new Schema({
         completedProjects: {
             type: Number,
             default: 0
+        },
+        availability: {
+            type: String,
+            enum: ['available', 'busy', 'on-leave'],
+            default: 'available'
+        },
+        currentWork: {
+            type: Schema.Types.ObjectId,
+            ref: 'WorkRequest'
         },
         skills: [String],
         bio: String

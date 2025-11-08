@@ -25,7 +25,9 @@ import ContractorProfile from './pages/allContractor'
 import UserProfileUpdate from './components/userDataUpdate';
 import ShopProfileUpdate from './components/shopDataUpdate';
 import ContractorProfileUpdate from './components/contractorDataUpdate';
-
+import SocketService from './utils/socket';
+import ContractorDashboard from './components/ContractorDashbord';
+import EmployeeDashboard from './components/EmployeeDashboard';
 
 function App() {
   const dispatch = useDispatch();
@@ -34,6 +36,18 @@ function App() {
   useEffect(() => {
     dispatch(checkAuth());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      SocketService.connect();
+    } else {
+      SocketService.disconnect();
+    }
+
+    return () => {
+      SocketService.disconnect();
+    };
+  }, [isAuthenticated, user]);
 
   if (loading) return <p className="text-center mt-20">Checking session...</p>;
 
@@ -83,6 +97,11 @@ function App() {
       <Route path='/setting/user' element={isAuthenticated ? <UserProfileUpdate /> : <Login />} />
       <Route path='/setting/shop' element={isAuthenticated ? <ShopProfileUpdate /> : <Login />} />
       <Route path='/setting/Contractor' element={isAuthenticated ? <ContractorProfileUpdate /> : <Login />} />
+
+      {/* dashbord- Notofaction */}
+      <Route path="/contractor/dashboard" element={<ContractorDashboard />} />
+      <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
+
     </Routes>
 
   );

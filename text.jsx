@@ -1,110 +1,50 @@
-curl - X POST http://localhost:3000/notifications/send \
--H "Content-Type: application/json" \
--d '{
-"senderId": "68c2b25a4b3cb2fc6552348a",
-    "receiverId": "690996ddfeb4dec7a92ebd1c",
-        "title": "🔔 New Service Request from John Doe",
-            "message": "Project: Home Renovation | Timeline: 2 weeks | Budget: Contact for pricing",
-                "type": "service_request",
-                    "projectType": "Home Renovation",
-                        "workDescription": "Complete home renovation including kitchen remodeling, bathroom upgrades, and living room painting. Need professional contractor for quality work.",
-                            "timeline": "2 weeks",
-                                "startDate": "2024-12-15",
-                                    "address": "123 Main Street, Sector 15, Gurgaon, Haryana - 122001",
-                                        "specialRequirements": "Eco-friendly materials preferred. Need work completion before Christmas. Parking space available for workers.",
-                                            "urgency": "high",
-                                                "contractorName": "Sharma Construction",
-                                                    "customerName": "John Doe",
-                                                        "customerPhone": "+91-9876543210",
-                                                            "customerEmail": "john.doe@example.com"
-  }'
-
-
-
-
-
-// src/components/DebugSocketConnection.jsx
-import { useEffect, useState } from 'react';
+// components/EmployeeDashboard.jsx
+import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { socket } from '../socket';
+import axiosClient from '../api/auth';
+import Loading from './Loader';
+import SocketService from '../utils/socket'; // Import the socket service
 
-export default function DebugSocketConnection() {
+const EmployeeDashboard = () => {
     const { user } = useSelector((state) => state.auth);
-    const [socketStatus, setSocketStatus] = useState('disconnected');
-    const [connectedUsers, setConnectedUsers] = useState([]);
+    const [requests, setRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [selectedRequest, setSelectedRequest] = useState(null);
+    const [showContactModal, setShowContactModal] = useState(false);
+    const [contactType, setContactType] = useState('');
+    const [contactMessage, setContactMessage] = useState('');
 
     useEffect(() => {
-        if (!user) return;
+        if (user && (user.role === 'admin' || user.role === 'co-admin')) {
+            fetchPendingRequests();
 
-        console.log(`🔍 DEBUG: User ${user._id} (${user.role}) setting up socket`);
+            // Set up real-time listeners
+            const handleNewRequest = (data) => {
+                fetchPendingRequests(); // Refresh the list
+            };
 
-        const onConnect = () => {
-            console.log('✅ DEBUG: Socket connected', socket.id);
-            setSocketStatus('connected');
+            const handleRequestUpdate = (data) => {
+                fetchPendingRequests(); // Refresh the list
+            };
 
-            // Register user
-            socket.emit('register', user._id, (response) => {
-                console.log('📝 DEBUG: Registration response:', response);
-            });
-        };
+            // Listen for socket events
+            if (SocketService.socket) {
+                SocketService.socket.on('new_work_request', handleNewRequest);
+                SocketService.socket.on('request_status_updated', handleRequestUpdate);
+                SocketService.socket.on('employee_contact', handleRequestUpdate);
+            }
 
-        const onDisconnect = () => {
-            console.log('❌ DEBUG: Socket disconnected');
-            setSocketStatus('disconnected');
-        };
-
-        const onUserRegistered = (data) => {
-            console.log('✅ DEBUG: User registered confirmation:', data);
-        };
-
-        const onNewNotification = (notification) => {
-            console.log('🔔 DEBUG: Received real-time notification:', notification);
-        };
-
-        // Socket event listeners
-        socket.on('connect', onConnect);
-        socket.on('disconnect', onDisconnect);
-        socket.on('userRegistered', onUserRegistered);
-        socket.on('new_notification', onNewNotification);
-
-        // Connect if not connected
-        if (!socket.connected) {
-            console.log('🔄 DEBUG: Manually connecting socket...');
-            socket.connect();
-        } else {
-            console.log('✅ DEBUG: Socket already connected, re-registering...');
-            socket.emit('register', user._id);
+            // Cleanup listeners on unmount
+            return () => {
+                if (SocketService.socket) {
+                    SocketService.socket.off('new_work_request', handleNewRequest);
+                    SocketService.socket.off('request_status_updated', handleRequestUpdate);
+                    SocketService.socket.off('employee_contact', handleRequestUpdate);
+                }
+            };
         }
+    }, [user, currentPage]);
 
-        return () => {
-            socket.off('connect', onConnect);
-            socket.off('disconnect', onDisconnect);
-            socket.off('userRegistered', onUserRegistered);
-            socket.off('new_notification', onNewNotification);
-        };
-    }, [user]);
-
-    return (
-        <div style={{
-            position: 'fixed',
-            top: 10,
-            right: 10,
-            background: '#f0f0f0',
-            padding: '10px',
-            borderRadius: '5px',
-            zIndex: 1000,
-            border: '1px solid #ccc',
-            fontSize: '12px',
-            maxWidth: '300px'
-        }}>
-            <div><strong>Socket Debug</strong></div>
-            <div>Status: <span style={{
-                color: socketStatus === 'connected' ? 'green' : 'red',
-                fontWeight: 'bold'
-            }}>{socketStatus}</span></div>
-            <div>User: {user?._id}</div>
-            <div>Role: {user?.role}</div>
-            <div>Socket ID: {socket.id || 'None'}</div>
-        </div>
-    );
-}
+// ... rest of your component code remains the same

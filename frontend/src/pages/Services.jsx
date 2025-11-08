@@ -4,7 +4,8 @@ import axiosClient from '../api/auth';
 import Loading from "../components/Loader";
 import { MdVerified } from "react-icons/md";
 import { FiMapPin } from "react-icons/fi";
-import { Link } from "react-router";
+import { Link, Navigate, NavLink } from "react-router";
+import WorkRequestForm from "../components/WorkRequestForm"
 
 
 function ContractorPage() {
@@ -23,8 +24,9 @@ function ContractorPage() {
         city: '',
         search: ''
     });
+
     const [selectedContractor, setSelectedContractor] = useState(null);
-    const [showQuoteForm, setShowQuoteForm] = useState(false);
+    const [showWorkRequestForm, setShowWorkRequestForm] = useState(false);
 
 
     const availableServices = [
@@ -162,13 +164,17 @@ function ContractorPage() {
 
     const handleBookContractor = (contractor) => {
         setSelectedContractor(contractor);
-        setShowQuoteForm(true);
+        setShowWorkRequestForm(true);
     };
 
-    const handleQuoteSuccess = (response) => {
-        console.log('Quote request successful:', response);
-        alert('Quote request sent successfully! The contractor will contact you soon.');
-        setShowQuoteForm(false);
+    const handleWorkRequestSuccess = () => {
+        setShowWorkRequestForm(false);
+        setSelectedContractor(null);
+        alert('Work request sent successfully! The contractor will respond soon.');
+    };
+
+    const handleWorkRequestCancel = () => {
+        setShowWorkRequestForm(false);
         setSelectedContractor(null);
     };
 
@@ -486,7 +492,13 @@ function ContractorPage() {
                     </>
                 )}
             </div>
-
+            {showWorkRequestForm && selectedContractor && (
+                <WorkRequestForm
+                    contractorId={selectedContractor.contractorId || selectedContractor._id}
+                    onSuccess={handleWorkRequestSuccess}
+                    onCancel={handleWorkRequestCancel}
+                />
+            )}
         </div>
     );
 }

@@ -1,8 +1,10 @@
-import { FaChevronDown, FaUser, FaStore, FaTools, FaUsers, FaChartBar, FaCog } from "react-icons/fa";
+import { FaChevronDown, FaUser, FaStore, FaTools, FaUsers, FaChartBar, FaCog, FaServer } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../../authSlice";
 import { useState, useRef, useEffect } from "react";
 import { LogOut, LogOutIcon } from "lucide-react";
+import NotificationBell from "./NotificationBell";
+
 
 function Navbar() {
     const dispatch = useDispatch();
@@ -41,7 +43,7 @@ function Navbar() {
     const adminMenuItems = [
         { icon: FaUsers, label: "Users_Data", href: "/admin/user/allusers", color: "text-blue-600" },
         { icon: FaStore, label: "Shops_Data", href: "/admin/shop", color: "text-emerald-600" },
-        { icon: FaTools, label: "All Services", href: "/admin/services", color: "text-amber-600" },
+        { icon: FaTools, label: "All Services", href: "/employee/dashboard", color: "text-amber-600" },
         { icon: FaChartBar, label: "Analytics", href: "/admin/analytics", color: "text-purple-600" },
         { icon: FaCog, label: "Settings", href: "/admin/settings", color: "text-gray-600" },
     ];
@@ -162,7 +164,6 @@ function Navbar() {
                                                 </>
                                             )}
 
-
                                             {/* Regular User Menu */}
                                             < div className="px-4 py-2">
                                                 <a
@@ -172,6 +173,16 @@ function Navbar() {
                                                     <FaUser className="w-4 h-4 text-gray-600 group-hover:text-blue-600" />
                                                     <span>My Profile</span>
                                                 </a>
+                                                {((user?.role === 'admin' || user?.role == 'contractor')) && (
+                                                    <a
+                                                        href="/contractor/dashboard"
+                                                        className="flex items-center space-x-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 group"
+
+                                                    >
+                                                        <FaServer className="w-4 h-4 text-gray-600 group-hover:text-blue-600" />
+                                                        <span>Services</span>
+                                                    </a>
+                                                )}
                                                 <a
                                                     href="/settings"
                                                     className="flex items-center space-x-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 group"
@@ -180,6 +191,7 @@ function Navbar() {
                                                     <span>Settings</span>
                                                 </a>
                                             </div>
+
 
                                             {/* Logout */}
                                             <div className="border-t border-gray-100 mt-1 pt-2">
@@ -203,6 +215,8 @@ function Navbar() {
                                 Sign In
                             </a>
                         )}
+
+                        < NotificationBell />
 
                     </div>
 

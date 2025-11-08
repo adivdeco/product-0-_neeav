@@ -24,6 +24,7 @@ import {
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import ReviewForm from "./ReviewForm";
+import WorkRequestForm from "../components/WorkRequestForm";
 
 
 
@@ -33,10 +34,10 @@ function ContractorProfilePage() {
     const [contractor, setContractor] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
-    const [showContactModal, setShowContactModal] = useState(false);
-    const [showQuoteForm, setShowQuoteForm] = useState(false);
 
-
+    const [showContactModal, setShowContactModal] = useState(false)
+    const [selectedContractor, setSelectedContractor] = useState(null);
+    const [showWorkRequestForm, setShowWorkRequestForm] = useState(false);
 
     const fetchContractor = useCallback(async () => {
         try {
@@ -178,11 +179,24 @@ function ContractorProfilePage() {
     }
 
 
-    const handleQuoteSuccess = (response) => {
-        console.log('Quote request successful:', response);
-        // You can show a success message here
-        alert('Quote request sent successfully! The contractor will contact you soon.');
+    const handleBookContractor = (contractor) => {
+        setSelectedContractor(contractor);
+        setShowWorkRequestForm(true);
     };
+
+    const handleWorkRequestSuccess = () => {
+        setShowWorkRequestForm(false);
+        setSelectedContractor(null);
+        alert('Work request sent successfully! The contractor will respond soon.');
+    };
+
+    const handleWorkRequestCancel = () => {
+        setShowWorkRequestForm(false);
+        setSelectedContractor(null);
+    };;
+
+
+    // console.log(setSelectedContractor);
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
@@ -301,7 +315,7 @@ function ContractorProfilePage() {
                                 </button>
 
                                 <button
-                                    onClick={() => setShowQuoteForm(true)}
+                                    onClick={() => handleBookContractor(contractor)}
                                     className="flex-1 border-2 border-blue-600 text-blue-600 py-4 px-6 rounded-xl font-semibold hover:bg-blue-50 transition-all duration-200"
                                 >
                                     Request Quote
@@ -564,10 +578,20 @@ function ContractorProfilePage() {
                 </div>
             </div>
 
+            {/* Work Request Form Modal */}
+            {showWorkRequestForm && selectedContractor && (
+                <WorkRequestForm
+                    contractorId={selectedContractor.contractorId || contractor._id}
+                    onSuccess={handleWorkRequestSuccess}
+                    onCancel={handleWorkRequestCancel}
+                />
+
+            )}
 
             {/* Contact Modal */}
             <ContactModal />
         </div>
+
     );
 }
 
