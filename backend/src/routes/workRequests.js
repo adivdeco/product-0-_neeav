@@ -161,6 +161,68 @@ WorkRoute.put('/:id/accept', async (req, res) => {
     }
 });
 
+// routes/workRequests.js - Add this route
+WorkRoute.put('/:id/complete', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.session.userId;
+        const userRole = req.session.role;
+
+        const workRequest = await WorkRequest.findById(id);
+        if (!workRequest) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
+
+        // Only user, admin, or assigned contractor can mark complete
+        const canComplete = userRole === 'admin' ||
+            userRole === 'co-admin' ||
+            workRequest.user.toString() === userId ||
+            workRequest.assignedContractor.toString() === userId;
+
+        if (!canComplete) {
+            return res.status(403).json({ message: 'Not authorized to complete this request' });
+        }
+
+        // Update work request status
+        workRequest.status = 'completed';
+        workRequest.updatedAt = new Date();
+        await workRequest.save();
+
+        // Free up the contractor
+        await User.findByIdAndUpdate(workRequest.assignedContractor, {
+            'contractorDetails.availability': 'available',
+            'contractorDetails.currentWork': null,
+            'contractorDetails.completedProjects': { $inc: 1 }
+        });
+
+        // Notify all parties
+        await Notification.create({
+            user: workRequest.user,
+            type: 'work_completed',
+            title: 'Work Completed',
+            message: `Your ${workRequest.category} request has been marked as completed`,
+            relatedRequest: workRequest._id
+        });
+
+        await Notification.create({
+            user: workRequest.assignedContractor,
+            type: 'work_completed',
+            title: 'Work Completed',
+            message: `Your work on "${workRequest.title}" has been marked as completed`,
+            relatedRequest: workRequest._id
+        });
+
+        res.json({
+            message: 'Work marked as completed successfully',
+            workRequest
+        });
+
+    } catch (error) {
+        console.error('Complete work request error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
 // Reject work request
 WorkRoute.put('/:id/reject', async (req, res) => {
     try {

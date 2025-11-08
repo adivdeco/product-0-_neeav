@@ -271,7 +271,7 @@ employeeRoutes.get('/pending-requests', requireEmployee, async (req, res) => {
 
         console.log('🔍 Filter being used:', JSON.stringify(filter, null, 2));
 
-        const requests = await WorkRequest.find(filter)
+        const requests = await WorkRequest.find()
             .populate('user', 'name email phone avatar')
             .populate('assignedContractor', 'name email phone contractorDetails')
             .populate('assignedEmployee', 'employeeId user')
@@ -280,7 +280,7 @@ employeeRoutes.get('/pending-requests', requireEmployee, async (req, res) => {
         // console.log('🔍 Found requests:', requests.length);
         // console.log('🔍 Requests details:', JSON.stringify(requests, null, 2));
 
-        const total = await WorkRequest.countDocuments(filter);
+        const total = await WorkRequest.countDocuments();
 
         res.json({
             requests,

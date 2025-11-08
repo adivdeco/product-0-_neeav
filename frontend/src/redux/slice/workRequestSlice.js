@@ -52,6 +52,18 @@ export const rejectWorkRequest = createAsyncThunk(
     }
 );
 
+export const completeWorkRequest = createAsyncThunk(
+    'workRequests/complete',
+    async (requestId, { rejectWithValue }) => {
+        try {
+            const response = await axiosClient.put(`/api/work-requests/${requestId}/complete`);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
 const workRequestSlice = createSlice({
     name: 'workRequests',
     initialState: {
@@ -124,6 +136,12 @@ const workRequestSlice = createSlice({
                 if (request) {
                     request.status = 'rejected';
                     request.rejectionReason = action.payload.workRequest.rejectionReason;
+                }
+            })
+            .addCase(completeWorkRequest.fulfilled, (state, action) => {
+                const request = state.contractorRequests.find(req => req._id === action.payload.workRequest._id);
+                if (request) {
+                    request.status = 'completed';
                 }
             });
     }

@@ -4,6 +4,8 @@ import { useSelector } from 'react-redux';
 import axiosClient from '../api/auth';
 import Loading from './Loader';
 import SocketService from '../utils/socket';
+import { useDispatch } from 'react-redux';
+import { completeWorkRequest } from '../redux/slice/workRequestSlice'
 
 const EmployeeDashboard = () => {
     const { user } = useSelector((state) => state.auth);
@@ -15,6 +17,8 @@ const EmployeeDashboard = () => {
     const [showContactModal, setShowContactModal] = useState(false);
     const [contactType, setContactType] = useState('');
     const [contactMessage, setContactMessage] = useState('');
+    const dispatch = useDispatch();
+
 
     useEffect(() => {
         if (user && (user.role === 'admin' || user.role === 'co-admin')) {
@@ -123,7 +127,7 @@ const EmployeeDashboard = () => {
         if (diffHrs < 0) return { text: 'EXPIRED', color: 'text-red-600' };
         if (diffHrs < 2) return { text: `${diffHrs} HOUR`, color: 'text-red-600' };
         if (diffHrs < 12) return { text: `${diffHrs} HOURS`, color: 'text-orange-600' };
-        return { text: `${Math.floor(diffHrs / 24)} DAYS`, color: 'text-green-600' };
+        return { text: `${Math.floor(diffHrs)} Hours`, color: 'text-green-600' };
     };
 
     if (!user || (user.role !== 'admin' && user.role !== 'co-admin')) {
@@ -137,6 +141,26 @@ const EmployeeDashboard = () => {
             </div>
         );
     }
+
+    const availability = (data) => {
+        if (data === 'busy') return { text: 'Busy', color: 'text-yellow-500', background: 'bg-yellow-100' };
+        if (data === 'available') return { text: 'Available', color: 'text-green-700', background: 'bg-green-100' };
+        return { text: 'Unknown', color: 'text-gray-600', background: 'bg-gray-100' };
+    }
+    const Status = (data) => {
+        if (data === 'rejected') return { text: 'Rejected', color: 'text-red-600', background: 'bg-red-100' };
+        if (data === 'completed' || data === 'complited') return { text: 'Completed', color: 'text-green-700', background: 'bg-green-100' };
+        if (data === 'pending') return { text: 'Pending', color: 'text-yellow-600', background: 'bg-yellow-100' };
+        if (data === 'accepted') return { text: 'Accepted', color: 'text-blue-700', background: 'bg-blue-100' };
+        return { text: data || 'Unknown', color: 'text-gray-600', background: 'bg-gray-100' };
+    }
+
+    const handleComplete = async (requestId) => {
+        if (window.confirm('Mark this work as completed?')) {
+            await dispatch(completeWorkRequest(requestId));
+        }
+    };
+
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
@@ -222,7 +246,8 @@ const EmployeeDashboard = () => {
                         ) : (
                             requests.map((request) => {
                                 const timeRemaining = getTimeRemaining(request.expiresAt);
-
+                                const available = availability(request.assignedContractor.contractorDetails.availability)
+                                const status = Status(request.status)
                                 return (
                                     <div key={request._id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
                                         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
@@ -238,6 +263,12 @@ const EmployeeDashboard = () => {
                                                             <span className={`px-2 py-1 rounded-full text-xs font-semibold ${timeRemaining.color} bg-gray-100`}>
                                                                 ⏰ {timeRemaining.text}
                                                             </span>
+                                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${available.color} ${available.background}`}>
+                                                                Contractor:{available.text}
+                                                            </span>
+                                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${status.color} ${status.background}`}>
+                                                                Request:{status.text}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -249,12 +280,15 @@ const EmployeeDashboard = () => {
                                                         <span className="font-medium text-gray-700">Customer:</span>
                                                         <span className="ml-2 text-gray-600">
                                                             {request.user?.name} ({request.user?.phone})
+                                                            <p className="text-gray-500">{request.user?.email}</p>
                                                         </span>
                                                     </div>
                                                     <div>
                                                         <span className="font-medium text-gray-700">Contractor:</span>
                                                         <span className="ml-2 text-gray-600">
-                                                            {request.assignedContractor?.name}
+                                                            {request.assignedContractor?.name} ({request.assignedContractor?.phone})
+                                                            <p className="text-gray-500">{request.assignedContractor?.email}</p>
+
                                                         </span>
                                                     </div>
                                                     <div>
@@ -268,6 +302,7 @@ const EmployeeDashboard = () => {
                                                         </span>
                                                     </div>
                                                 </div>
+
 
                                                 {/* Employee Actions History */}
                                                 {request.employeeActions && request.employeeActions.length > 0 && (
@@ -298,7 +333,18 @@ const EmployeeDashboard = () => {
                                                 >
                                                     Contact Customer
                                                 </button>
+
+                                                {request.status === 'accepted' && (
+                                                    <button
+                                                        onClick={() => handleComplete(request._id)}
+                                                        className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                                                    >
+                                                        Mark Complete
+                                                    </button>
+                                                )}
+
                                             </div>
+
                                         </div>
                                     </div>
                                 );
