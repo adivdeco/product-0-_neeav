@@ -64,6 +64,47 @@ export const completeWorkRequest = createAsyncThunk(
     }
 );
 
+export const getUserRequests = createAsyncThunk(
+    'workRequests/getUserRequests',
+    async ({ page = 1, status = '' }, { rejectWithValue }) => {
+        try {
+            const params = new URLSearchParams({ page, ...(status && { status }) });
+            const response = await axiosClient.get(`/api/work-requests/my-requests`);
+            console.log(response.data);
+
+            return response.data;
+            ;
+
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+export const cancelWorkRequest = createAsyncThunk(
+    'workRequests/cancel',
+    async ({ requestId, reason }, { rejectWithValue }) => {
+        try {
+            const response = await axiosClient.put(`/api/work-requests/${requestId}/cancel`, { reason });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+export const completeWorkByUser = createAsyncThunk(
+    'workRequests/completeByUser',
+    async (requestId, { rejectWithValue }) => {
+        try {
+            const response = await axiosClient.put(`/api/work-requests/${requestId}/complete-by-user`);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
 const workRequestSlice = createSlice({
     name: 'workRequests',
     initialState: {
@@ -143,7 +184,30 @@ const workRequestSlice = createSlice({
                 if (request) {
                     request.status = 'completed';
                 }
+            })
+            .addCase(getUserRequests.fulfilled, (state, action) => {
+                state.userRequests = action.payload.requests;
+                state.userPagination = {
+                    currentPage: action.payload.currentPage,
+                    totalPages: action.payload.totalPages,
+                    total: action.payload.total
+                };
+            })
+            .addCase(cancelWorkRequest.fulfilled, (state, action) => {
+                const request = state.userRequests.find(req => req._id === action.payload.workRequest._id);
+                if (request) {
+                    request.status = 'cancelled';
+                    request.cancellationReason = action.payload.workRequest.cancellationReason;
+                }
+            })
+            .addCase(completeWorkByUser.fulfilled, (state, action) => {
+                const request = state.userRequests.find(req => req._id === action.payload.workRequest._id);
+                if (request) {
+                    request.status = 'completed';
+                    request.completedAt = action.payload.workRequest.completedAt;
+                }
             });
+
     }
 });
 

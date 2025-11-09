@@ -28,6 +28,7 @@ import ContractorProfileUpdate from './components/contractorDataUpdate';
 import SocketService from './utils/socket';
 import ContractorDashboard from './components/ContractorDashbord';
 import EmployeeDashboard from './components/EmployeeDashboard';
+import UserDashboard from './components/UserDashboard';
 
 function App() {
   const dispatch = useDispatch();
@@ -101,7 +102,7 @@ function App() {
       {/* dashbord- Notofaction */}
       <Route path="/contractor/dashboard" element={<ContractorDashboard />} />
       <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
-
+      <Route path="/my-requests" element={isAuthenticated ? <UserDashboard /> : <Login />} />
     </Routes>
 
   );

@@ -273,7 +273,7 @@ employeeRoutes.get('/pending-requests', requireEmployee, async (req, res) => {
 
         const requests = await WorkRequest.find()
             .populate('user', 'name email phone avatar')
-            .populate('assignedContractor', 'name email phone contractorDetails')
+            .populate('assignedContractor', 'name email phone avatar contractorDetails')
             .populate('assignedEmployee', 'employeeId user')
             .populate('employeeActions.employee', 'employeeId');
 

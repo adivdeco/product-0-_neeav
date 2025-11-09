@@ -277,4 +277,175 @@ WorkRoute.put('/:id/reject', async (req, res) => {
     }
 });
 
+
+
+// user acces 
+
+// Get user's own work requests
+WorkRoute.get('/my-requests', async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        if (!userId) {
+            return res.status(401).json({ message: 'Authentication required' });
+        }
+
+        const { page = 1, limit = 10, status } = req.query;
+
+        const filter = { user: userId };
+        if (status) filter.status = status;
+
+        const requests = await WorkRequest.find(filter)
+            .populate('assignedContractor', 'name email phone avatar contractorDetails')
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const total = await WorkRequest.countDocuments(filter);
+
+        res.json({
+            requests,
+            totalPages: Math.ceil(total / limit),
+            currentPage: parseInt(page),
+            total
+        });
+
+    } catch (error) {
+        console.error('Get user requests error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// User cancels their own request
+WorkRoute.put('/:id/cancel', async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        const { id } = req.params;
+        const { reason } = req.body;
+
+        const workRequest = await WorkRequest.findOne({
+            _id: id,
+            user: userId,
+            status: { $in: ['pending', 'accepted'] } // Can only cancel pending or accepted requests
+        });
+
+        if (!workRequest) {
+            return res.status(404).json({
+                message: 'Request not found or cannot be cancelled'
+            });
+        }
+
+        // Store old status for notification
+        const oldStatus = workRequest.status;
+
+        // Update request status
+        workRequest.status = 'cancelled';
+        workRequest.cancellationReason = reason || 'Cancelled by user';
+        workRequest.updatedAt = new Date();
+        await workRequest.save();
+
+        // If contractor was assigned and busy, free them up
+        if (oldStatus === 'accepted' && workRequest.assignedContractor) {
+            await User.findByIdAndUpdate(workRequest.assignedContractor, {
+                'contractorDetails.availability': 'available',
+                'contractorDetails.currentWork': null
+            });
+        }
+
+        // Notify contractor if request was accepted
+        if (oldStatus === 'accepted') {
+            await Notification.create({
+                user: workRequest.assignedContractor,
+                type: 'work_cancelled',
+                title: 'Work Cancelled',
+                message: `User cancelled the "${workRequest.title}" request`,
+                relatedRequest: workRequest._id
+            });
+
+            // Real-time notification to contractor
+            const contractorSocketId = global.users.get(workRequest.assignedContractor.toString());
+            if (contractorSocketId) {
+                global.io.to(contractorSocketId).emit('request_cancelled', {
+                    workRequest,
+                    notification: {
+                        title: 'Work Cancelled',
+                        message: `User cancelled the "${workRequest.title}" request`
+                    }
+                });
+            }
+        }
+
+        res.json({
+            message: 'Request cancelled successfully',
+            workRequest
+        });
+
+    } catch (error) {
+        console.error('Cancel work request error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// User marks work as completed
+WorkRoute.put('/:id/complete-by-user', async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        const { id } = req.params;
+
+        const workRequest = await WorkRequest.findOne({
+            _id: id,
+            user: userId,
+            status: 'accepted' // Only can complete accepted requests
+        });
+
+        if (!workRequest) {
+            return res.status(404).json({
+                message: 'Request not found or cannot be completed'
+            });
+        }
+
+        // Update work request status
+        workRequest.status = 'completed';
+        workRequest.completedAt = new Date();
+        workRequest.updatedAt = new Date();
+        await workRequest.save();
+
+        // Free up the contractor and increment their completed projects
+        await User.findByIdAndUpdate(workRequest.assignedContractor, {
+            'contractorDetails.availability': 'available',
+            'contractorDetails.currentWork': null,
+            'contractorDetails.completedProjects': { $inc: 1 }
+        });
+
+        // Notify contractor
+        await Notification.create({
+            user: workRequest.assignedContractor,
+            type: 'work_completed',
+            title: 'Work Completed by User',
+            message: `User marked "${workRequest.title}" as completed`,
+            relatedRequest: workRequest._id
+        });
+
+        // Real-time notification to contractor
+        const contractorSocketId = global.users.get(workRequest.assignedContractor.toString());
+        if (contractorSocketId) {
+            global.io.to(contractorSocketId).emit('work_completed', {
+                workRequest,
+                notification: {
+                    title: 'Work Completed',
+                    message: `User marked "${workRequest.title}" as completed`
+                }
+            });
+        }
+
+        res.json({
+            message: 'Work marked as completed successfully',
+            workRequest
+        });
+
+    } catch (error) {
+        console.error('Complete work by user error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
 module.exports = WorkRoute;

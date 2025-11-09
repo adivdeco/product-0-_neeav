@@ -315,8 +315,8 @@ const ContractorDashboard = () => {
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
                                     className={`px-4 py-2 text-sm font-medium rounded-lg ${currentPage === page
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-300'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-300'
                                         }`}
                                 >
                                     {page}
@@ -337,7 +337,7 @@ const ContractorDashboard = () => {
 
             {/* Reject Modal */}
             {showRejectModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl max-w-md w-full p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Reject Work Request</h3>
                         <p className="text-gray-600 mb-4">
