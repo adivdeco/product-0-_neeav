@@ -82,7 +82,7 @@ Provide your advice in a paragraph of no more than 150 words.`;
 
 
         const streamResult = await ai.models.generateContentStream({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.5-flash",
             contents: prompt,
         });
 

@@ -132,10 +132,10 @@ export default function Homepg() {
                 </div>
 
                 {/* Promotional Banner */}
-                <div className="bg-gradient-to-r from-blue-600 to-purple-700 rounded-3xl p-8 text-white text-center">
+                <div className="bg-gradient-to-r from-blue-600 to-gray-700 rounded-3xl p-8 text-white text-center">
                     <h2 className="text-3xl font-bold mb-4">Start Your Business Journey Today</h2>
                     <p className="text-blue-100 mb-6 text-lg">
-                        Join thousands of local businesses already growing with VyaparAI
+                        Join thousands of local businesses already growing with Neerman
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <button className="bg-white text-blue-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition duration-200">
@@ -152,7 +152,7 @@ export default function Homepg() {
             <footer className="bg-gray-900 text-white py-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <p className="text-gray-400">
-                        © 2024 VyaparAI. Empowering local businesses with AI technology.
+                        © 2025 Neerman. Empowering local businesses/Customers with AI technology.
                     </p>
                 </div>
             </footer>
