@@ -1,6 +1,4 @@
-// server.js (Express backend)
 
-// Use the new GoogleGenAI library from Google's SDK for best practice
 const express = require('express');
 const Airouter = express.Router();
 const { GoogleGenAI } = require("@google/genai");

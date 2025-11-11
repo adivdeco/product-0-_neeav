@@ -7,6 +7,7 @@ import SocketService from '../utils/socket';
 import { useDispatch } from 'react-redux';
 import { completeWorkRequest } from '../redux/slice/workRequestSlice';
 import { FaMapMarkerAlt, FaCalendarAlt, FaMoneyBillWave, FaUserTie, FaEnvelope, FaPhone, FaTimes, FaCheck, FaClock, FaCommentDots } from 'react-icons/fa';
+import Navbar from './home/navbar';
 
 // ===============================================
 // --- UI HELPER COMPONENTS (DEFINED GLOBALLY) ---
@@ -308,8 +309,10 @@ const EmployeeDashboard = () => {
 
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-50 ">
+            <Navbar />
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 lg:px-8">
 
                 {/* Header */}
                 <div className="mb-10">

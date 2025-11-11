@@ -2,7 +2,7 @@ import { FaChevronDown, FaUser, FaStore, FaTools, FaUsers, FaChartBar, FaCog, Fa
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../../authSlice";
 import { useState, useRef, useEffect } from "react";
-import { LogOut, LogOutIcon } from "lucide-react";
+import { LogOut, LogOutIcon, Settings } from "lucide-react";
 import NotificationBell from "./NotificationBell";
 
 
@@ -42,16 +42,16 @@ function Navbar() {
 
     const adminMenuItems = [
         { icon: FaUsers, label: "Users_Data", href: "/admin/user/allusers", color: "text-blue-600" },
-        { icon: FaStore, label: "Shops_Data", href: "/admin/shop", color: "text-emerald-600" },
+        // { icon: FaStore, label: "Shops_Data", href: "/admin/shop", color: "text-emerald-600" },
         { icon: FaTools, label: "All Services", href: "/employee/dashboard", color: "text-amber-600" },
-        { icon: FaChartBar, label: "Analytics", href: "/admin/analytics", color: "text-purple-600" },
-        { icon: FaCog, label: "Settings", href: "/admin/settings", color: "text-gray-600" },
+        // { icon: FaChartBar, label: "Analytics", href: "/admin/analytics", color: "text-purple-600" },
+        // { icon: FaCog, label: "Settings", href: "/admin/settings", color: "text-gray-600" },
     ];
     const storeMenuItems = [
         { icon: FaStore, label: "My Shop", href: "/shop", color: "text-emerald-600" },
-        { icon: FaTools, label: "Manage Services", href: "/setting/Contractor", color: "text-amber-600" },
-        { icon: FaChartBar, label: "Shop Analytics", href: "/store/analytics", color: "text-purple-600" },
-        { icon: FaCog, label: "Store Settings", href: "/setting/shop", color: "text-gray-600" },
+        // { icon: FaTools, label: "Manage Services", href: "/setting/Contractor", color: "text-amber-600" },
+        // { icon: FaChartBar, label: "Shop Analytics", href: "/store/analytics", color: "text-purple-600" },
+        // { icon: FaCog, label: "Store Settings", href: "/setting/shop", color: "text-gray-600" },
     ];
 
     const getAvatarUrl = () => {
@@ -159,6 +159,16 @@ function Navbar() {
                                                                 <span>{item.label}</span>
                                                             </a>
                                                         ))}
+                                                        {((user?.role === 'admin' || user?.role == 'store_owner')) && (
+                                                            <a
+                                                                href="/setting/shop"
+                                                                className="flex items-center space-x-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 group"
+
+                                                            >
+                                                                <Settings className="w-4 h-4 text-gray-600 group-hover:text-blue-600" />
+                                                                <span>Update-Profile</span>
+                                                            </a>
+                                                        )}
                                                     </div>
                                                     <div className="border-t border-gray-100 my-1"></div>
                                                 </>
@@ -166,6 +176,7 @@ function Navbar() {
 
                                             {/* Regular User Menu */}
                                             < div className="px-4 py-2">
+
                                                 <a
                                                     href="/setting/user"
                                                     className="flex items-center space-x-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 group"
@@ -173,6 +184,15 @@ function Navbar() {
                                                     <FaUser className="w-4 h-4 text-gray-600 group-hover:text-blue-600" />
                                                     <span>My Profile</span>
                                                 </a>
+
+                                                <a
+                                                    href="/my-requests"
+                                                    className="flex items-center space-x-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 group"
+                                                >
+                                                    <FaCog className="w-4 h-4 text-gray-600 group-hover:text-blue-600" />
+                                                    <span>Service-Reqest</span>
+                                                </a>
+
                                                 {((user?.role === 'admin' || user?.role == 'contractor')) && (
                                                     <a
                                                         href="/contractor/dashboard"
@@ -183,13 +203,8 @@ function Navbar() {
                                                         <span>Services</span>
                                                     </a>
                                                 )}
-                                                <a
-                                                    href="/settings"
-                                                    className="flex items-center space-x-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 group"
-                                                >
-                                                    <FaCog className="w-4 h-4 text-gray-600 group-hover:text-blue-600" />
-                                                    <span>Settings</span>
-                                                </a>
+
+
                                             </div>
 
 
@@ -309,6 +324,16 @@ function Navbar() {
                                                                     <span>{item.label}</span>
                                                                 </a>
                                                             ))}
+                                                            {((user?.role === 'admin' || user?.role == 'store_owner')) && (
+                                                                <a
+                                                                    href="/setting/shop"
+                                                                    className="flex items-center space-x-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 group"
+
+                                                                >
+                                                                    <Settings className="w-4 h-4 text-gray-600 group-hover:text-blue-600" />
+                                                                    <span>Update-Profile</span>
+                                                                </a>
+                                                            )}
                                                         </div>
                                                         <div className="border-t border-gray-100 my-1"></div>
                                                     </>
