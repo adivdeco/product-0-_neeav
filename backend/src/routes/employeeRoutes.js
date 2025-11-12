@@ -1,214 +1,4 @@
-// // routes/employeeRoutes.js
-// const express = require('express');
-// const WorkRequest = require('../models/workRequest');
-// const Employee = require('../models/employee');
-// const Notification = require('../models/notification');
-// const User = require('../models/userSchema');
-// const employeeRoutes = express.Router();
 
-// // Get all pending requests for employee dashboard
-// employeeRoutes.get('/pending-requests', async (req, res) => {
-//     try {
-//         const userId = req.session.userId;
-//         const employee = await Employee.findOne({ user: userId });
-
-//         if (!employee) {
-//             return res.status(403).json({ message: 'Access denied. Employee access required.' });
-//         }
-
-//         const { page = 1, limit = 20 } = req.query;
-
-//         // Get requests that need attention
-//         const filter = {
-//             status: 'pending',
-//             $or: [
-//                 { 'expiresAt': { $lt: new Date(Date.now() + 2 * 60 * 60 * 1000) } }, // Expiring in 2 hours
-//                 { 'escalationLevel': { $gt: 0 } },
-//                 { assignedEmployee: employee._id }
-//             ]
-//         };
-
-//         const requests = await WorkRequest.find(filter)
-//             .populate('user', 'name email phone')
-//             .populate('assignedContractor', 'name email phone contractorDetails')
-//             .populate('assignedEmployee', 'employeeId')
-//             .sort({
-//                 escalationLevel: -1,
-//                 expiresAt: 1,
-//                 createdAt: -1
-//             })
-//             .limit(limit * 1)
-//             .skip((page - 1) * limit);
-
-//         const total = await WorkRequest.countDocuments(filter);
-
-//         res.json({
-//             requests,
-//             totalPages: Math.ceil(total / limit),
-//             currentPage: page,
-//             total
-//         });
-
-//     } catch (error) {
-//         console.error('Get pending requests error:', error);
-//         res.status(500).json({ message: 'Server error', error: error.message });
-//     }
-// });
-
-// // Employee contacts contractor
-// employeeRoutes.post('/:requestId/contact-contractor', async (req, res) => {
-//     try {
-//         const userId = req.session.userId;
-//         const { requestId } = req.params;
-//         const { message, contactMethod } = req.body;
-
-//         const employee = await Employee.findOne({ user: userId });
-//         if (!employee) {
-//             return res.status(403).json({ message: 'Access denied' });
-//         }
-
-//         const workRequest = await WorkRequest.findById(requestId);
-//         if (!workRequest) {
-//             return res.status(404).json({ message: 'Request not found' });
-//         }
-
-//         // Add employee action
-//         workRequest.employeeActions.push({
-//             employee: employee._id,
-//             action: 'contacted_contractor',
-//             message: `${contactMethod}: ${message}`
-//         });
-
-//         workRequest.escalationLevel = Math.min(workRequest.escalationLevel + 1, 3);
-//         workRequest.assignedEmployee = employee._id;
-
-//         await workRequest.save();
-
-//         // Create notification for contractor
-//         await Notification.create({
-//             user: workRequest.assignedContractor,
-//             type: 'work_request',
-//             title: 'Follow-up: Work Request',
-//             message: `Customer service contacted you regarding your pending work request: ${message}`,
-//             relatedRequest: workRequest._id,
-//             priority: 'high'
-//         });
-
-//         // Real-time notification
-//         const contractorSocketId = global.users.get(workRequest.assignedContractor.toString());
-//         if (contractorSocketId) {
-//             global.io.to(contractorSocketId).emit('employee_contact', {
-//                 workRequest,
-//                 message,
-//                 contactMethod
-//             });
-//         }
-
-//         res.json({
-//             message: 'Contractor contacted successfully',
-//             workRequest
-//         });
-
-//     } catch (error) {
-//         console.error('Contact contractor error:', error);
-//         res.status(500).json({ message: 'Server error', error: error.message });
-//     }
-// });
-
-// // Employee contacts user
-// employeeRoutes.post('/:requestId/contact-user', async (req, res) => {
-//     try {
-//         const userId = req.session.userId;
-//         const { requestId } = req.params;
-//         const { message } = req.body;
-
-//         const employee = await Employee.findOne({ user: userId });
-//         if (!employee) {
-//             return res.status(403).json({ message: 'Access denied' });
-//         }
-
-//         const workRequest = await WorkRequest.findById(requestId);
-//         if (!workRequest) {
-//             return res.status(404).json({ message: 'Request not found' });
-//         }
-
-//         // Add employee action
-//         workRequest.employeeActions.push({
-//             employee: employee._id,
-//             action: 'contacted_user',
-//             message: message
-//         });
-
-//         await workRequest.save();
-
-//         // Notify user
-//         await Notification.create({
-//             user: workRequest.user,
-//             type: 'status_updated',
-//             title: 'Update on Your Request',
-//             message: `Customer service: ${message}`,
-//             relatedRequest: workRequest._id
-//         });
-
-//         res.json({
-//             message: 'User contacted successfully',
-//             workRequest
-//         });
-
-//     } catch (error) {
-//         console.error('Contact user error:', error);
-//         res.status(500).json({ message: 'Server error', error: error.message });
-//     }
-// });
-
-// // Auto-assign expired requests to employees
-// employeeRoutes.get('/auto-assign-expired', async (req, res) => {
-//     try {
-//         const expiredRequests = await WorkRequest.find({
-//             status: 'pending',
-//             expiresAt: { $lt: new Date() }
-//         });
-
-//         const availableEmployees = await Employee.find({
-//             isActive: true,
-//             'permissions.canContactContractors': true
-//         });
-
-//         for (const request of expiredRequests) {
-//             // Assign to random available employee
-//             const randomEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
-
-//             if (randomEmployee) {
-//                 request.assignedEmployee = randomEmployee._id;
-//                 request.escalationLevel = 1;
-//                 await request.save();
-
-//                 // Notify employee
-//                 await Notification.create({
-//                     user: randomEmployee.user,
-//                     type: 'work_request',
-//                     title: 'Expired Request Assigned',
-//                     message: `A work request has expired and been assigned to you for follow-up`,
-//                     relatedRequest: request._id,
-//                     actionRequired: true
-//                 });
-//             }
-//         }
-
-//         res.json({
-//             message: `Auto-assigned ${expiredRequests.length} expired requests`
-//         });
-
-//     } catch (error) {
-//         console.error('Auto-assign error:', error);
-//         res.status(500).json({ message: 'Server error', error: error.message });
-//     }
-// });
-
-// module.exports = employeeRoutes;
-
-
-// routes/employeeRoutes.js
 const express = require('express');
 const WorkRequest = require('../models/workRequest');
 const Employee = require('../models/employee');
@@ -216,7 +6,6 @@ const Notification = require('../models/notification');
 const User = require('../models/userSchema');
 const employeeRoutes = express.Router();
 
-// Middleware to check if user is employee/admin
 const requireEmployee = async (req, res, next) => {
     try {
         const userId = req.session.userId;
@@ -251,7 +40,6 @@ const requireEmployee = async (req, res, next) => {
     }
 };
 
-// Get all pending requests for employee dashboard
 employeeRoutes.get('/pending-requests', requireEmployee, async (req, res) => {
     try {
         console.log('🔍 Employee ID:', req.employee._id);
@@ -295,21 +83,21 @@ employeeRoutes.get('/pending-requests', requireEmployee, async (req, res) => {
     }
 });
 
-// Employee contacts contractor
+
 employeeRoutes.post('/:requestId/contact-contractor', requireEmployee, async (req, res) => {
     try {
         const { requestId } = req.params;
         const { message, contactMethod = 'in_app' } = req.body;
 
         const workRequest = await WorkRequest.findById(requestId)
-            .populate('assignedContractor', 'name email phone')
+            .populate('assignedContractor', 'name email phone ')
             .populate('user', 'name');
 
         if (!workRequest) {
             return res.status(404).json({ message: 'Request not found' });
         }
 
-        // Add employee action
+
         workRequest.employeeActions.push({
             employee: req.employee._id,
             action: 'contacted_contractor',
@@ -324,7 +112,7 @@ employeeRoutes.post('/:requestId/contact-contractor', requireEmployee, async (re
 
         await workRequest.save();
 
-        // Create notification for contractor
+
         const notification = await Notification.create({
             user: workRequest.assignedContractor._id,
             type: 'work_request',
@@ -524,7 +312,7 @@ employeeRoutes.post('/:requestId/assign', requireEmployee, async (req, res) => {
     }
 });
 
-// Auto-assign expired requests to employees
+
 employeeRoutes.post('/auto-assign/expired', requireEmployee, async (req, res) => {
     try {
         const expiredRequests = await WorkRequest.find({

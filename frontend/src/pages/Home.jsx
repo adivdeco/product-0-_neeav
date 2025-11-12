@@ -13,7 +13,6 @@ export default function Homepg() {
     const { user, isAuthenticated, loading, error } = useSelector((state) => state.auth);
 
 
-    console.log(user);
 
 
     // Sample featured categories data

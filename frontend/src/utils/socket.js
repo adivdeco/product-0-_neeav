@@ -10,7 +10,7 @@ class SocketService {
     }
 
     connect() {
-        this.socket = io('http://localhost:3000', {
+        this.socket = io("http://localhost:3000", {
             withCredentials: true,
         });
 
@@ -19,11 +19,13 @@ class SocketService {
         });
 
         this.socket.on('new_notification', (data) => {
+            console.log('📨 New notification received:', data);
             store.dispatch(addNotification(data.notification));
             store.dispatch(setUnreadCount(data.unreadCount));
         });
 
         this.socket.on('request_accepted', (data) => {
+            console.log('✅ Request accepted:', data);
             store.dispatch(updateRequestStatus({
                 requestId: data.workRequest._id,
                 status: 'accepted'
@@ -31,9 +33,27 @@ class SocketService {
         });
 
         this.socket.on('request_rejected', (data) => {
+            console.log('❌ Request rejected:', data);
             store.dispatch(updateRequestStatus({
                 requestId: data.workRequest._id,
                 status: 'rejected'
+            }));
+        });
+
+
+        this.socket.on('request_cancelled', (data) => {
+            console.log('🚫 Request cancelled:', data);
+            store.dispatch(updateRequestStatus({
+                requestId: data.workRequest._id,
+                status: 'cancelled'
+            }));
+        });
+
+        this.socket.on('work_completed', (data) => {
+            console.log('🎉 Work completed:', data);
+            store.dispatch(updateRequestStatus({
+                requestId: data.workRequest._id,
+                status: 'completed'
             }));
         });
 
@@ -45,6 +65,12 @@ class SocketService {
                 type: 'system',
                 priority: 'high'
             }));
+        });
+
+        // Listen for NEW work requests (for contractors)
+        this.socket.on('new_work_request', (data) => {
+            console.log('🆕 New work request received:', data);
+            store.dispatch(addRealTimeRequest(data.workRequest));
         });
 
         this.socket.on('disconnect', () => {

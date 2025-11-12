@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getNotifications, markAsRead, markAllAsRead } from '../../redux/slice/notificationSlice';
 import { PiBellRingingFill } from "react-icons/pi";
+import SocketService from '../../utils/socket'; // Import socket
+
 
 const NotificationBell = () => {
     const dispatch = useDispatch();
@@ -12,6 +14,23 @@ const NotificationBell = () => {
 
     useEffect(() => {
         dispatch(getNotifications({ page: 1, unreadOnly: false }));
+
+        // Listen for real-time notifications
+        const handleNewNotification = (data) => {
+            console.log('🔔 Real-time notification in bell:', data);
+            dispatch(getNotifications({ page: 1, unreadOnly: false }));
+        };
+
+        if (SocketService.socket) {
+            SocketService.socket.on('new_notification', handleNewNotification);
+        }
+
+        return () => {
+            if (SocketService.socket) {
+                SocketService.socket.off('new_notification', handleNewNotification);
+            }
+        };
+
     }, [dispatch]);
 
     useEffect(() => {

@@ -1,4 +1,3 @@
-// routes/workRequests.js
 const express = require('express');
 const WorkRequest = require('../models/workRequest');
 const Notification = require('../models/notification');
@@ -33,7 +32,7 @@ WorkRoute.post('/', async (req, res) => {
         });
 
         // Populate user info for notification
-        const user = await User.findById(userId).select('name');
+        const user = await User.findById(userId).select("-password");
 
         // Create notification for contractor
         const notification = await Notification.create({
@@ -48,7 +47,9 @@ WorkRoute.post('/', async (req, res) => {
 
         // Real-time notification to contractor
         const contractorSocketId = global.users.get(assignedContractor.toString());
+
         if (contractorSocketId) {
+            // 1. Send notification
             global.io.to(contractorSocketId).emit('new_notification', {
                 notification,
                 unreadCount: await Notification.countDocuments({
@@ -56,6 +57,34 @@ WorkRoute.post('/', async (req, res) => {
                     isRead: false
                 })
             });
+            // koi issue aay remove this
+            global.io.to(`user_${assignedContractor}`).emit('new_notification', {
+                notification,
+                unreadCount: await Notification.countDocuments({
+                    user: assignedContractor,
+                    isRead: false
+                })
+            });
+
+            // 2. Send specific work request data for immediate display
+            global.io.to(contractorSocketId).emit('new_work_request', {
+                workRequest: await WorkRequest.findById(workRequest._id)
+                    .populate('user', 'name email phone avatar'),
+                message: `New ${category} request from ${user.name}`
+            });
+
+        }
+
+        // In WorkRoute.post('/') - Add debugging
+        console.log('🔍 Checking contractor socket connection:');
+        console.log('- Contractor ID:', assignedContractor.toString());
+        console.log('- Global users map:', Array.from(global.users.entries()));
+        console.log('- Contractor socket ID:', contractorSocketId);
+
+        if (contractorSocketId) {
+            console.log('✅ Sending real-time events to contractor');
+        } else {
+            console.log('❌ Contractor not connected via socket - will see on next refresh');
         }
 
         res.status(201).json({
@@ -161,7 +190,8 @@ WorkRoute.put('/:id/accept', async (req, res) => {
     }
 });
 
-// routes/workRequests.js - Add this route
+
+// mark worke compleate by ADMIN
 WorkRoute.put('/:id/complete', async (req, res) => {
     try {
         const { id } = req.params;
@@ -223,7 +253,7 @@ WorkRoute.put('/:id/complete', async (req, res) => {
     }
 });
 
-// Reject work request
+// Reject work request by contractor
 WorkRoute.put('/:id/reject', async (req, res) => {
     try {
         const contractorId = req.session.userId;
@@ -279,7 +309,7 @@ WorkRoute.put('/:id/reject', async (req, res) => {
 
 
 
-// user acces 
+
 
 // Get user's own work requests
 WorkRoute.get('/my-requests', async (req, res) => {

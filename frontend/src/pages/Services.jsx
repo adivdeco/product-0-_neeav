@@ -57,7 +57,6 @@ function ContractorPage() {
             }).toString();
 
             const { data } = await axiosClient.get(`/useas/contractors?${params}`);
-            console.log(data)
             setContractorData({
                 contractors: data.contractors || [],
                 totalPages: data.totalPages || 1,

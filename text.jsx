@@ -1,0 +1,34 @@
+// server.js - ROOM APPROACH (Works for both scenarios)
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+
+    const userId = socket.request.session?.userId;
+    console.log('Session userId:', userId);
+
+    if (userId) {
+        // Join user to their personal room
+        socket.join(`user_${userId}`);
+        console.log(`User ${userId} joined room: user_${userId}`);
+
+        // Track active connections (optional, for logging)
+        if (!global.users.has(userId.toString())) {
+            global.users.set(userId.toString(), new Set());
+        }
+        global.users.get(userId.toString()).add(socket.id);
+        console.log(`User ${userId} now has ${global.users.get(userId.toString()).size} connections`);
+    }
+
+    socket.on('disconnect', () => {
+        if (userId) {
+            const userSockets = global.users.get(userId.toString());
+            if (userSockets) {
+                userSockets.delete(socket.id);
+                console.log(`User ${userId} disconnected: ${socket.id}`);
+                if (userSockets.size === 0) {
+                    global.users.delete(userId.toString());
+                }
+            }
+        }
+        console.log('User disconnected:', socket.id);
+    });
+});

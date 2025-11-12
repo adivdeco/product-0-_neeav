@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getContractorRequests, acceptWorkRequest, rejectWorkRequest } from '../redux/slice/workRequestSlice';
 import Loading from './Loader';
+import SocketService from '../utils/socket';
 
 const ContractorDashboard = () => {
     const dispatch = useDispatch();
@@ -18,6 +19,24 @@ const ContractorDashboard = () => {
     useEffect(() => {
         if (user && user.role === 'contractor') {
             dispatch(getContractorRequests({ page: currentPage, status: statusFilter }));
+
+            // Set up real-time listeners for new requests
+            const handleNewRequest = (data) => {
+                console.log('🆕 Real-time: New work request received');
+                dispatch(getContractorRequests({ page: currentPage, status: statusFilter }));
+            };
+
+            if (SocketService.socket) {
+                SocketService.socket.on('new_work_request', handleNewRequest);
+                SocketService.socket.on('new_notification', handleNewRequest);
+            }
+
+            return () => {
+                if (SocketService.socket) {
+                    SocketService.socket.off('new_work_request', handleNewRequest);
+                    SocketService.socket.off('new_notification', handleNewRequest);
+                }
+            };
         }
     }, [dispatch, user, currentPage, statusFilter]);
 
