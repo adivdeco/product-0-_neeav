@@ -60,9 +60,10 @@ app.use('/ai-build', Airouter)
 
 // --- Create HTTP server & bind Socket.IO ---
 const server = http.createServer(app);
+const allowedOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [];
 const io = new Server(server, {
     cors: {
-        origin: process.env.CORS_ORIGINS,
+        origin: allowedOrigins,
         methods: ['GET', 'POST'],
         credentials: true,
     },
