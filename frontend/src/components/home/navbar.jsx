@@ -204,7 +204,16 @@ function Navbar() {
                                                     </a>
                                                 )}
 
+                                                {((user?.role === 'admin' || user?.role == 'contractor')) && (
+                                                    <a
+                                                        href="/setting/Contractor"
+                                                        className="flex items-center space-x-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 group"
 
+                                                    >
+                                                        <FaServer className="w-4 h-4 text-gray-600 group-hover:text-blue-600" />
+                                                        <span>Update contractorData</span>
+                                                    </a>
+                                                )}
                                             </div>
 
 

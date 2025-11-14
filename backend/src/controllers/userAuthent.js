@@ -289,50 +289,6 @@ const deleteUser = async (req, res) => {
     }
 };
 
-// const updateData = async (req, res) => {
-//     try {
-//         const userId = req.session.userId;
-//         const role = req.session.role;
-//         const updateData = req.body;
-
-//         // Update User
-//         const user = await User.findByIdAndUpdate(
-//             userId, 
-//             updateData, 
-//             { new: true, runValidators: true }
-//         ).select('-password');
-
-//         let additionalUpdate = null;
-
-//         // Update role-specific data
-//         if (role === 'contractor') {
-//             additionalUpdate = await Contractor.findOneAndUpdate(
-//                 { contractorId: userId }, 
-//                 updateData,
-//                 { new: true, runValidators: true }
-//             );
-//         } else if (role === 'store_owner') {
-//             additionalUpdate = await Shop.findOneAndUpdate(
-//                 { ownerId: userId }, 
-//                 updateData,
-//                 { new: true, runValidators: true }
-//             );
-//         }
-
-//         res.status(200).json({
-//             message: "User updated successfully",
-//             user,
-//             [role === 'contractor' ? 'contractor' : 'shop']: additionalUpdate
-//         });
-
-//     } catch (error) {
-//         console.error('Error in updating user:', error);
-//         res.status(500).json({
-//             message: "Error in updating user",
-//             error: error.message
-//         });
-//     }
-// };
 
 // Update user profile only
 
@@ -425,52 +381,6 @@ const updateContractorServices = async (req, res) => {
     }
 };
 
-// const updateShopData = async (req, res) => {
-//     try {
-//         const userId = req.session.userId;
-//         const { categories, businessHours, description, address, avatar, images } = req.body;
-
-//         // Validate that user is a store owner
-//         const user = await User.findById(userId);
-//         if (user.role !== 'store_owner') {
-//             return res.status(403).json({
-//                 message: "Access denied. User is not a store owner"
-//             });
-//         }
-
-//         const shop = await Shop.findOneAndUpdate(
-//             { ownerId: userId },
-//             {
-//                 categories,
-//                 businessHours,
-//                 description,
-//                 address,
-//                 updatedAt: new Date(),
-//                 avatar,
-//                 images
-//             },
-//             { new: true, runValidators: true }
-//         );
-
-//         if (!shop) {
-//             return res.status(404).json({
-//                 message: "Shop profile not found"
-//             });
-//         }
-
-//         res.status(200).json({
-//             message: "Shop data updated successfully",
-//             shop
-//         });
-
-//     } catch (error) {
-//         console.error('Error updating shop data:', error);
-//         res.status(500).json({
-//             message: "Error updating shop data",
-//             error: error.message
-//         });
-//     }
-// };
 
 const updateShopData = async (req, res) => {
     try {

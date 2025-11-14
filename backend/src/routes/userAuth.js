@@ -15,12 +15,14 @@ authRouter.put('/update_user/:id', updateUser)
 authRouter.delete('/delete_user/:id', deleteUser)
 
 // User routes
-authRouter.put('/profile', updateUserProfile);
-authRouter.put('/contractor/services', updateContractorServices);
-authRouter.put('/shop/data', updateShopData);
+authRouter.put('/profile', updateUserProfile);  // done
 
-authRouter.get('/profile', getShopProfile);
-authRouter.get('/Conttactor_Profile', getContractorProfile)
+authRouter.get('/Shop_profile', getShopProfile);  // done
+authRouter.put('/shop/data', updateShopData);   // done
+
+authRouter.get('/Contractor_Profile', getContractorProfile). // done
+    authRouter.put('/contractor/services', updateContractorServices);  // done
+
 
 authRouter.get('/check-session', async (req, res) => {
     if (req.session && req.session.userId) {

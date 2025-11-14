@@ -65,7 +65,7 @@ const ShopProfileUpdate = () => {
 
     const fetchShopData = async () => {
         try {
-            const response = await axiosClient.get('/auth/profile');
+            const response = await axiosClient.get('/auth/Shop_profile');
             console.log(response.data);
 
             if (response.data.shop) {
