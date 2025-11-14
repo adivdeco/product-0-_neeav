@@ -20,8 +20,8 @@ authRouter.put('/profile', updateUserProfile);  // done
 authRouter.get('/Shop_profile', getShopProfile);  // done
 authRouter.put('/shop/data', updateShopData);   // done
 
-authRouter.get('/Contractor_Profile', getContractorProfile). // done
-    authRouter.put('/contractor/services', updateContractorServices);  // done
+authRouter.get('/Contractor_Profile', getContractorProfile); // done
+authRouter.put('/contractor/services', updateContractorServices);  // done
 
 
 authRouter.get('/check-session', async (req, res) => {
