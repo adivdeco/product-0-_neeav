@@ -11,6 +11,16 @@ const axiosClient = axios.create({
     }
 });
 
+axiosClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            // Handle unauthorized - clear local state
+            console.log('Session expired or invalid');
+        }
+        return Promise.reject(error);
+    }
+);
 
 export default axiosClient;
 

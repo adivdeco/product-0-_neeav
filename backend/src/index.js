@@ -1,5 +1,7 @@
 const express = require('express');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
+
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const http = require('http');
@@ -8,7 +10,24 @@ require('dotenv').config({ quiet: true });
 
 const main = require('./config/db');
 const { getCorsOptions } = require('./config/corsOptions');
-// In server.js, after database connection
+
+const sessionMiddleware = session({
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.DB_URL,
+        collectionName: 'sessions',
+        ttl: 30 * 24 * 60 * 60 // 30 days in seconds
+    }),
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+    }
+});
+
 require('./utils/autoAssignCron');
 console.log('Auto-assignment cron job initialized');
 
@@ -22,21 +41,8 @@ const NotificationRouter = require('./routes/notifications');
 const employeeRouter = require('./routes/employeeRoutes');
 const Airouter = require('./routes/aiPower')
 
+
 const app = express();
-
-const sessionMiddleware = session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: process.env.NODE_ENV === 'production',   // needs HTTPS
-        httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-    }
-
-});
-
 // --- Middleware setup ---
 app.use(cors(getCorsOptions()));
 app.use(express.json());

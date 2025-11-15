@@ -17,11 +17,16 @@ const getCorsOptions = () => {
                 return callback(null, true);
             }
 
+            if (process.env.NODE_ENV === 'development') {
+                return callback(null, true);
+            }
+
             callback(new Error(`CORS Error: The origin '${origin}' is not allowed.`));
         },
         credentials: true,
         methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+        allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+        exposedHeaders: "Set-Cookie"
     };
 };
 

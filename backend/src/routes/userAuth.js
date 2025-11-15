@@ -24,12 +24,48 @@ authRouter.get('/Contractor_Profile', getContractorProfile); // done
 authRouter.put('/contractor/services', updateContractorServices);  // done
 
 
+// authRouter.get('/check-session', async (req, res) => {
+//     if (req.session && req.session.userId) {
+//         const user = await User.findById(req.session.userId).select("-password");
+//         return res.json({ success: true, isLoggedIn: true, user });
+//     } else {
+//         return res.json({ success: true, isLoggedIn: false });
+//     }
+// });
 authRouter.get('/check-session', async (req, res) => {
-    if (req.session && req.session.userId) {
-        const user = await User.findById(req.session.userId).select("-password");
-        return res.json({ success: true, isLoggedIn: true, user });
-    } else {
-        return res.json({ success: true, isLoggedIn: false });
+    try {
+        console.log('=== CHECK SESSION ===');
+        console.log('Session ID:', req.sessionID);
+        console.log('Session Data:', req.session);
+        console.log('Cookies:', req.headers.cookie);
+        console.log('=====================');
+
+        if (req.session && req.session.userId) {
+            const user = await User.findById(req.session.userId).select("-password");
+            if (user) {
+                return res.json({
+                    success: true,
+                    isLoggedIn: true,
+                    user,
+                    sessionId: req.sessionID
+                });
+            }
+        }
+
+        // If no valid session or user not found
+        return res.json({
+            success: true,
+            isLoggedIn: false,
+            message: 'No active session found'
+        });
+
+    } catch (error) {
+        console.error('Error in check-session:', error);
+        return res.status(500).json({
+            success: false,
+            isLoggedIn: false,
+            error: 'Internal server error'
+        });
     }
 });
 

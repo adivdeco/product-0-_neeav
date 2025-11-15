@@ -92,11 +92,13 @@ export const checkAuth = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const { data } = await axiosClient.get('/auth/check-session', { withCredentials: true });
+            console.log('Check session response:', data);
             return data?.user;
         } catch (error) {
             console.log('Error in checkAuth:', error);
 
-            return rejectWithValue(error);
+            // return rejectWithValue(error);
+            return null
         }
     }
 );
