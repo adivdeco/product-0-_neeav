@@ -11,15 +11,22 @@ require('dotenv').config({ quiet: true });
 const main = require('./config/db');
 const { getCorsOptions } = require('./config/corsOptions');
 
-const sessionMiddleware = session({
+
+const app = express();
+
+
+// --- Middleware setup ---
+app.use(cors(getCorsOptions()));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+let sessionMiddleware = session({
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({
-        mongoUrl: process.env.DB_URL,
-        collectionName: 'sessions',
-        ttl: 30 * 24 * 60 * 60 // 30 days in seconds
-    }),
+
+
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
@@ -27,6 +34,9 @@ const sessionMiddleware = session({
         maxAge: 30 * 24 * 60 * 60 * 1000,
     }
 });
+
+app.use(sessionMiddleware);
+
 
 require('./utils/autoAssignCron');
 console.log('Auto-assignment cron job initialized');
@@ -42,13 +52,7 @@ const employeeRouter = require('./routes/employeeRoutes');
 const Airouter = require('./routes/aiPower')
 
 
-const app = express();
-// --- Middleware setup ---
-app.use(cors(getCorsOptions()));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(sessionMiddleware);
+
 
 
 
@@ -145,7 +149,7 @@ io.on('connection', (socket) => {
 
 main()
     .then(async () => {
-        // Auto-create employee records for existing admins
+
         try {
             const createEmployeeRecords = require('./utils/createEmployeeRecords');
             const { cleanupOldRequests } = require('./utils/cleanupCron')
@@ -157,6 +161,29 @@ main()
         } catch (error) {
             console.log('ℹ️ Employee records creation skipped or failed:', error.message);
         }
+
+        const MongoStore = require('connect-mongo');
+
+        const persistentSessionMiddleware = session({
+            secret: process.env.SESSION_SECRET || 'your-secret-key',
+            resave: false,
+            saveUninitialized: false,
+            store: MongoStore.create({
+                client: mongoose.connection.getClient(), // Use existing connection
+                collectionName: 'sessions',
+                ttl: 30 * 24 * 60 * 60
+            }),
+            cookie: {
+                secure: process.env.NODE_ENV === 'production',
+                httpOnly: true,
+                sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            }
+        });
+
+        app.use(persistentSessionMiddleware);
+
+        console.log('✅ Session store updated to use MongoDB');
 
         server.listen(process.env.PORT, () => {
             console.log(`🚀 Server running with Socket.IO on port ${process.env.PORT}`);
