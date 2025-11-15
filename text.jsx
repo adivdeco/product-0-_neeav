@@ -1,6 +1,12 @@
+
+
+
+
+
 const express = require('express');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
+
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const http = require('http');
@@ -10,19 +16,22 @@ require('dotenv').config({ quiet: true });
 const main = require('./config/db');
 const { getCorsOptions } = require('./config/corsOptions');
 
+
 const app = express();
 
-// --- Basic middleware first ---
+
+// --- Middleware setup ---
 app.use(cors(getCorsOptions()));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Temporary in-memory session until DB is connected
 let sessionMiddleware = session({
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
     saveUninitialized: false,
+
+
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
@@ -33,23 +42,133 @@ let sessionMiddleware = session({
 
 app.use(sessionMiddleware);
 
-// --- Your routes ---
+
+require('./utils/autoAssignCron');
+console.log('Auto-assignment cron job initialized');
+
+// Routes
+const authRouter = require('./routes/userAuth');
+const billsRouter = require('./routes/khata');
+const ownRouter = require('./routes/useAs');
+const uploadData = require('./routes/cloudData');
+const WorkRoute = require('./routes/workRequests');
+const NotificationRouter = require('./routes/notifications');
+const employeeRouter = require('./routes/employeeRoutes');
+const Airouter = require('./routes/aiPower')
+
+
+
+
+
+
+// --- Register routes ---
 app.get('/', (req, res) => {
     res.send('✅ Server is up and running');
 });
-
 app.use('/auth', authRouter);
-// ... other routes
+app.use('/khata', billsRouter);
+app.use('/useas', ownRouter);
+app.use('/upload', uploadData);
+app.use('/api/work-requests', WorkRoute);
+app.use('/api/notifications', NotificationRouter);
+app.use('/api/employee', employeeRouter);
+app.use('/ai-build', Airouter)
 
-// --- Database connection with session store update ---
+
+// --- Create HTTP server & bind Socket.IO ---
+const server = http.createServer(app);
+const allowedOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [];
+const io = new Server(server, {
+    cors: {
+        origin: allowedOrigins,
+        methods: ['GET', 'POST'],
+        credentials: true,
+    },
+});
+
+global.users = new Map();
+global.io = io;
+
+// io.on('connection', (socket) => {
+//     console.log('User connected:', socket.id);
+
+//     socket.on('register', (userId) => {
+//         if (!userId) return;
+//         global.users.set(userId, socket.id);
+//         console.log(`User ${userId} registered with socket ${socket.id}`);
+//     });
+
+//     socket.on('disconnect', () => {
+//         for (const [key, value] of global.users.entries()) {
+//             if (value === socket.id) global.users.delete(key);
+//         }
+//         console.log('User disconnected:', socket.id);
+//     });
+// });
+
+// global.io = io;
+
+// --- Start the app ---
+
+// Add session middleware to Socket.io
+
+// After session setup, store the middleware
+
+io.use((socket, next) => {
+    sessionMiddleware(socket.request, {}, next);
+});
+
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+
+    // Get user ID from session
+    const userId = socket.request.session?.userId;
+    console.log('Session userId:', userId);
+
+    if (userId) {
+        global.users.set(userId.toString(), socket.id);
+        console.log(`User ${userId} registered with socket ${socket.id}`);
+
+        // Join user to their personal room
+        socket.join(userId.toString());
+    }
+
+    socket.on('disconnect', () => {
+        if (userId) {
+            global.users.delete(userId.toString());
+        }
+        console.log('User disconnected:', socket.id);
+    });
+});
+
+// main()
+//     .then(() => {
+//         server.listen(process.env.PORT, () => {
+//             console.log(`🚀 Server running with Socket.IO on port ${process.env.PORT}`);
+//         });
+//     })
+//     .catch((err) => {
+//         console.error('❌ Database connection failed:', err);
+//     });
+// Add this right after your database connection in server.js
+
 main()
-    .then(async (mongoose) => {
-        console.log('✅ Database connected successfully');
+    .then(async () => {
 
-        // Now update session store to use MongoDB
+        try {
+            const createEmployeeRecords = require('./utils/createEmployeeRecords');
+            const { cleanupOldRequests } = require('./utils/cleanupCron')
+
+            await createEmployeeRecords();
+            await cleanupOldRequests();
+
+            console.log('✅ Employee records check completed & cleanup requist also runs.');
+        } catch (error) {
+            console.log('ℹ️ Employee records creation skipped or failed:', error.message);
+        }
+
         const MongoStore = require('connect-mongo');
 
-        // Create new session middleware with MongoDB store
         const persistentSessionMiddleware = session({
             secret: process.env.SESSION_SECRET || 'your-secret-key',
             resave: false,
@@ -67,20 +186,16 @@ main()
             }
         });
 
-        // Replace the temporary session middleware
         app.use(persistentSessionMiddleware);
 
         console.log('✅ Session store updated to use MongoDB');
 
-        // Rest of your startup code...
         server.listen(process.env.PORT, () => {
             console.log(`🚀 Server running with Socket.IO on port ${process.env.PORT}`);
         });
     })
     .catch((err) => {
         console.error('❌ Database connection failed:', err);
-        // Server will still run with in-memory sessions
-        server.listen(process.env.PORT, () => {
-            console.log(`🚀 Server running with in-memory sessions on port ${process.env.PORT}`);
-        });
     });
+
+module.exports = app;
