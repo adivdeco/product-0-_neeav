@@ -84,6 +84,7 @@ function App() {
       <Route path='/addServices' element={isAuthenticated ? <Add_services /> : <Login />} />
       <Route path='/business' element={isAuthenticated ? <Business /> : <Login />} />
       {/* shop */}
+      {/* test */}
       <Route path='/shop' element={isAuthenticated ? <ShopHome /> : <Login />} />
       <Route path='/shop/addBill' element={isAuthenticated ? <AddBill /> : <Login />} />
       <Route path='/shop/allCustomers' element={isAuthenticated ? <AllCustomers /> : <Login />} />
