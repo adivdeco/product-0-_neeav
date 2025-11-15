@@ -1,15 +1,10 @@
 {
-    "version": 2,
-    "builds": [
+    "projects": [
         {
-            "src": "./index.js",
-            "use": "@vercel/node"
-        }
-    ],
-    "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "./index.js"
+            "name": "frontend",
+            "rootDirectory": "frontend",
+            "buildCommand": "npm run build",
+            "outputDirectory": "dist"
         }
     ]
 }
