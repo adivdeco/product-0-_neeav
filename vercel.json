@@ -1,10 +1,5 @@
 {
-    "mega_project": [
-        {
-            "name": "frontend",
-            "rootDirectory": "frontend",
-            "buildCommand": "npm run build",
-            "outputDirectory": "dist"
-        }
-    ]
+    "rootDirectory": "frontend",
+    "buildCommand": "npm run build",
+    "outputDirectory": "dist"
 }
