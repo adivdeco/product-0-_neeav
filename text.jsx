@@ -199,3 +199,81 @@ main()
     });
 
 module.exports = app;
+
+
+
+const loginUser = async (req, res) => {
+    // console.log("Login attempt received");
+
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                error: "Email and password are required",
+                field: !email ? "email" : "password"
+            });
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            console.log("No user found with email:", email);
+            return res.status(401).json({
+                success: false,
+                error: "No account found with this email",
+                field: "email"
+            });
+        }
+
+        const match = await bcrypt.compare(password, user.password);
+
+        if (!match) {
+            console.log("Password comparison failed");
+            return res.status(401).json({
+                success: false,
+                error: "Incorrect password",
+                field: "password"
+            });
+        }
+
+        // Create session
+        req.session.userId = user._id;
+        req.session.email = user.email;
+        req.session.role = user.role;
+
+        console.log('=== SESSION CREATED ===');
+        console.log('Session ID:', req.session.userId);
+        console.log('Session Data:', req.session.email);
+        console.log('=======================');
+
+        const reply = {
+            name: user.name,
+            email: user.email,
+            _id: user._id,
+            role: user.role,
+            createdAt: user.createdAt,
+            avatar: user.avatar || '',
+        }
+
+        // console.log("Login successful for user:", email);
+        res.cookie("sessionID", req.session.userId)
+            .status(200).json({
+                success: true,
+                user: reply,
+                message: "Login successful",
+
+
+            });
+
+    } catch (error) {
+        console.error('Error in login:', error.message);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({
+            success: false,
+            error: "An unexpected error occurred during login",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
