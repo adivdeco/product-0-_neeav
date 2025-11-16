@@ -20,40 +20,6 @@ export const registerUser = createAsyncThunk(
 
 
 
-// export const loginUser = createAsyncThunk(
-//     'auth/login',
-//     async (credentials, { rejectWithValue }) => {
-//         try {
-//             const response = await axiosClient.post('/auth/login', credentials, {
-//                 withCredentials: true
-//             });
-//             const authResponse = await axiosClient.get('/auth/check-session', { withCredentials: true });
-//             return authResponse.data?.user;
-
-//         } catch (error) {
-//             if (error.response) {
-//                 // The request was made and the server responded with a status code
-//                 return rejectWithValue({
-//                     message: error.response.data.error || 'Login failed',
-//                     field: error.response.data.field || null,
-//                     details: error.response.data.details || null
-//                 });
-//             } else if (error.request) {
-//                 // The request was made but no response was received
-//                 return rejectWithValue({
-//                     message: 'No response from server',
-//                     details: 'Network error or server is down'
-//                 });
-//             } else {
-//                 // Something happened in setting up the request
-//                 return rejectWithValue({
-//                     message: 'Request setup error',
-//                     details: error.message
-//                 });
-//             }
-//         }
-//     }
-// );
 
 export const loginUser = createAsyncThunk(
     'auth/login',

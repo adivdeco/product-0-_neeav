@@ -8,7 +8,7 @@ require('dotenv').config({ quiet: true });
 const MongoStore = require('connect-mongo');
 
 const main = require('./config/db');
-const { getCorsOptions } = require('./config/corsOptions');
+// const { getCorsOptions } = require('./config/corsOptions');
 // In server.js, after database connection
 require('./utils/autoAssignCron');
 console.log('Auto-assignment cron job initialized');
@@ -39,16 +39,22 @@ const sessionMiddleware = session({
     //     maxAge: 30 * 24 * 60 * 60 * 1000,
     // },
     cookie: {
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        domain: ".onrender.com",
         maxAge: 30 * 24 * 60 * 60 * 1000
     }
 
 });
 
 // --- Middleware setup ---
-app.use(cors(getCorsOptions()));
+// app.use(cors(getCorsOptions())); // for local
+app.use(cors({
+    origin: "https://product-2-neeav.vercel.app",
+    credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

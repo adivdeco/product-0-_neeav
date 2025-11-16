@@ -30,7 +30,7 @@ authRouter.get('/check-session', async (req, res) => {
         const user = await User.findById(req.session.userId).select("-password");
         return res.json({ success: true, isLoggedIn: true, user, sessionID });
     } else {
-        return res.json("no cokkie saved", { success: true, isLoggedIn: false });
+        return res.json({ success: true, isLoggedIn: false, message: "no cokkies saved" });
     }
 });
 
