@@ -98,6 +98,12 @@ const loginUser = async (req, res) => {
         req.session.email = user.email;
         req.session.role = user.role;
 
+
+        console.log('>>> server will respond. sessionID:', req.sessionID);
+        console.log('>>> session cookie header (server-side):', req.session?.cookie);
+        console.log('>>> res.getHeader("Set-Cookie") BEFORE send:', res.getHeader && res.getHeader('Set-Cookie'));
+
+
         console.log('=== SESSION CREATED ===');
         console.log('Session ID:', req.sessionID);
         console.log('Session Data:', req.session);
