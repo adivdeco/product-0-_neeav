@@ -71,7 +71,7 @@ export const checkAuth = createAsyncThunk(
             //     "https://product-0-neeav-1.onrender.com/auth/check-session",
             //     { withCredentials: true }
             // );
-            console.log('Check session response:', res);
+            console.log('Check session response:', data);
             // return res.data.user;
 
             return data?.user;
