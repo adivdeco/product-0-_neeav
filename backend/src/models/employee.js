@@ -42,7 +42,7 @@ const employeeSchema = new Schema({
 });
 
 employeeSchema.index({ user: 1 });
-employeeSchema.index({ employeeId: 1 });
+// employeeSchema.index({ employeeId: 1 });
 employeeSchema.index({ department: 1 });
 
 const Employee = mongoose.model('Employee', employeeSchema);
