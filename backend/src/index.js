@@ -127,28 +127,28 @@ io.use((socket, next) => {
     sessionMiddleware(socket.request, {}, next);
 });
 
-io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
+// io.on('connection', (socket) => {
+//     console.log('User connected:', socket.id);
 
-    // Get user ID from session
-    const userId = socket.request.session?.userId;
-    console.log('Session userId:', userId);
+//     // Get user ID from session
+//     const userId = socket.request.session?.userId;
+//     console.log('Session userId:', userId);
 
-    if (userId) {
-        global.users.set(userId.toString(), socket.id);
-        console.log(`User ${userId} registered with socket ${socket.id}`);
+//     if (userId) {
+//         global.users.set(userId.toString(), socket.id);
+//         console.log(`User ${userId} registered with socket ${socket.id}`);
 
-        // Join user to their personal room
-        socket.join(userId.toString());
-    }
+//         // Join user to their personal room
+//         socket.join(userId.toString());
+//     }
 
-    socket.on('disconnect', () => {
-        if (userId) {
-            global.users.delete(userId.toString());
-        }
-        console.log('User disconnected:', socket.id);
-    });
-});
+//     socket.on('disconnect', () => {
+//         if (userId) {
+//             global.users.delete(userId.toString());
+//         }
+//         console.log('User disconnected:', socket.id);
+//     });
+// });
 
 // main()
 //     .then(() => {
