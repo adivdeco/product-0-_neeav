@@ -120,17 +120,8 @@ const loginUser = async (req, res) => {
             avatar: user.avatar || '',
         }
 
-        req.session.save(err => {
-            if (err) console.error('session save error', err);
-            // force cookie header too
-            res.cookie('connect.sid', req.sessionID, {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'none',
-                domain: '.onrender.com',
-                path: '/'
-            });
-            // then send JSON
+        req.session.save(() => {
+
             res.status(200).json({ success: true, user: reply, sessionID: req.sessionID, message: 'Login successful' });
         });
 
