@@ -109,7 +109,7 @@ const loginUser = async (req, res) => {
         console.log('Session Data:', req.session);
         console.log('=======================');
 
-        const sessionID = req.sessionID
+        // const sessionID = req.sessionID
 
         const reply = {
             name: user.name,
@@ -120,21 +120,35 @@ const loginUser = async (req, res) => {
             avatar: user.avatar || '',
         }
 
-        // console.log("Login successful for user:", email);
-        res.cookie('__test_cookie', '1', {
-            httpOnly: false,
-            secure: true,
-            sameSite: 'none',
-            domain: '.onrender.com',   // same as your session domain
-            maxAge: 1000 * 60 * 5
+        req.session.save(err => {
+            if (err) console.error('session save error', err);
+            // force cookie header too
+            res.cookie('connect.sid', req.sessionID, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+                domain: '.onrender.com',
+                path: '/'
+            });
+            // then send JSON
+            res.status(200).json({ success: true, user: reply, sessionID: req.sessionID, message: 'Login successful' });
         });
 
-        res.status(200).json({
-            success: true,
-            user: reply,
-            sessionID,
-            message: "Login successful"
-        });
+        // console.log("Login successful for user:", email);
+        // res.cookie('__test_cookie', '1', {
+        //     httpOnly: false,
+        //     secure: true,
+        //     sameSite: 'none',
+        //     domain: '.onrender.com',   // same as your session domain
+        //     maxAge: 1000 * 60 * 5
+        // });
+
+        // res.status(200).json({
+        //     success: true,
+        //     user: reply,
+        //     sessionID,
+        //     message: "Login successful"
+        // });
 
     } catch (error) {
         console.error('Error in login:', error.message);
