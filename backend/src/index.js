@@ -28,6 +28,9 @@ const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.Db_URL,
+    }),
     // cookie: {
     //     secure: true,  // mark is false it on local
     //     httpOnly: true,
