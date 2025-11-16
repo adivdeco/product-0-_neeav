@@ -25,13 +25,13 @@ const Airouter = require('./routes/aiPower')
 const app = express();
 
 const sessionMiddleware = session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
-    resave: true,
+    secret: process.env.SESSION_SECRET,
+    resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,  // mark is false it on local
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",
+        sameSite: "none", // mark it lax if on local
         maxAge: 30 * 24 * 60 * 60 * 1000,
     },
 });
