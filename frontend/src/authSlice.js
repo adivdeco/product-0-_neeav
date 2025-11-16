@@ -25,8 +25,17 @@ export const loginUser = createAsyncThunk(
     'auth/login',
     async (credentials, { rejectWithValue }) => {
         try {
-            const { data } = await axiosClient.post('/auth/login', credentials, { withCredentials: true });
-            return data.user;
+            // const { data } = await axiosClient.post('/auth/login', credentials, { withCredentials: true });
+            const res = await axios.post(
+                "https://product-0-neeav-1.onrender.com/auth/login",
+                credentials,
+                { withCredentials: true }
+            );
+
+            return res.data.user;
+
+
+            // return data.user;
         } catch (error) {
             if (error.response) {
                 // The request was made and the server responded with a status code
@@ -57,9 +66,15 @@ export const checkAuth = createAsyncThunk(
     'auth/checkthunk',
     async (_, { rejectWithValue }) => {
         try {
-            const { data } = await axiosClient.get('/auth/check-session', { withCredentials: true });
-            console.log('Check session response:', data);
-            return data?.user;
+            // const { data } = await axiosClient.get('/auth/check-session', { withCredentials: true });
+            const res = await axios.get(
+                "https://product-0-neeav-1.onrender.com/auth/check-session",
+                { withCredentials: true }
+            );
+            console.log('Check session response:', res);
+            return res.data.user;
+
+            // return data?.user;
         } catch (error) {
             console.log('Error in checkAuth:', error);
 

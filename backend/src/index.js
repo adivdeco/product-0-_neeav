@@ -77,14 +77,21 @@ app.use('/ai-build', Airouter)
 
 // --- Create HTTP server & bind Socket.IO ---
 const server = http.createServer(app);
-const allowedOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [];
+// const allowedOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [];
+// const io = new Server(server, {
+//     cors: {
+//         origin: allowedOrigins,
+//         methods: ['GET', 'POST'],
+//         credentials: true,
+//     },
+// });
 const io = new Server(server, {
     cors: {
-        origin: allowedOrigins,
-        methods: ['GET', 'POST'],
+        origin: "https://product-2-neeav.vercel.app",
         credentials: true,
-    },
+    }
 });
+
 
 global.users = new Map();
 global.io = io;

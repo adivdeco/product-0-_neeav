@@ -12,6 +12,7 @@ class SocketService {
     connect() {
         this.socket = io("https://product-0-neeav-1.onrender.com", {
             withCredentials: true,
+            transports: ["websocket"],
         });
 
         this.socket.on('connect', () => {
