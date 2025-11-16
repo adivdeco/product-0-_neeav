@@ -30,7 +30,7 @@ const sessionMiddleware = session({
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-        mongoUrl: process.env.Db_URL,
+        mongoUrl: process.env.DB_URL,
     }),
     // cookie: {
     //     secure: true,  // mark is false it on local
