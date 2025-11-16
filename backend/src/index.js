@@ -28,12 +28,19 @@ const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    // cookie: {
+    //     secure: true,  // mark is false it on local
+    //     httpOnly: true,
+    //     sameSite: "none", // mark it lax if on local
+    //     maxAge: 30 * 24 * 60 * 60 * 1000,
+    // },
     cookie: {
-        secure: true,  // mark is false it on local
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         httpOnly: true,
-        sameSite: "none", // mark it lax if on local
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-    },
+        maxAge: 30 * 24 * 60 * 60 * 1000
+    }
+
 });
 
 // --- Middleware setup ---
