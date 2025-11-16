@@ -103,6 +103,8 @@ const loginUser = async (req, res) => {
         console.log('Session Data:', req.session);
         console.log('=======================');
 
+        const sessionID = req.sessionID
+
         const reply = {
             name: user.name,
             email: user.email,
@@ -116,6 +118,7 @@ const loginUser = async (req, res) => {
         res.status(200).json({
             success: true,
             user: reply,
+            sessionID,
             message: "Login successful"
         });
 
