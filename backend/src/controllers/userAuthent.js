@@ -121,6 +121,14 @@ const loginUser = async (req, res) => {
         }
 
         // console.log("Login successful for user:", email);
+        res.cookie('__test_cookie', '1', {
+            httpOnly: false,
+            secure: true,
+            sameSite: 'none',
+            domain: '.onrender.com',   // same as your session domain
+            maxAge: 1000 * 60 * 5
+        });
+
         res.status(200).json({
             success: true,
             user: reply,
