@@ -2,7 +2,7 @@
 const Shop = require('../models/shopSchema');
 
 async function ensureShopOwner(req, res, next) {
-    const userId = req.finduser.userId;
+    const userId = req.finduser._id;
     if (!userId) return res.status(401).send('Login required');
 
     const shopId = req.params.shopId; // or req.body.shopId

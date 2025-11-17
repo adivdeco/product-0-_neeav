@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaBuilding, FaMapMarkerAlt, FaRulerCombined, FaDollarSign, FaClock, FaCheckCircle, FaLightbulb, FaSpinner, FaTimesCircle, FaHome, FaPaintBrush, FaHardHat, FaTools, FaCity, FaExpandArrowsAlt, FaRobot, FaShieldAlt, FaRegLightbulb } from 'react-icons/fa';
 import { RiRocket2Fill, RiLayout3Fill, RiPinDistanceFill } from 'react-icons/ri';
+import axiosClient from '../api/auth';
 
 // --- Framer Motion Variants ---
 

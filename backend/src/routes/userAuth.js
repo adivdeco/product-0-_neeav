@@ -35,18 +35,33 @@ authRouter.get('/check-session', authMiddleware, async (req, res) => {
     // } else {
     //     return res.json({ success: true, isLoggedIn: false, message: "no cokkies saved" });
     // }
-    const reply = {
-        name: req.finduser.name,
-        email: req.finduser.email,
-        _id: req.finduser._id,
-        role: req.finduser.role,
-    };
+    //     const reply = {
+    //         name: req.finduser.name,
+    //         email: req.finduser.email,
+    //         _id: req.finduser._id,
+    //         role: req.finduser.role,
+    //     };
+
+    //     console.log(reply);
 
 
-    res.status(200).json({
-        message: "valid user",
-        user: reply
-    })
+    //     res.status(200).json({
+    //         message: "valid user",
+    //         user: reply
+    //     })
+    // });
+    const _id = req.finduser._id
+
+    if (!_id) {
+        return res.json({ message: "loginFailed" })
+    } else {
+        const user = await User.findById(_id).select(-"password")
+        res.status(200).json({
+            message: "valid user",
+            user
+        })
+    }
+
 });
 
 

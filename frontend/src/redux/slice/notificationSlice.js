@@ -8,6 +8,8 @@ export const getNotifications = createAsyncThunk(
         try {
             const params = new URLSearchParams({ page, unreadOnly });
             const response = await axiosClient.get(`/api/notifications?${params}`);
+            console.log("data", response);
+
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data || error.message);

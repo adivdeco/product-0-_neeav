@@ -22,7 +22,7 @@ billsRouter.get('/allBills', authMiddleware, getAllBills)
 billsRouter.get('/customer', authMiddleware, async (req, res) => {
 
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
         const role = req.finduser.role;
 
         if (role !== 'store_owner' && role !== "admin") {
@@ -79,7 +79,7 @@ billsRouter.get('/customer', authMiddleware, async (req, res) => {
 billsRouter.get('/customer/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ message: "Invalid Customer ID" });
@@ -135,7 +135,7 @@ billsRouter.get('/customer/:id', authMiddleware, async (req, res) => {
 billsRouter.get('/customer/search', authMiddleware, async (req, res) => {
     try {
         const { query } = req.query;
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
 
         if (!query || query.length < 2) {
             return res.status(400).json({

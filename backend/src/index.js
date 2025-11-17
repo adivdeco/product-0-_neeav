@@ -19,10 +19,13 @@ const Airouter = require('./routes/aiPower');
 
 const app = express();
 
+global.users = new Map();
+
 // -------- CORS --------
 app.use(
     cors({
-        origin: "https://product-2-neeav.vercel.app",
+        // origin: "https://product-2-neeav.vercel.app",
+        origin: ["http://localhost:5173", "https://product-2-neeav.vercel.app"],
         credentials: true,
     })
 );
@@ -50,7 +53,9 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: "https://product-2-neeav.vercel.app",
+        // origin: "https://product-2-neeav.vercel.app",
+        origin: ["http://localhost:5173", "https://product-2-neeav.vercel.app"],
+        methods: ['GET', 'POST'],
         credentials: true,
     },
 });
@@ -59,15 +64,23 @@ const io = new Server(server, {
 const jwt = require('jsonwebtoken');
 
 io.use((socket, next) => {
-    const token = socket.handshake.headers.cookie?.split('token=')[1];
-    if (!token) return next();
-
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        socket.userId = decoded.id;
+        // Try multiple ways to get token
+        let token = socket.handshake.auth.token ||
+            socket.handshake.headers.cookie?.split('token=')[1]?.split(';')[0];
+
+        if (!token) {
+            console.log('No token provided for socket connection');
+            return next(new Error('Authentication required'));
+        }
+
+        const decoded = jwt.verify(token, "secretkey");
+        socket.userId = decoded.userId;
+        console.log('Socket authenticated for user:', socket.userId);
         next();
     } catch (err) {
-        next();
+        console.log('Socket authentication failed:', err.message);
+        next(new Error('Invalid token'));
     }
 });
 
@@ -75,12 +88,20 @@ io.on('connection', (socket) => {
     console.log('Socket connected:', socket.id);
 
     if (socket.userId) {
+        global.users.set(socket.userId.toString(), socket.id);
         socket.join(socket.userId.toString());
         console.log("Socket authenticated user:", socket.userId);
+        console.log('Current users map:', Array.from(global.users.entries()));
     }
 
     socket.on('disconnect', () => {
+        // Fixed: Use the correct variable name
+        if (socket.userId) {
+            global.users.delete(socket.userId.toString());
+            console.log(`User ${socket.userId} disconnected`);
+        }
         console.log('Socket disconnected:', socket.id);
+        console.log('Remaining users:', Array.from(global.users.entries()));
     });
 });
 

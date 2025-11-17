@@ -9,7 +9,7 @@ const adminMiddleware = require('../middleware/adminMiddleware');
 // Create work request
 WorkRoute.post('/', authMiddleware, async (req, res) => {
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
         if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
@@ -103,7 +103,7 @@ WorkRoute.post('/', authMiddleware, async (req, res) => {
 // Get contractor's work requests
 WorkRoute.get('/contractor-requests', authMiddleware, async (req, res) => {
     try {
-        const contractorId = req.finduser.userId;
+        const contractorId = req.finduser._id;
         if (!contractorId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
@@ -137,7 +137,7 @@ WorkRoute.get('/contractor-requests', authMiddleware, async (req, res) => {
 // Accept work request
 WorkRoute.put('/:id/accept', authMiddleware, async (req, res) => {
     try {
-        const contractorId = req.finduser.userId;
+        const contractorId = req.finduser._id;
         const { id } = req.params;
 
         const workRequest = await WorkRequest.findOne({
@@ -197,7 +197,7 @@ WorkRoute.put('/:id/accept', authMiddleware, async (req, res) => {
 WorkRoute.put('/:id/complete', adminMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
         const userRole = req.finduser.role;
 
         const workRequest = await WorkRequest.findById(id);
@@ -258,7 +258,7 @@ WorkRoute.put('/:id/complete', adminMiddleware, async (req, res) => {
 // Reject work request by contractor
 WorkRoute.put('/:id/reject', authMiddleware, async (req, res) => {
     try {
-        const contractorId = req.finduser.userId;
+        const contractorId = req.finduser._id;
         const { id } = req.params;
         const { reason } = req.body;
 
@@ -316,7 +316,7 @@ WorkRoute.put('/:id/reject', authMiddleware, async (req, res) => {
 // Get user's own work requests
 WorkRoute.get('/my-requests', authMiddleware, async (req, res) => {
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
         if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
@@ -350,7 +350,7 @@ WorkRoute.get('/my-requests', authMiddleware, async (req, res) => {
 // User cancels their own request
 WorkRoute.put('/:id/cancel', authMiddleware, async (req, res) => {
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
         const { id } = req.params;
         const { reason } = req.body;
 
@@ -420,7 +420,7 @@ WorkRoute.put('/:id/cancel', authMiddleware, async (req, res) => {
 // User marks work as completed
 WorkRoute.put('/:id/complete-by-user', authMiddleware, async (req, res) => {
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
         const { id } = req.params;
 
         const workRequest = await WorkRequest.findOne({

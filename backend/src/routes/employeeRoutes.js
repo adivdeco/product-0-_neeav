@@ -6,6 +6,7 @@ const Notification = require('../models/notification');
 const User = require('../models/userSchema');
 const employeeRoutes = express.Router();
 const authMiddleware = require('../middleware/authMiddleware')
+const jwt = require('jsonwebtoken')
 
 // const requireEmployee = async (req, res, next) => {
 //     try {
@@ -58,20 +59,20 @@ const combinedAuthMiddleware = async (req, res, next) => {
         req.finduser = finduser;
 
         // Then, execute requireEmployee logic
-        if (!finduser.userId) {
+        if (!finduser._id) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
-        const user = await User.findById(finduser.userId);
+        const user = await User.findById(finduser._id);
         if (!user || (user.role !== 'admin' && user.role !== 'co-admin')) {
             return res.status(403).json({ message: 'Access denied. Employee/admin access required.' });
         }
 
         // Check if employee record exists, create if not
-        let employee = await Employee.findOne({ user: finduser.userId });
+        let employee = await Employee.findOne({ user: finduser._id });
         if (!employee) {
             employee = await Employee.create({
-                user: finduser.userId,
+                user: finduser._id,
                 employeeId: `EMP${Date.now()}`,
                 department: user.role === 'admin' ? 'admin' : 'customer_service',
                 name: user.name,
@@ -96,7 +97,7 @@ const combinedAuthMiddleware = async (req, res, next) => {
 employeeRoutes.get('/pending-requests', combinedAuthMiddleware, async (req, res) => {
     try {
         console.log('🔍 Employee ID:', req.employee._id);
-        console.log('🔍 User ID from session:', req.finduser.userId);
+        console.log('🔍 User ID from session:', req.finduser._id);
 
         const { page = 1, limit = 20 } = req.query;
 

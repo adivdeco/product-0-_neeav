@@ -6,7 +6,9 @@ const authMiddleware = require('../middleware/authMiddleware')
 // Get user notifications
 NotificationRouter.get('/', authMiddleware, async (req, res) => {
     try {
-        const userId = req.finduser.userId;
+
+        const userId = req.finduser._id;
+
         if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
@@ -45,7 +47,7 @@ NotificationRouter.get('/', authMiddleware, async (req, res) => {
 // Mark notification as read
 NotificationRouter.put('/:id/read', authMiddleware, async (req, res) => {
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
         const { id } = req.params;
 
         const notification = await Notification.findOneAndUpdate(
@@ -69,7 +71,7 @@ NotificationRouter.put('/:id/read', authMiddleware, async (req, res) => {
 // Mark all notifications as read
 NotificationRouter.put('/read-all', authMiddleware, async (req, res) => {
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
 
         await Notification.updateMany(
             { user: userId, isRead: false },

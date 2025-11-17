@@ -9,7 +9,7 @@ const addNewBills = async (req, res) => {
     session.startTransaction();
 
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
         const role = req.finduser.role;
 
         if (role !== 'store_owner' && role !== "admin") {
@@ -305,7 +305,7 @@ const updateBill = async (req, res) => {
     session.startTransaction();
 
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
         const role = req.finduser.role;
 
         if (role !== 'store_owner' && role !== "admin") {
@@ -435,7 +435,7 @@ const updateBill = async (req, res) => {
 const deleateBill = async (req, res) => {
     try {
 
-        const userId = req.finduser.userId
+        const userId = req.finduser._id
         const role = req.finduser.role
 
 
@@ -469,7 +469,7 @@ const deleateBill = async (req, res) => {
 const getBill = async (req, res) => {
     try {
 
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
         const role = req.finduser.role;
 
         if (role !== 'store_owner' && role !== "admin") {
@@ -507,8 +507,8 @@ const getBill = async (req, res) => {
 
 const getAllBills = async (req, res) => {
     try {
-        const userId = req.session.userId;
-        const role = req.session.role;
+        const userId = req.finduser._id;
+        const role = req.finduser.role;
 
         if (role !== 'store_owner' && role !== "admin") {
             return res.status(403).json({

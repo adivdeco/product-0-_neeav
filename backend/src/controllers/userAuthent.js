@@ -250,7 +250,7 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
         const role = req.finduser.role;
 
         if (role != 'co-admin' && role != "admin") {
@@ -302,7 +302,7 @@ const deleteUser = async (req, res) => {
 
 const updateUserProfile = async (req, res) => {
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
         const updateData = req.body;
 
         const user = await User.findByIdAndUpdate(
@@ -327,8 +327,8 @@ const updateUserProfile = async (req, res) => {
 
 const updateContractorServices = async (req, res) => {
     try {
-        const userId = req.finduser.userId;
-        
+        const userId = req.finduser._id;
+
         const {
             contractorName,
             description,
@@ -393,7 +393,7 @@ const updateContractorServices = async (req, res) => {
 
 const updateShopData = async (req, res) => {
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
         const {
             shopName,
             ownerName,
@@ -455,7 +455,7 @@ const updateShopData = async (req, res) => {
 
 const getShopProfile = async (req, res) => {
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
 
         // Validate that user is a store owner
         const user = await User.findById(userId);
@@ -489,7 +489,7 @@ const getShopProfile = async (req, res) => {
 
 const getContractorProfile = async (req, res) => {
     try {
-        const userId = req.finduser.userId;
+        const userId = req.finduser._id;
 
         // Validate that user is a store owner
         const user = await User.findById(userId);
