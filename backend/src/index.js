@@ -42,7 +42,7 @@ app.use('/useas', ownRouter);
 app.use('/upload', uploadData);
 app.use('/api/work-requests', WorkRoute);
 app.use('/api/notifications', NotificationRouter);
-app.use('/api/employee', authMiddleware, employeeRouter);
+app.use('/api/employee', employeeRouter);
 app.use('/ai-build', Airouter);
 
 // -------- Create HTTP Server + Socket.IO --------
@@ -57,7 +57,6 @@ const io = new Server(server, {
 
 // JWT middleware for socket.io
 const jwt = require('jsonwebtoken');
-const authMiddleware = require('./middleware/authMiddleware');
 
 io.use((socket, next) => {
     const token = socket.handshake.headers.cookie?.split('token=')[1];
