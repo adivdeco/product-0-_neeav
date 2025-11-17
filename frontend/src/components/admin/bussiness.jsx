@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router';
 function Business() {
     const navigate = useNavigate();
     const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
+    console.log(isAuthenticated, loading);
+
 
     const handleShopRegistration = () => {
         if (!isAuthenticated) {
