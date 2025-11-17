@@ -5,45 +5,98 @@ const Employee = require('../models/employee');
 const Notification = require('../models/notification');
 const User = require('../models/userSchema');
 const employeeRoutes = express.Router();
+const authMiddleware = require('../middleware/authMiddleware')
 
-const requireEmployee = async (req, res, next) => {
+// const requireEmployee = async (req, res, next) => {
+//     try {
+//         const userId = req.session.userId;
+//         if (!userId) {
+//             return res.status(401).json({ message: 'Authentication required' });
+//         }
+
+//         const user = await User.findById(userId);
+//         if (!user || (user.role !== 'admin' && user.role !== 'co-admin')) {
+//             return res.status(403).json({ message: 'Access denied. Employee/admin access required.' });
+//         }
+
+//         // Check if employee record exists, create if not
+//         let employee = await Employee.findOne({ user: userId });
+//         if (!employee) {
+//             employee = await Employee.create({
+//                 user: userId,
+//                 employeeId: `EMP${Date.now()}`,
+//                 department: user.role === 'admin' ? 'admin' : 'customer_service',
+//                 name: user.name,
+//                 email: user.email,
+//                 phone: user.phone
+
+//             });
+//         }
+
+//         req.employee = employee;
+//         next();
+//     } catch (error) {
+//         console.error('Employee middleware error:', error);
+//         res.status(500).json({ message: 'Server error', error: error.message });
+//     }
+// };
+
+const combinedAuthMiddleware = async (req, res, next) => {
     try {
-        const userId = req.session.userId;
-        if (!userId) {
+        // First, execute adminMiddleware logic
+        const token = req.cookies.token;
+        if (!token) return res.status(401).json({ message: "Not logged in" });
+
+        const payload = jwt.verify(token, "secretkey");
+        const { userId, role } = payload;
+
+        if (!userId || (role !== 'co-admin' && role !== "admin")) {
+            return res.status(403).send("Forbidden: You do not have admin access");
+        }
+
+        const finduser = await User.findById(payload.userId).select('-password');
+        req.finduser = finduser;
+
+        // Then, execute requireEmployee logic
+        if (!finduser.userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
-        const user = await User.findById(userId);
+        const user = await User.findById(finduser.userId);
         if (!user || (user.role !== 'admin' && user.role !== 'co-admin')) {
             return res.status(403).json({ message: 'Access denied. Employee/admin access required.' });
         }
 
         // Check if employee record exists, create if not
-        let employee = await Employee.findOne({ user: userId });
+        let employee = await Employee.findOne({ user: finduser.userId });
         if (!employee) {
             employee = await Employee.create({
-                user: userId,
+                user: finduser.userId,
                 employeeId: `EMP${Date.now()}`,
                 department: user.role === 'admin' ? 'admin' : 'customer_service',
                 name: user.name,
                 email: user.email,
                 phone: user.phone
-
             });
         }
 
         req.employee = employee;
         next();
     } catch (error) {
-        console.error('Employee middleware error:', error);
+        console.error('Combined auth middleware error:', error);
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
-employeeRoutes.get('/pending-requests', requireEmployee, async (req, res) => {
+// module.exports = combinedAuthMiddleware;
+
+employeeRoutes.get('/pending-requests', combinedAuthMiddleware, async (req, res) => {
     try {
         console.log('🔍 Employee ID:', req.employee._id);
-        console.log('🔍 User ID from session:', req.session.userId);
+        console.log('🔍 User ID from session:', req.finduser.userId);
 
         const { page = 1, limit = 20 } = req.query;
 
@@ -84,7 +137,7 @@ employeeRoutes.get('/pending-requests', requireEmployee, async (req, res) => {
 });
 
 
-employeeRoutes.post('/:requestId/contact-contractor', requireEmployee, async (req, res) => {
+employeeRoutes.post('/:requestId/contact-contractor', combinedAuthMiddleware, async (req, res) => {
     try {
         const { requestId } = req.params;
         const { message, contactMethod = 'in_app' } = req.body;
@@ -170,7 +223,7 @@ employeeRoutes.post('/:requestId/contact-contractor', requireEmployee, async (re
 });
 
 // Employee contacts user
-employeeRoutes.post('/:requestId/contact-user', requireEmployee, async (req, res) => {
+employeeRoutes.post('/:requestId/contact-user', combinedAuthMiddleware, async (req, res) => {
     try {
         const { requestId } = req.params;
         const { message, contactMethod = 'in_app' } = req.body;
@@ -238,7 +291,7 @@ employeeRoutes.post('/:requestId/contact-user', requireEmployee, async (req, res
 });
 
 // Get request details for employee
-employeeRoutes.get('/request/:requestId', requireEmployee, async (req, res) => {
+employeeRoutes.get('/request/:requestId', combinedAuthMiddleware, async (req, res) => {
     try {
         const { requestId } = req.params;
 
@@ -262,7 +315,7 @@ employeeRoutes.get('/request/:requestId', requireEmployee, async (req, res) => {
 });
 
 // Assign request to specific employee
-employeeRoutes.post('/:requestId/assign', requireEmployee, async (req, res) => {
+employeeRoutes.post('/:requestId/assign', combinedAuthMiddleware, async (req, res) => {
     try {
         const { requestId } = req.params;
         const { employeeId } = req.body;
@@ -313,7 +366,7 @@ employeeRoutes.post('/:requestId/assign', requireEmployee, async (req, res) => {
 });
 
 
-employeeRoutes.post('/auto-assign/expired', requireEmployee, async (req, res) => {
+employeeRoutes.post('/auto-assign/expired', combinedAuthMiddleware, async (req, res) => {
     try {
         const expiredRequests = await WorkRequest.find({
             status: 'pending',
@@ -365,7 +418,7 @@ employeeRoutes.post('/auto-assign/expired', requireEmployee, async (req, res) =>
 });
 
 // Get employee statistics
-employeeRoutes.get('/stats', requireEmployee, async (req, res) => {
+employeeRoutes.get('/stats', combinedAuthMiddleware, async (req, res) => {
     try {
         const totalPending = await WorkRequest.countDocuments({ status: 'pending' });
         const expiringSoon = await WorkRequest.countDocuments({
@@ -398,7 +451,7 @@ employeeRoutes.get('/stats', requireEmployee, async (req, res) => {
 });
 
 // Get all employees (for admin)
-employeeRoutes.get('/employees', requireEmployee, async (req, res) => {
+employeeRoutes.get('/employees', combinedAuthMiddleware, async (req, res) => {
     try {
         // Only admin can see all employees
         if (req.employee.department !== 'admin') {

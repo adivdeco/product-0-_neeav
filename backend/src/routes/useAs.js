@@ -2,7 +2,8 @@
 const express = require('express');
 const ownRouter = express.Router();
 const Contractor = require('../models/contractorSchema');
-
+const adminMiddleware = require('../middleware/adminMiddleware')
+const authMiddleware = require('../middleware/authMiddleware')
 
 const {
     addShopOwner,
@@ -23,18 +24,18 @@ const {
 
 
 // Shop Owner Routes
-ownRouter.post('/addshopowners', addShopOwner);              // Create a shop owner
+ownRouter.post('/addshopowners', adminMiddleware, addShopOwner);              // Create a shop owner
 ownRouter.get('/shop-owners', getAllShopOwners);           // Get all shop owners
 ownRouter.get('/shop-owners/:id', getShopOwnerById);           // Get a specific shop owner
-ownRouter.put('/shop-owners/:id', updateShopOwner);        // Update a shop owner
-ownRouter.delete('/shop-owners/:id', deleteShopOwner);     // Delete a shop owner
+ownRouter.put('/shop-owners/:id', adminMiddleware, updateShopOwner);        // Update a shop owner
+ownRouter.delete('/shop-owners/:id', adminMiddleware, deleteShopOwner);     // Delete a shop owner
 
 // // Contractor Routes
-ownRouter.post('/addcontractors', addContractor);             // Create a contractor
+ownRouter.post('/addcontractors', adminMiddleware, addContractor);             // Create a contractor
 ownRouter.get('/contractors', getContractors);        // Get all contractors   
-ownRouter.put('/contractors/:id', updateContractor);        // Update a contractor
+ownRouter.put('/contractors/:id', adminMiddleware, updateContractor);        // Update a contractor
 ownRouter.get('/contractors/:id', getContractorById);       // Get a specific contractor
-ownRouter.delete('/contractors/:id', deleteContractor);    // Delete a contractor
+ownRouter.delete('/contractors/:id', adminMiddleware, deleteContractor);    // Delete a contractor
 
 
 
@@ -103,9 +104,10 @@ ownRouter.delete('/contractors/:id', deleteContractor);    // Delete a contracto
 //         res.status(500).json({ message: 'Server error', error: error.message });
 //     }
 // });
-ownRouter.post('/:id/reviews', async (req, res) => {
+
+ownRouter.post('/:id/reviews', authMiddleware, async (req, res) => {
     try {
-        const usrId = req.session?.userId;
+        const usrId = req.finduser?.userId;
         if (!usrId) {
             return res.status(401).json({ message: 'Authentication required to add review' });
         }

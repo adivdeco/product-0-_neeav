@@ -9,8 +9,8 @@ const addNewBills = async (req, res) => {
     session.startTransaction();
 
     try {
-        const userId = req.session.userId;
-        const role = req.session.role;
+        const userId = req.finduser.userId;
+        const role = req.finduser.role;
 
         if (role !== 'store_owner' && role !== "admin") {
             return res.status(403).json({
@@ -305,8 +305,8 @@ const updateBill = async (req, res) => {
     session.startTransaction();
 
     try {
-        const userId = req.session.userId;
-        const role = req.session.role;
+        const userId = req.finduser.userId;
+        const role = req.finduser.role;
 
         if (role !== 'store_owner' && role !== "admin") {
             await session.abortTransaction();
@@ -435,8 +435,8 @@ const updateBill = async (req, res) => {
 const deleateBill = async (req, res) => {
     try {
 
-        const userId = req.session.userId
-        const role = req.session.role
+        const userId = req.finduser.userId
+        const role = req.finduser.role
 
 
 
@@ -469,8 +469,8 @@ const deleateBill = async (req, res) => {
 const getBill = async (req, res) => {
     try {
 
-        const userId = req.session.userId;
-        const role = req.session.role;
+        const userId = req.finduser.userId;
+        const role = req.finduser.role;
 
         if (role !== 'store_owner' && role !== "admin") {
             return res.status(403).json({

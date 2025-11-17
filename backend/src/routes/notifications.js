@@ -1,11 +1,12 @@
 const express = require('express');
 const Notification = require('../models/notification');
 const NotificationRouter = express.Router();
+const authMiddleware = require('../middleware/authMiddleware')
 
 // Get user notifications
-NotificationRouter.get('/', async (req, res) => {
+NotificationRouter.get('/', authMiddleware, async (req, res) => {
     try {
-        const userId = req.session.userId;
+        const userId = req.finduser.userId;
         if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
@@ -42,9 +43,9 @@ NotificationRouter.get('/', async (req, res) => {
 });
 
 // Mark notification as read
-NotificationRouter.put('/:id/read', async (req, res) => {
+NotificationRouter.put('/:id/read', authMiddleware, async (req, res) => {
     try {
-        const userId = req.session.userId;
+        const userId = req.finduser.userId;
         const { id } = req.params;
 
         const notification = await Notification.findOneAndUpdate(
@@ -66,9 +67,9 @@ NotificationRouter.put('/:id/read', async (req, res) => {
 });
 
 // Mark all notifications as read
-NotificationRouter.put('/read-all', async (req, res) => {
+NotificationRouter.put('/read-all', authMiddleware, async (req, res) => {
     try {
-        const userId = req.session.userId;
+        const userId = req.finduser.userId;
 
         await Notification.updateMany(
             { user: userId, isRead: false },

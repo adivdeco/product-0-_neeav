@@ -1,17 +1,11 @@
 const express = require('express');
-const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config({ quiet: true });
-const MongoStore = require('connect-mongo');
 
 const main = require('./config/db');
-// const { getCorsOptions } = require('./config/corsOptions');
-// In server.js, after database connection
-require('./utils/autoAssignCron');
-console.log('Auto-assignment cron job initialized');
 
 // Routes
 const authRouter = require('./routes/userAuth');
@@ -21,163 +15,81 @@ const uploadData = require('./routes/cloudData');
 const WorkRoute = require('./routes/workRequests');
 const NotificationRouter = require('./routes/notifications');
 const employeeRouter = require('./routes/employeeRoutes');
-const Airouter = require('./routes/aiPower')
+const Airouter = require('./routes/aiPower');
 
 const app = express();
 
-const sessionMiddleware = session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-        mongoUrl: process.env.DB_URL,
-    }),
-    // cookie: {
-    //     secure: true,  // mark is false it on local
-    //     httpOnly: true,
-    //     sameSite: "none", // mark it lax if on local
-    //     maxAge: 30 * 24 * 60 * 60 * 1000,
-    // },
-    cookie: {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        // domain: ".onrender.com",
-        maxAge: 30 * 24 * 60 * 60 * 1000
-    }
-
-
-});
-
-// --- Middleware setup ---
-// app.use(cors(getCorsOptions())); // for local
-app.use(cors({
-    origin: "https://product-2-neeav.vercel.app",
-    credentials: true
-}));
+// -------- CORS --------
+app.use(
+    cors({
+        origin: "https://product-2-neeav.vercel.app",
+        credentials: true,
+    })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(sessionMiddleware);
 app.use(cookieParser());
 
-
-
-// --- Register routes ---
+// -------- Routes --------
 app.get('/', (req, res) => {
-    res.send('✅ Server is up and running');
+    res.send('✅ JWT Server is running or server is live');
 });
+
 app.use('/auth', authRouter);
 app.use('/khata', billsRouter);
 app.use('/useas', ownRouter);
 app.use('/upload', uploadData);
 app.use('/api/work-requests', WorkRoute);
 app.use('/api/notifications', NotificationRouter);
-app.use('/api/employee', employeeRouter);
-app.use('/ai-build', Airouter)
+app.use('/api/employee', authMiddleware, employeeRouter);
+app.use('/ai-build', Airouter);
 
-
-// --- Create HTTP server & bind Socket.IO ---
+// -------- Create HTTP Server + Socket.IO --------
 const server = http.createServer(app);
-// const allowedOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [];
-// const io = new Server(server, {
-//     cors: {
-//         origin: allowedOrigins,
-//         methods: ['GET', 'POST'],
-//         credentials: true,
-//     },
-// });
+
 const io = new Server(server, {
     cors: {
         origin: "https://product-2-neeav.vercel.app",
         credentials: true,
+    },
+});
+
+// JWT middleware for socket.io
+const jwt = require('jsonwebtoken');
+const authMiddleware = require('./middleware/authMiddleware');
+
+io.use((socket, next) => {
+    const token = socket.handshake.headers.cookie?.split('token=')[1];
+    if (!token) return next();
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        socket.userId = decoded.id;
+        next();
+    } catch (err) {
+        next();
     }
 });
 
+io.on('connection', (socket) => {
+    console.log('Socket connected:', socket.id);
 
-global.users = new Map();
-global.io = io;
+    if (socket.userId) {
+        socket.join(socket.userId.toString());
+        console.log("Socket authenticated user:", socket.userId);
+    }
 
-// io.on('connection', (socket) => {
-//     console.log('User connected:', socket.id);
-
-//     socket.on('register', (userId) => {
-//         if (!userId) return;
-//         global.users.set(userId, socket.id);
-//         console.log(`User ${userId} registered with socket ${socket.id}`);
-//     });
-
-//     socket.on('disconnect', () => {
-//         for (const [key, value] of global.users.entries()) {
-//             if (value === socket.id) global.users.delete(key);
-//         }
-//         console.log('User disconnected:', socket.id);
-//     });
-// });
-
-// global.io = io;
-
-// --- Start the app ---
-
-// Add session middleware to Socket.io
-
-// After session setup, store the middleware
-
-io.use((socket, next) => {
-    sessionMiddleware(socket.request, {}, next);
+    socket.on('disconnect', () => {
+        console.log('Socket disconnected:', socket.id);
+    });
 });
 
-// io.on('connection', (socket) => {
-//     console.log('User connected:', socket.id);
-
-//     // Get user ID from session
-//     const userId = socket.request.session?.userId;
-//     console.log('Session userId:', userId);
-
-//     if (userId) {
-//         global.users.set(userId.toString(), socket.id);
-//         console.log(`User ${userId} registered with socket ${socket.id}`);
-
-//         // Join user to their personal room
-//         socket.join(userId.toString());
-//     }
-
-//     socket.on('disconnect', () => {
-//         if (userId) {
-//             global.users.delete(userId.toString());
-//         }
-//         console.log('User disconnected:', socket.id);
-//     });
-// });
-
-// main()
-//     .then(() => {
-//         server.listen(process.env.PORT, () => {
-//             console.log(`🚀 Server running with Socket.IO on port ${process.env.PORT}`);
-//         });
-//     })
-//     .catch((err) => {
-//         console.error('❌ Database connection failed:', err);
-//     });
-// Add this right after your database connection in server.js
-
+// -------- Start Server --------
 main()
-    .then(async () => {
-        // Auto-create employee records for existing admins
-        try {
-            const createEmployeeRecords = require('./utils/createEmployeeRecords');
-            const { cleanupOldRequests } = require('./utils/cleanupCron')
-
-            await createEmployeeRecords();
-            await cleanupOldRequests();
-
-            console.log('✅ Employee records check completed & cleanup requist also runs.');
-        } catch (error) {
-            console.log('ℹ️ Employee records creation skipped or failed:', error.message);
-        }
-
+    .then(() => {
         server.listen(process.env.PORT, () => {
-            console.log(`🚀 Server running with Socket.IO on port ${process.env.PORT}`);
+            console.log(`🚀 JWT Server running on port ${process.env.PORT}`);
         });
     })
     .catch((err) => {

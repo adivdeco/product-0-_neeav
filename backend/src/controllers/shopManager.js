@@ -10,8 +10,8 @@ const addShopOwner = async (req, res) => {
 
     try {
 
-        const userId = req.session.userId
-        const role = req.session.role
+        const userId = req.finduser.userId
+        const role = req.finduser.role
 
 
 
@@ -207,8 +207,8 @@ const getShopOwnerById = async (req, res) => {
 const updateShopOwner = async (req, res) => {
     try {
 
-        const userId = req.session.userId
-        const role = req.session.role
+        const userId = req.finduser.userId
+        const role = req.finduser.role
 
 
 
@@ -253,8 +253,8 @@ const updateShopOwner = async (req, res) => {
 const deleteShopOwner = async (req, res) => {
     try {
 
-        const userId = req.session.userId
-        const role = req.session.role
+        const userId = req.finduser.userId
+        const role = req.finduser.role
 
 
 
@@ -303,8 +303,8 @@ const addContractor = async (req, res) => {
     session.startTransaction();
 
     try {
-        const userId = req.session.userId;
-        const role = req.session.role;
+        const userId = req.finduser.userId;
+        const role = req.finduser.role;
 
         if (role !== 'co-admin' && role !== "admin") {
             await session.abortTransaction();
@@ -519,8 +519,8 @@ const getContractorById = async (req, res) => {
 const updateContractor = async (req, res) => {
     try {
 
-        const userId = req.session.userId
-        const role = req.session.role
+        const userId = req.finduser.userId
+        const role = req.finduser.role
 
 
 
@@ -565,8 +565,8 @@ const updateContractor = async (req, res) => {
 const deleteContractor = async (req, res) => {
     try {
 
-        const userId = req.session.userId
-        const role = req.session.role
+        const userId = req.finduser.userId
+        const role = req.finduser.role
 
 
 

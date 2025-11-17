@@ -3,26 +3,27 @@ const { addNewBills, updateBill, deleateBill, getBill, getAllBills } = require('
 const Shop = require('../models/shopSchema');
 const Customer = require('../models/customerSchema');
 const billsRouter = express.Router()
+const authMiddleware = require('../middleware/authMiddleware')
+const adminMiddleware = require('../middleware/adminMiddleware')
+
+
+billsRouter.post('/add_bill', authMiddleware, addNewBills)
+billsRouter.put('/update_bill/:billId', authMiddleware, updateBill);
+billsRouter.delete('/delete_bill/:billId', authMiddleware, deleateBill)
 
 
 
-billsRouter.post('/add_bill', addNewBills)
-billsRouter.put('/update_bill/:billId', updateBill);
-billsRouter.delete('/delete_bill/:billId', deleateBill)
+
+billsRouter.get('/find/:billId', authMiddleware, getBill)
+billsRouter.get('/allBills', authMiddleware, getAllBills)
 
 
 
-
-billsRouter.get('/find/:billId', getBill)
-billsRouter.get('/allBills', getAllBills)
-
-
-
-billsRouter.get('/customer', async (req, res) => {
+billsRouter.get('/customer', authMiddleware, async (req, res) => {
 
     try {
-        const userId = req.session.userId;
-        const role = req.session.role;
+        const userId = req.finduser.userId;
+        const role = req.finduser.role;
 
         if (role !== 'store_owner' && role !== "admin") {
             return res.status(403).json({
@@ -75,10 +76,10 @@ billsRouter.get('/customer', async (req, res) => {
     }
 })
 
-billsRouter.get('/customer/:id', async (req, res) => {
+billsRouter.get('/customer/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        const userId = req.session.userId;
+        const userId = req.finduser.userId;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ message: "Invalid Customer ID" });
@@ -131,10 +132,10 @@ billsRouter.get('/customer/:id', async (req, res) => {
 });
 
 
-billsRouter.get('/customer/search', async (req, res) => {
+billsRouter.get('/customer/search', authMiddleware, async (req, res) => {
     try {
         const { query } = req.query;
-        const userId = req.session.userId;
+        const userId = req.finduser.userId;
 
         if (!query || query.length < 2) {
             return res.status(400).json({

@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const validateuser = require('../utils/validators');
 const Contractor = require('../models/contractorSchema');
 const Shop = require('../models/shopSchema');
-// const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 // const redisClient = require('../config/redis');
 
 
@@ -29,9 +29,12 @@ const registerUser = async (req, res) => {
 
             const user = await User.create(req.body);
 
+            const token = jwt.sign({ userId: user._id, email: email, role: 'user' }, "secretkey", { expiresIn: 1200 * 1200 }); // 1 hour expiration
+
+
             // Create session after registration
-            req.session.userId = user._id;
-            req.session.email = user.email;
+            // req.session.userId = user._id;
+            // req.session.email = user.email;
 
             const reply = {
                 name: user.name,
@@ -39,15 +42,14 @@ const registerUser = async (req, res) => {
                 _id: user._id,
                 role: user.role,
             }
-
+            res.cookie('token', token,
+                { maxAge: 1200 * 1200 * 1000, secure: true, sameSite: "none", httpOnly: true });
             res.status(200).json({
                 user: reply,
                 message: "login sussesfully",
             });
 
         }
-
-
 
 
     } catch (error) {
@@ -93,23 +95,11 @@ const loginUser = async (req, res) => {
             });
         }
 
-        // Create session
-        req.session.userId = user._id;
-        req.session.email = user.email;
-        req.session.role = user.role;
-
-
-        console.log('>>> server will respond. sessionID:', req.sessionID);
-        console.log('>>> session cookie header (server-side):', req.session?.cookie);
-        console.log('>>> res.getHeader("Set-Cookie") BEFORE send:', res.getHeader && res.getHeader('Set-Cookie'));
-
-
-        console.log('=== SESSION CREATED ===');
-        console.log('Session ID:', req.sessionID);
-        console.log('Session Data:', req.session);
-        console.log('=======================');
-
-        // const sessionID = req.sessionID
+        const token = jwt.sign(
+            { email: email, userId: user._id, role: user.role },
+            "secretkey",
+            { expiresIn: 1200 * 1200 }
+        );
 
         const reply = {
             name: user.name,
@@ -120,26 +110,19 @@ const loginUser = async (req, res) => {
             avatar: user.avatar || '',
         }
 
-        req.session.save(() => {
+        res.cookie('token', token, {
+            maxAge: 1200 * 1200 * 1000,
+            httpOnly: true,
+            secure: true,            // REQUIRED for cross-origin in HTTPS
+            sameSite: 'None'
 
-            res.status(200).json({ success: true, user: reply, sessionID: req.sessionID, message: 'Login successful' });
         });
 
-        // console.log("Login successful for user:", email);
-        // res.cookie('__test_cookie', '1', {
-        //     httpOnly: false,
-        //     secure: true,
-        //     sameSite: 'none',
-        //     domain: '.onrender.com',   // same as your session domain
-        //     maxAge: 1000 * 60 * 5
-        // });
-
-        // res.status(200).json({
-        //     success: true,
-        //     user: reply,
-        //     sessionID,
-        //     message: "Login successful"
-        // });
+        res.status(200).json({
+            success: true,
+            user: reply,
+            message: "Login successful"
+        });
 
     } catch (error) {
         console.error('Error in login:', error.message);
@@ -155,26 +138,30 @@ const loginUser = async (req, res) => {
 const logOutUser = async (req, res) => {
     try {
         // Destroy the session
-        req.session.destroy((err) => {
-            if (err) {
-                return res.status(500).json({
-                    success: false,
-                    error: "Could not logout"
-                });
-            }
+        // req.session.destroy((err) => {
+        //     if (err) {
+        //         return res.status(500).json({
+        //             success: false,
+        //             error: "Could not logout"
+        //         });
+        //     }
 
-            // Clear the session cookie
-            res.clearCookie('connect.sid', {
-                path: '/',
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production'
-            });
+        const { token } = req.cookies;
+        const payload = jwt.decode(token);
 
-            res.status(200).json({
-                success: true,
-                message: "Logout successful"
-            });
+        // Clear the session cookie
+        res.clearCookie('tocken', {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
         });
+
+        res.cookie('token', null, { expires: new Date(Date.now()) }); // Clear the cookie {maxAge:0, httpOnly:true}   
+        res.status(200).json({
+            success: true,
+            message: "Logout successful"
+        });
+
 
     } catch (err) {
         res.status(500).json({
@@ -191,7 +178,7 @@ const allUsers = async (req, res) => {
 
     try {
         // const userId = req.session.userId;
-        const role = req.session.role;
+        const role = req.finduser.role;
 
         if (role !== 'co-admin' && role !== "admin") {
             return res.status(403).json({
@@ -215,7 +202,7 @@ const allUsers = async (req, res) => {
 const updateUser = async (req, res) => {
 
     try {
-        const role = req.session.role;
+        const role = req.finduser.role;
 
         if (role !== 'co-admin' && role !== "admin") {
             return res.status(403).json({
@@ -229,7 +216,7 @@ const updateUser = async (req, res) => {
 
 
         if (Object.prototype.hasOwnProperty.call(updateData, 'role')) {
-            if (req.session.role !== 'admin') {
+            if (req.finduser.role !== 'admin') {
                 return res.status(403).json({ message: 'Forbidden: only admin can change user roles' });
             }
         }
@@ -263,8 +250,8 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     try {
-        const userId = req.session.userId;
-        const role = req.session.role;
+        const userId = req.finduser.userId;
+        const role = req.finduser.role;
 
         if (role != 'co-admin' && role != "admin") {
             return res.status(403).send("Forbidden: You do not have access to delete users");
@@ -315,7 +302,7 @@ const deleteUser = async (req, res) => {
 
 const updateUserProfile = async (req, res) => {
     try {
-        const userId = req.session.userId;
+        const userId = req.finduser.userId;
         const updateData = req.body;
 
         const user = await User.findByIdAndUpdate(
@@ -340,7 +327,8 @@ const updateUserProfile = async (req, res) => {
 
 const updateContractorServices = async (req, res) => {
     try {
-        const userId = req.session.userId;
+        const userId = req.finduser.userId;
+        
         const {
             contractorName,
             description,
@@ -405,7 +393,7 @@ const updateContractorServices = async (req, res) => {
 
 const updateShopData = async (req, res) => {
     try {
-        const userId = req.session.userId;
+        const userId = req.finduser.userId;
         const {
             shopName,
             ownerName,
@@ -467,7 +455,7 @@ const updateShopData = async (req, res) => {
 
 const getShopProfile = async (req, res) => {
     try {
-        const userId = req.session.userId;
+        const userId = req.finduser.userId;
 
         // Validate that user is a store owner
         const user = await User.findById(userId);
@@ -501,7 +489,7 @@ const getShopProfile = async (req, res) => {
 
 const getContractorProfile = async (req, res) => {
     try {
-        const userId = req.session.userId;
+        const userId = req.finduser.userId;
 
         // Validate that user is a store owner
         const user = await User.findById(userId);
