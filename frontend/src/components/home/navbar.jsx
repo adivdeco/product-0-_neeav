@@ -46,7 +46,7 @@ function Navbar() {
 
     const storeMenuItems = [
         { icon: Building, label: "My Shop", href: "/shop", color: "text-emerald-600", description: "View your shop" },
-        { icon: BarChart3, label: "Shop Analytics", href: "/store/analytics", color: "text-purple-600", description: "Business insights" },
+        { icon: BarChart3, label: "Shop Products", href: "/allProduct", color: "text-purple-600", description: "Manage Products" },
         { icon: Settings, label: "Store Settings", href: "/setting/shop", color: "text-gray-600", description: "Configure shop" },
     ];
 

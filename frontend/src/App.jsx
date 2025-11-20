@@ -29,6 +29,9 @@ import SocketService from './utils/socket';
 import ContractorDashboard from './components/ContractorDashbord';
 import EmployeeDashboard from './components/EmployeeDashboard';
 import UserDashboard from './components/UserDashboard';
+import ProductAddPage from './components/shop/addProducts';
+import ProductManagement from './components/shop/productManagment';
+
 
 function App() {
   const dispatch = useDispatch();
@@ -89,6 +92,9 @@ function App() {
       <Route path='/shop/addBill' element={isAuthenticated ? <AddBill /> : <Login />} />
       <Route path='/shop/allCustomers' element={isAuthenticated ? <AllCustomers /> : <Login />} />
       <Route path='/shop/allBills' element={isAuthenticated ? <AllBill /> : <Login />} />
+      <Route path='/addProducts' element={isAuthenticated ? < ProductAddPage /> : <Login />} />
+      <Route path='/allProduct' element={isAuthenticated ? <ProductManagement /> : <Login />} />
+
 
       {/* userPage */}
       {/* <Route path='/admin/user' element={isAuthenticated ? <UserHome /> : <Login />} /> */}

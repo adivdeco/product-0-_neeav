@@ -16,6 +16,8 @@ const WorkRoute = require('./routes/workRequests');
 const NotificationRouter = require('./routes/notifications');
 const employeeRouter = require('./routes/employeeRoutes');
 const Airouter = require('./routes/aiPower');
+const ProductRouter = require('./routes/Product');
+
 
 const app = express();
 
@@ -35,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // -------- Routes --------
-app.get('/', (req, res) => {
+app.get('/s', (req, res) => {
     res.send('✅ JWT Server is running or server is live');
 });
 
@@ -47,6 +49,7 @@ app.use('/api/work-requests', WorkRoute);
 app.use('/api/notifications', NotificationRouter);
 app.use('/api/employee', employeeRouter);
 app.use('/ai-build', Airouter);
+app.use('/products', ProductRouter)
 
 // -------- Create HTTP Server + Socket.IO --------
 const server = http.createServer(app);

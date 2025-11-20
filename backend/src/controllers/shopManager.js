@@ -73,7 +73,8 @@ const addShopOwner = async (req, res) => {
                 },
                 storeDetails: {
                     storeName: shopName,
-                    productCategories: categories
+                    productCategories: categories,
+
                 },
                 avatar: image
             };
@@ -118,6 +119,12 @@ const addShopOwner = async (req, res) => {
         };
 
         const newShop = await Shop.create(newShopPayload)
+        const shop_id = newShop._id
+        const update_shopid_in_profile = await User.findByIdAndUpdate(ownerUser._id, {
+            $set: {
+                "storeDetails.StoreId": shop_id
+            }
+        }, { new: true, runValidators: true })
 
 
         res.status(201).send({

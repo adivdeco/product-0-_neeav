@@ -10,7 +10,8 @@ const productSchema = new Schema({
     name: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        unique: true
     },
     description: String,
 
@@ -33,14 +34,12 @@ const productSchema = new Schema({
         ]
     },
 
-    // Product specifications
     brand: String,
     model: String,
     size: String,
     weight: Number,
     color: String,
 
-    // Pricing information
     price: {
         type: Number,
         required: true,
@@ -55,7 +54,6 @@ const productSchema = new Schema({
         default: 18
     },
 
-    // Inventory management
     stock: {
         type: Number,
         default: 0
@@ -70,17 +68,19 @@ const productSchema = new Schema({
         enum: ['kg', 'g', 'l', 'ml', 'pcs', 'pack', 'bag', 'ton', 'sqft', 'meter']
     },
 
-    // Additional fields
     supplier: String,
     hsnCode: String,
 
-    // Status
     isActive: {
         type: Boolean,
         default: true
     },
+    ProductImage: {
+        type: String,
+        default: ''
+    },
 
-    // Timestamps
+
     createdAt: {
         type: Date,
         default: Date.now

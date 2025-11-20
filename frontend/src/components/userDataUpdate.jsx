@@ -98,7 +98,7 @@ const UserProfileUpdate = () => {
             const response = await axiosClient.post('/upload/avatar', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}` // Add auth header if needed
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 onUploadProgress: (progressEvent) => {
                     const progress = Math.round(
@@ -173,7 +173,7 @@ const UserProfileUpdate = () => {
 
             if (response.data) {
                 toast.success('Profile updated successfully!');
-                dispatch(updateUser(response.data.user));
+                // dispatch(updateUser(response.data.user));
             } else {
                 throw new Error('No data returned from server');
             }

@@ -50,6 +50,11 @@ const userSchema = new Schema({
     // ✅ For store owners
     storeDetails: {
         storeName: String,
+        StoreId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Shop',
+            default: null
+        },
         gstNumber: String,
         licenseId: String,
         isVerified: { type: Boolean, default: false },
