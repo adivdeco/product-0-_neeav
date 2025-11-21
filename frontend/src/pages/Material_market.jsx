@@ -257,97 +257,100 @@ const ProductListing = () => {
                         <div className="divide-y divide-gray-200">
                             {products.map((product) => (
                                 <div key={product._id} className="transition-all duration-200 hover:bg-gray-50">
-                                    <div className="p-4 sm:p-6">
-                                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                            {/* Product Info */}
-                                            <div className="flex items-start space-x-4 flex-1 min-w-0">
-                                                {/* Product Image */}
-                                                <div className="flex-shrink-0">
-                                                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-200 rounded-lg overflow-hidden">
-                                                        {product.ProductImage ? (
-                                                            <img
-                                                                src={product.ProductImage}
-                                                                alt={product.name}
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        ) : (
-                                                            <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-                                                                <span className="text-white font-semibold text-sm">
-                                                                    {product.name?.charAt(0).toUpperCase()}
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                    <Link
+                                        to={`/product/${product._id}`}
+                                        className="hover:text-blue-600 transition-colors"
+                                    >
+                                        <div className="p-4 sm:p-6">
+                                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                                {/* Product Info */}
+                                                <div className="flex items-start space-x-4 flex-1 min-w-0">
+                                                    {/* Product Image */}
+                                                    <div className="flex-shrink-0">
+                                                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-200 rounded-lg overflow-hidden">
+                                                            {product.ProductImage ? (
+                                                                <img
+                                                                    src={product.ProductImage}
+                                                                    alt={product.name}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                                                                    <span className="text-white font-semibold text-sm">
+                                                                        {product.name?.charAt(0).toUpperCase()}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
 
-                                                {/* Product Details */}
-                                                <div className="flex-1 min-w-0">
-                                                    <Link
-                                                        to={`/product/${product._id}`}
-                                                        className="hover:text-blue-600 transition-colors"
-                                                    >
+                                                    {/* Product Details */}
+
+                                                    <div className="flex-1 min-w-0">
+
                                                         <h3 className="text-lg font-semibold text-gray-900 truncate">
                                                             {product.name}
                                                         </h3>
-                                                    </Link>
 
-                                                    <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-600">
-                                                        {/* <span>By {product.shopName || 'Unknown Store'}</span> */}
-                                                        {/* <span>•</span> */}
-                                                        <span>{product.brand || 'No Brand'}</span>
-                                                        <span>•</span>
-                                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStockStatusColor(product.stock, product.minStockLevel)}`}>
-                                                            {product.stockStatus}
-                                                        </span>
-                                                    </div>
 
-                                                    <div className="mt-2 flex items-center gap-4 text-sm">
-                                                        <span className="text-2xl font-bold text-green-600">
-                                                            ₹{product.price}
-                                                        </span>
-                                                        {product.costPrice && (
-                                                            <span className="text-gray-500 line-through">
-                                                                ₹{product.costPrice}
+                                                        <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                                                            {/* <span>By {product.shopName || 'Unknown Store'}</span> */}
+                                                            {/* <span>•</span> */}
+                                                            <span>{product.brand || 'No Brand'}</span>
+                                                            <span>•</span>
+                                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStockStatusColor(product.stock, product.minStockLevel)}`}>
+                                                                {product.stockStatus}
                                                             </span>
-                                                        )}
-                                                        {/* {product.taxRate && (
+                                                        </div>
+
+                                                        <div className="mt-2 flex items-center gap-4 text-sm">
+                                                            <span className="text-2xl font-bold text-green-600">
+                                                                ₹{product.price}
+                                                            </span>
+                                                            {product.costPrice && (
+                                                                <span className="text-gray-500 line-through">
+                                                                    ₹{product.costPrice}
+                                                                </span>
+                                                            )}
+                                                            {/* {product.taxRate && (
                                                             <span className="text-gray-500">
                                                                 +{product.taxRate}% tax
                                                             </span>
                                                         )} */}
-                                                    </div>
+                                                        </div>
 
-                                                    <div className="mt-2 text-sm text-gray-600">
-                                                        <span>Category: {product.category}</span>
-                                                        {product.size && (
-                                                            <span className="ml-3">Size: {product.size}</span>
-                                                        )}
-                                                        {product.unit && (
-                                                            <span className="ml-3">Unit: {product.unit}</span>
-                                                        )}
+                                                        <div className="mt-2 text-sm text-gray-600">
+                                                            <span>Category: {product.category}</span>
+                                                            {product.size && (
+                                                                <span className="ml-3">Size: {product.size}</span>
+                                                            )}
+                                                            {product.unit && (
+                                                                <span className="ml-3">Unit: {product.unit}</span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            {/* Action Buttons */}
-                                            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                                                <button
-                                                    onClick={() => addToCart(product)}
-                                                    disabled={product.stock === 0}
-                                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-                                                >
-                                                    Add to Cart
-                                                </button>
-                                                <button
-                                                    onClick={() => buyNow(product)}
-                                                    disabled={product.stock === 0}
-                                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-                                                >
-                                                    Buy Now
-                                                </button>
+                                                {/* Action Buttons */}
+                                                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                                                    <button
+                                                        onClick={() => addToCart(product)}
+                                                        disabled={product.stock === 0}
+                                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                                                    >
+                                                        Add to Cart
+                                                    </button>
+                                                    <button
+                                                        onClick={() => buyNow(product)}
+                                                        disabled={product.stock === 0}
+                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                                                    >
+                                                        Buy Now
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </Link>
                                 </div>
                             ))}
                         </div>
