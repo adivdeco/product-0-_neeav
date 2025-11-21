@@ -42,7 +42,8 @@ ProductRouter.post('/add_items', authMiddleware, async (req, res) => {
             unit,
             supplier,
             hsnCode,
-            isActive
+            isActive,
+            avatar
         } = req.body;
 
 
@@ -99,7 +100,8 @@ ProductRouter.post('/add_items', authMiddleware, async (req, res) => {
             unit,
             supplier: supplier || '',
             hsnCode: hsnCode || '',
-            isActive: isActive !== undefined ? isActive : true
+            isActive: isActive !== undefined ? isActive : true,
+            productImage: avatar || ''
         });
 
 
@@ -521,5 +523,164 @@ ProductRouter.get('/:productId', authMiddleware, async (req, res) => {
         });
     }
 });
+
+//  user based route frr products 
+
+
+
+// Get all active products for customers
+ProductRouter.get('/public/products', async (req, res) => {
+    try {
+        const {
+            page = 1,
+            limit = 20,
+            category,
+            search,
+            minPrice,
+            maxPrice,
+            brand,
+            sortBy = 'createdAt',
+            sortOrder = 'desc',
+            inStock = true
+        } = req.query;
+
+        const filter = { isActive: true };
+
+        if (inStock === 'true') {
+            filter.stock = { $gt: 0 };
+        }
+
+        // Category filter
+        if (category) {
+            filter.category = category;
+        }
+
+        // Search filter
+        if (search) {
+            filter.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } },
+                { brand: { $regex: search, $options: 'i' } },
+                { category: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Price range filter
+        if (minPrice || maxPrice) {
+            filter.price = {};
+            if (minPrice) filter.price.$gte = Number(minPrice);
+            if (maxPrice) filter.price.$lte = Number(maxPrice);
+        }
+
+        // Brand filter
+        if (brand) {
+            filter.brand = { $regex: brand, $options: 'i' };
+        }
+
+        const skip = (page - 1) * limit;
+        const sort = {};
+        sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+        // Get products with shop information
+        const products = await Product.find(filter)
+            .populate('shopId', 'name address rating contact')
+            .sort(sort)
+            .skip(skip)
+            .limit(Number(limit))
+            .lean();
+
+        const productsWithDetails = products.map(product => {
+            let stockStatus;
+            if (product.stock === 0) {
+                stockStatus = 'Out of Stock';
+            } else if (product.stock <= product.minStockLevel) {
+                stockStatus = 'Low Stock';
+            } else {
+                stockStatus = 'In Stock';
+            }
+
+            return {
+                ...product,
+                stockStatus,
+                shopName: product.shopId?.name,
+                shopRating: product.shopId?.rating
+            };
+        });
+
+        const totalProducts = await Product.countDocuments(filter);
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        res.status(200).json({
+            message: "Products retrieved successfully",
+            products: productsWithDetails,
+            pagination: {
+                currentPage: Number(page),
+                totalPages,
+                totalProducts,
+                hasNext: page < totalPages,
+                hasPrev: page > 1,
+                limit: Number(limit)
+            },
+            filters: {
+                categories: await Product.distinct('category', { isActive: true }),
+                brands: await Product.distinct('brand', { isActive: true, brand: { $ne: null } }),
+                priceRange: {
+                    min: await Product.findOne({ isActive: true }).sort({ price: 1 }).select('price'),
+                    max: await Product.findOne({ isActive: true }).sort({ price: -1 }).select('price')
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error("Error in fetching products:", error);
+        res.status(500).json({
+            message: "Error in fetching products",
+            error: error.message
+        });
+    }
+});
+
+// Get single product details
+ProductRouter.get('/public/products/:productId', async (req, res) => {
+    try {
+        const { productId } = req.params;
+
+        const product = await Product.findOne({
+            _id: productId,
+            isActive: true
+        }).populate('shopId', 'name address rating contact ownerId');
+
+        if (!product) {
+            return res.status(404).json({
+                message: "Product not found"
+            });
+        }
+
+        // Get similar products from same category
+        const similarProducts = await Product.find({
+            category: product.category,
+            isActive: true,
+            _id: { $ne: productId },
+            stock: { $gt: 0 }
+        })
+            .populate('shopId', 'name rating')
+            .limit(4)
+            .lean();
+
+        res.status(200).json({
+            message: "Product retrieved successfully",
+            product,
+            similarProducts
+        });
+
+    } catch (error) {
+        console.error("Error fetching product:", error);
+        res.status(500).json({
+            message: "Error fetching product",
+            error: error.message
+        });
+    }
+});
+
 
 module.exports = ProductRouter;

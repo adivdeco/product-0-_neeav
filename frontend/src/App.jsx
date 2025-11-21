@@ -31,6 +31,8 @@ import EmployeeDashboard from './components/EmployeeDashboard';
 import UserDashboard from './components/UserDashboard';
 import ProductAddPage from './components/shop/addProducts';
 import ProductManagement from './components/shop/productManagment';
+import EditProduct from './components/shop/EditProduct';
+import ProductDetail from './pages/ProductDetail';
 
 
 function App() {
@@ -82,6 +84,7 @@ function App() {
 
       <Route path='/Planning_tools' element={isAuthenticated ? <Ai_tools /> : <Login />} />
       <Route path='/Material_market' element={isAuthenticated ? <Material_market /> : <Login />} />
+      <Route path='/product/:productId' element={isAuthenticated ? <ProductDetail /> : <Login />} />
 
       <Route path='/addShop' element={isAuthenticated ? <Add_shop /> : <Login />} />
       <Route path='/addServices' element={isAuthenticated ? <Add_services /> : <Login />} />
@@ -94,6 +97,7 @@ function App() {
       <Route path='/shop/allBills' element={isAuthenticated ? <AllBill /> : <Login />} />
       <Route path='/addProducts' element={isAuthenticated ? < ProductAddPage /> : <Login />} />
       <Route path='/allProduct' element={isAuthenticated ? <ProductManagement /> : <Login />} />
+      <Route path="/edit-product/:productId" element={isAuthenticated ? <EditProduct /> : <Login />} />
 
 
       {/* userPage */}
