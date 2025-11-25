@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
 import axiosClient from '../api/auth';
-import { toast } from 'react-toastify';
-import { Toaster } from 'react-hot-toast';
+import { useSelector } from 'react-redux';
+import { useSocket } from '../hooks/useSocket';
+import toast, { Toaster } from 'react-hot-toast';
+import BuyRequestModal from '../components/BuyRequestModal';
+
 
 const ProductDetail = () => {
     const { productId } = useParams();
@@ -13,6 +16,9 @@ const ProductDetail = () => {
     const [quantity, setQuantity] = useState(1);
     const [selectedImage, setSelectedImage] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
+    const socketService = useSocket();
+    const [showBuyModal, setShowBuyModal] = useState(false);
+
 
     useEffect(() => {
         fetchProduct();
@@ -33,11 +39,112 @@ const ProductDetail = () => {
     };
 
     const addToCart = () => {
-        toast.success(`Added ${quantity} ${product.name} to cart!`);
+        // toast.success(`Added ${quantity} ${product.name} to cart!`);
+        toast.success(`Added ${quantity} ${product.name} to cart!`, {
+            duration: 5000,
+            icon: '🛒',
+            position: 'bottom-right',
+            style: {
+                background: '#f0fdf4',
+                color: '#166534',
+                border: '1px solid #a7f3d0',
+            },
+            // action: {
+            //     label: 'Contact Support',
+            //     onClick: () => navigate('/')
+            // }
+        });
     };
 
+    useEffect(() => {
+        const socket = socketService.socket;
+
+        if (socket) {
+            // Buy request specific listeners
+            const handleBuyRequestAccepted = (data) => {
+                toast.success(data.notification?.message || 'Purchase accepted!');
+                // Update local state if needed
+            };
+
+            const handleBuyRequestRejected = (data) => {
+                toast.error(data.notification?.message || 'Purchase declined');
+
+                // Update local state if needed
+            };
+
+            socket.on('buy_request_accepted', handleBuyRequestAccepted);
+            socket.on('buy_request_rejected', handleBuyRequestRejected);
+
+            return () => {
+                socket.off('buy_request_accepted', handleBuyRequestAccepted);
+                socket.off('buy_request_rejected', handleBuyRequestRejected);
+            };
+        }
+    }, [socketService.socket]);
+
+    // const buyNow = async () => {
+    //     try {
+    //         // Get shipping address from user profile or form
+    //         const shippingAddress = {
+    //             address: "User's address", // Get from user profile or form
+    //             city: "City",
+    //             state: "State",
+    //             pincode: "Pincode"
+    //         };
+
+    //         const response = await axiosClient.post('/buy-requests', {
+    //             productId: product._id,
+    //             quantity: quantity,
+    //             message: `I want to buy ${quantity} ${product.name}`,
+    //             shippingAddress: shippingAddress,
+    //             paymentMethod: 'cash_on_delivery'
+    //         });
+
+    //         // toast.success('Buy request sent to seller!');
+    //         toast.error('Buy request sent to seller!', {
+    //             duration: 5000,
+    //             icon: '📨',
+    //             position: 'bottom-right',
+    //             style: {
+    //                 background: '#f0fdf4',
+    //                 color: '#166534',
+    //                 border: '1px solid #a7f3d0',
+    //             },
+    //             // action: {
+    //             //     label: 'Contact Support',
+    //             //     onClick: () => navigate('/')
+    //             // }
+    //         });
+
+    //         // Optionally navigate to requests page
+    //         // navigate('/my-purchase-requests');
+    //     } catch (error) {
+    //         // console.error('Error sending buy request:', error);
+    //         // toast.error(error.response?.data?.message || 'Failed to send buy request');
+    //         toast.error(error.response?.data?.message || 'Failed to send buy request', {
+    //             duration: 5000,
+    //             icon: '🚫',
+    //             position: 'bottom-right',
+    //             style: {
+    //                 background: '#fff7ed',
+    //                 color: '#ea580c',
+    //                 border: '1px solid #fdba74',
+    //             },
+    //             // action: {
+    //             //     label: 'Contact Support',
+    //             //     onClick: () => navigate('/')
+    //             // }
+    //         });
+    //     }
+    // };
+
     const buyNow = () => {
-        toast.success(`Proceeding to buy ${quantity} ${product.name}`);
+        setShowBuyModal(true);
+    };
+
+    const handleBuySuccess = (buyRequest) => {
+        console.log('Buy request successful:', buyRequest);
+        // You can update local state or show additional messages
     };
 
     const incrementQuantity = () => {
@@ -103,7 +210,7 @@ const ProductDetail = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            <Toaster position="top-right" />
+            <Toaster position="bottom-center" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Breadcrumb */}
@@ -429,6 +536,13 @@ const ProductDetail = () => {
                     </div>
                 )}
             </div>
+            <BuyRequestModal
+                product={product}
+                quantity={quantity}
+                isOpen={showBuyModal}
+                onClose={() => setShowBuyModal(false)}
+                onSuccess={handleBuySuccess}
+            />
         </div>
     );
 };

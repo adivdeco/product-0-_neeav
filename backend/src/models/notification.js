@@ -1,4 +1,3 @@
-// models/notification.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
@@ -10,7 +9,18 @@ const notificationSchema = new Schema({
     },
     type: {
         type: String,
-        enum: ['work_request', 'request_accepted', 'request_rejected', 'work_completed', 'status_updated'],
+        enum: [
+            'work_request',
+            'request_accepted',
+            'request_rejected',
+            'work_completed',
+            'status_updated',
+            'buy_request',
+            'buy_request_accepted',
+            'buy_request_rejected',
+            'order_shipped',
+            'order_delivered'
+        ],
         required: true
     },
     title: {
@@ -26,6 +36,10 @@ const notificationSchema = new Schema({
     relatedRequest: {
         type: Schema.Types.ObjectId,
         ref: 'WorkRequest'
+    },
+    relatedBuyRequest: {
+        type: Schema.Types.ObjectId,
+        ref: 'BuyRequest'
     },
     isRead: {
         type: Boolean,

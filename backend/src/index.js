@@ -17,6 +17,7 @@ const NotificationRouter = require('./routes/notifications');
 const employeeRouter = require('./routes/employeeRoutes');
 const Airouter = require('./routes/aiPower');
 const ProductRouter = require('./routes/Product');
+const BuyRequestRouter = require('./routes/buyRequests');
 
 
 const app = express();
@@ -49,7 +50,8 @@ app.use('/api/work-requests', WorkRoute);
 app.use('/api/notifications', NotificationRouter);
 app.use('/api/employee', employeeRouter);
 app.use('/ai-build', Airouter);
-app.use('/products', ProductRouter)
+app.use('/products', ProductRouter);
+app.use('/buy-requests', BuyRequestRouter);
 
 // -------- Create HTTP Server + Socket.IO --------
 const server = http.createServer(app);

@@ -2,60 +2,86 @@ import './App.css'
 import { Routes, Route, Navigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import { checkAuth } from "./authSlice";
+import { checkAuth } from "./authSlice"; // Fixed import path
+import { useSocket } from './hooks/useSocket'; // Custom hook for socket
 
+// Auth Components
 import Login from "./auth/Login";
 import Register from "./auth/Register";
-// import Main1 from "./pages/Main1";
+
+// Pages
 import Homepg from './pages/Home';
 import LocalShop from './pages/localShop';
 import Services from './pages/Services';
 import Ai_tools from './pages/Ai_tools';
 import Material_market from './pages/Material_market'
+import ContractorProfile from './pages/allContractor'
+import ProductDetail from './pages/ProductDetail';
+
+// Admin Components
 import Add_shop from './components/admin/Add_shop';
 import Add_services from './components/admin/Add_services';
 import Business from './components/admin/bussiness';
+import AllUsers from './components/admin/Users_data/Allusers';
+
+// Shop Components
 import ShopHome from './components/shop/shopHome';
 import AddBill from './components/shop/addBill';
 import AllCustomers from './components/shop/AllCustomers';
 import AllBill from './components/shop/allBills';
-// import UserHome from './components/admin/Users_data/user_Home';
-import AllUsers from './components/admin/Users_data/Allusers';
-import ContractorProfile from './pages/allContractor'
-import UserProfileUpdate from './components/userDataUpdate';
-import ShopProfileUpdate from './components/shopDataUpdate';
-import ContractorProfileUpdate from './components/contractorDataUpdate';
-import SocketService from './utils/socket';
-import ContractorDashboard from './components/ContractorDashbord';
-import EmployeeDashboard from './components/EmployeeDashboard';
-import UserDashboard from './components/UserDashboard';
 import ProductAddPage from './components/shop/addProducts';
 import ProductManagement from './components/shop/productManagment';
 import EditProduct from './components/shop/EditProduct';
-import ProductDetail from './pages/ProductDetail';
 
+// Profile Components
+import UserProfileUpdate from './components/userDataUpdate';
+import ShopProfileUpdate from './components/shopDataUpdate';
+import ContractorProfileUpdate from './components/contractorDataUpdate';
+
+// Dashboard Components
+import ContractorDashboard from './components/ContractorDashbord';
+import EmployeeDashboard from './components/EmployeeDashboard';
+import UserDashboard from './components/UserDashboard';
+
+// sockets
+import SocketService from './utils/socket';
+
+
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+    <span className="ml-3 text-gray-600">Checking authentication...</span>
+  </div>
+);
 
 function App() {
   const dispatch = useDispatch();
   const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
 
+
+
+  useSocket();
+
   useEffect(() => {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      SocketService.connect();
-    } else {
-      SocketService.disconnect();
-    }
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
-    return () => {
-      SocketService.disconnect();
-    };
-  }, [isAuthenticated, user]);
+  // useEffect(() => {
+  //   if (isAuthenticated && user) {
+  //     SocketService.connect();
+  //   } else {
+  //     SocketService.disconnect();
+  //   }
 
-  if (loading) return <p className="text-center mt-20">Checking session...</p>;
+  //   return () => {
+  //     // SocketService.disconnect();
+  //   };
+  // }, [isAuthenticated, user]);
+
 
   return (
 

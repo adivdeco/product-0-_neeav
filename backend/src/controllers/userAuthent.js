@@ -42,8 +42,15 @@ const registerUser = async (req, res) => {
                 _id: user._id,
                 role: user.role,
             }
-            res.cookie('token', token,
-                { maxAge: 1200 * 1200 * 1000, secure: true, sameSite: "none", httpOnly: true });
+            // Set cookie options. In development don't set secure so localhost works over HTTP.
+            const cookieOptionsReg = {
+                maxAge: 1200 * 1200 * 1000,
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'None',
+                path: '/'
+            };
+            res.cookie('token', token, cookieOptionsReg);
             res.status(200).json({
                 user: reply,
                 message: "login sussesfully",
@@ -110,13 +117,14 @@ const loginUser = async (req, res) => {
             avatar: user.avatar || '',
         }
 
-        res.cookie('token', token, {
+        const cookieOptionsLogin = {
             maxAge: 1200 * 1200 * 1000,
             httpOnly: true,
-            secure: true,            // REQUIRED for cross-origin in HTTPS
-            sameSite: 'None'
-
-        });
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'None',
+            path: '/'
+        };
+        res.cookie('token', token, cookieOptionsLogin);
 
         res.status(200).json({
             success: true,
@@ -147,16 +155,11 @@ const logOutUser = async (req, res) => {
         //     }
 
         const { token } = req.cookies;
-        const payload = jwt.decode(token);
+        if (token) jwt.decode(token);
 
-        // Clear the session cookie
-        res.clearCookie('tocken', {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-        });
 
         res.cookie('token', null, { expires: new Date(Date.now()) }); // Clear the cookie {maxAge:0, httpOnly:true}   
+
         res.status(200).json({
             success: true,
             message: "Logout successful"

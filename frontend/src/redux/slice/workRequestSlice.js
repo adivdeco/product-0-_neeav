@@ -1,8 +1,7 @@
-// redux/slices/workRequestSlice.js
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axiosClient from '../../api/auth';
 
-// Async thunks
+
 export const createWorkRequest = createAsyncThunk(
     'workRequests/create',
     async (requestData, { rejectWithValue }) => {

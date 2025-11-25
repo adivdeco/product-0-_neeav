@@ -16,7 +16,7 @@ WorkRoute.post('/', authMiddleware, async (req, res) => {
 
         const { title, description, category, assignedContractor, budget, location, timeline } = req.body;
 
-        // Validate assigned contractor exists and is actually a contractor
+
         const contractor = await User.findById(assignedContractor);
         if (!contractor || contractor.role !== 'contractor') {
             return res.status(400).json({ message: 'Invalid contractor selected' });
@@ -33,10 +33,10 @@ WorkRoute.post('/', authMiddleware, async (req, res) => {
             timeline
         });
 
-        // Populate user info for notification
+
         const user = await User.findById(userId).select("-password");
 
-        // Create notification for contractor
+
         const notification = await Notification.create({
             user: assignedContractor,
             type: 'work_request',
@@ -47,7 +47,7 @@ WorkRoute.post('/', authMiddleware, async (req, res) => {
             priority: 'high'
         });
 
-        // Real-time notification to contractor
+
         const contractorSocketId = global.users.get(assignedContractor.toString());
 
         if (contractorSocketId) {
@@ -78,16 +78,16 @@ WorkRoute.post('/', authMiddleware, async (req, res) => {
         }
 
         // In WorkRoute.post('/') - Add debugging
-        console.log('🔍 Checking contractor socket connection:');
-        console.log('- Contractor ID:', assignedContractor.toString());
-        console.log('- Global users map:', Array.from(global.users.entries()));
-        console.log('- Contractor socket ID:', contractorSocketId);
+        // console.log('🔍 Checking contractor socket connection:');
+        // console.log('- Contractor ID:', assignedContractor.toString());
+        // console.log('- Global users map:', Array.from(global.users.entries()));
+        // console.log('- Contractor socket ID:', contractorSocketId);
 
-        if (contractorSocketId) {
-            console.log('✅ Sending real-time events to contractor');
-        } else {
-            console.log('❌ Contractor not connected via socket - will see on next refresh');
-        }
+        // if (contractorSocketId) {
+        //     console.log('✅ Sending real-time events to contractor');
+        // } else {
+        //     console.log('❌ Contractor not connected via socket - will see on next refresh');
+        // }
 
         res.status(201).json({
             message: 'Work request created successfully',

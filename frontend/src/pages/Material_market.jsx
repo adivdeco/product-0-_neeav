@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import axiosClient from '../api/auth';
-import { toast } from 'react-toastify';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import Navbar from '../components/home/navbar';
 
 const ProductListing = () => {
@@ -105,9 +104,20 @@ const ProductListing = () => {
         toast.success(`${product.name} added to cart!`);
     };
 
-    const buyNow = (product) => {
-        // Implement buy now functionality
-        toast.success(`Proceeding to buy ${product.name}`);
+    const buyNow = async (product) => {
+        try {
+            const response = await axiosClient.post('/buy-requests', {
+                productId: product._id,
+                quantity: 1, // Default to 1 in listing
+                message: `I want to buy ${product.name}`,
+                paymentMethod: 'cash_on_delivery'
+            });
+
+            toast.success('Buy request sent to seller!');
+        } catch (error) {
+            console.error('Error sending buy request:', error);
+            toast.error(error.response?.data?.message || 'Failed to send buy request');
+        }
     };
 
     const getStockStatusColor = (stock, minStockLevel) => {
@@ -118,8 +128,7 @@ const ProductListing = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Toaster position="top-right" />
-
+            <Toaster position="bottom-center" />
             <Navbar />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

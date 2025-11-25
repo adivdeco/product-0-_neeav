@@ -8,39 +8,7 @@ const employeeRoutes = express.Router();
 const authMiddleware = require('../middleware/authMiddleware')
 const jwt = require('jsonwebtoken')
 
-// const requireEmployee = async (req, res, next) => {
-//     try {
-//         const userId = req.session.userId;
-//         if (!userId) {
-//             return res.status(401).json({ message: 'Authentication required' });
-//         }
 
-//         const user = await User.findById(userId);
-//         if (!user || (user.role !== 'admin' && user.role !== 'co-admin')) {
-//             return res.status(403).json({ message: 'Access denied. Employee/admin access required.' });
-//         }
-
-//         // Check if employee record exists, create if not
-//         let employee = await Employee.findOne({ user: userId });
-//         if (!employee) {
-//             employee = await Employee.create({
-//                 user: userId,
-//                 employeeId: `EMP${Date.now()}`,
-//                 department: user.role === 'admin' ? 'admin' : 'customer_service',
-//                 name: user.name,
-//                 email: user.email,
-//                 phone: user.phone
-
-//             });
-//         }
-
-//         req.employee = employee;
-//         next();
-//     } catch (error) {
-//         console.error('Employee middleware error:', error);
-//         res.status(500).json({ message: 'Server error', error: error.message });
-//     }
-// };
 
 const combinedAuthMiddleware = async (req, res, next) => {
     try {
@@ -92,7 +60,6 @@ const combinedAuthMiddleware = async (req, res, next) => {
     }
 };
 
-// module.exports = combinedAuthMiddleware;
 
 employeeRoutes.get('/pending-requests', combinedAuthMiddleware, async (req, res) => {
     try {
@@ -470,5 +437,117 @@ employeeRoutes.get('/employees', combinedAuthMiddleware, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
+
+
+
+// shop related 
+
+
+// Get pending buy requests for employees
+employeeRoutes.get('/pending-buy-requests', combinedAuthMiddleware, async (req, res) => {
+    try {
+        const { page = 1, limit = 20 } = req.query;
+
+        const requests = await BuyRequest.find({
+            status: 'pending',
+            $or: [
+                { expiresAt: { $lt: new Date(Date.now() + 4 * 60 * 60 * 1000) } },
+                { escalationLevel: { $gt: 0 } },
+                { assignedEmployee: req.employee._id }
+            ]
+        })
+            .populate('product', 'name price category brand')
+            .populate('user', 'name email phone avatar')
+            .populate('shopOwner', 'name email phone shopName')
+            .populate('assignedEmployee', 'employeeId user')
+            .populate('employeeActions.employee', 'employeeId');
+
+        const total = await BuyRequest.countDocuments({ status: 'pending' });
+
+        res.json({
+            requests,
+            totalPages: Math.ceil(total / limit),
+            currentPage: parseInt(page),
+            total
+        });
+
+    } catch (error) {
+        console.error('Get pending buy requests error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+
+
+// Employee contacts buyer about buy request
+employeeRoutes.post('/buy-request/:requestId/contact-buyer', combinedAuthMiddleware, async (req, res) => {
+    try {
+        const { requestId } = req.params;
+        const { message, contactMethod = 'in_app' } = req.body;
+
+        const buyRequest = await BuyRequest.findById(requestId)
+            .populate('user', 'name email phone')
+            .populate('product', 'name');
+
+        if (!buyRequest) {
+            return res.status(404).json({ message: 'Buy request not found' });
+        }
+
+        // Add employee action
+        buyRequest.employeeActions.push({
+            employee: req.employee._id,
+            action: 'contacted_user',
+            message: message,
+            contactMethod: contactMethod
+        });
+
+        buyRequest.escalationLevel = Math.min(buyRequest.escalationLevel + 1, 3);
+        buyRequest.assignedEmployee = req.employee._id;
+        buyRequest.lastReminderSent = new Date();
+
+        await buyRequest.save();
+
+        // Create notification for buyer
+        const notification = await Notification.create({
+            user: buyRequest.user._id,
+            type: 'status_updated',
+            title: 'Update on Your Purchase Request',
+            message: `Customer service: ${message}`,
+            relatedBuyRequest: buyRequest._id,
+            priority: 'medium'
+        });
+
+        // Real-time notification to buyer
+        const buyerSocketId = global.users.get(buyRequest.user._id.toString());
+        if (buyerSocketId) {
+            global.io.to(buyerSocketId).emit('new_notification', {
+                notification,
+                unreadCount: await Notification.countDocuments({
+                    user: buyRequest.user._id,
+                    isRead: false
+                })
+            });
+        }
+
+        res.json({
+            message: 'Buyer contacted successfully',
+            buyRequest
+        });
+
+    } catch (error) {
+        console.error('Contact buyer error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+
+
+
+
+
+
+
+
 
 module.exports = employeeRoutes;

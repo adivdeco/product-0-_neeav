@@ -7,6 +7,7 @@ import { MdDesignServices } from "react-icons/md";
 import { IoSearchSharp } from "react-icons/io5";
 import Navbar from "../components/home/navbar";
 import { useNavigate } from "react-router";
+import NotificationSubscribeButton from '../components/NotificationSubscribeButton';
 
 
 export default function Homepg() {
@@ -19,7 +20,7 @@ export default function Homepg() {
         if (!user) return 0;
 
         let completed = 0;
-        const total = 7; // Total fields: name, email, phone, street, city, state, pincode
+        const total = 7;
 
         if (user.name) completed++;
         if (user.email) completed++;
@@ -93,7 +94,7 @@ export default function Homepg() {
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
             {/* Header */}
             <Navbar className="z-50" />
-
+            {/* <NotificationSubscribeButton /> */}
             {calculateCompletion() < 100 && (
                 <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mx-4 mt-4 rounded">
                     <div className="flex items-center">

@@ -37,16 +37,49 @@ const userSchema = new Schema({
         default: "User",
     },
 
+    // address: {
+    //     street: String,
+    //     city: String,
+    //     state: String,
+    //     pincode: String,
+
+    //     country: { type: String, default: "In, Bihar 821115" },
+
+    // },
     address: {
         street: String,
         city: String,
         state: String,
         pincode: String,
-
-        country: { type: String, default: "In, Bihar 821115" },
-
+        country: { type: String, default: "India" },
+        landmark: String,
+        coordinates: {
+            latitude: Number,
+            longitude: Number
+        },
+        isDefault: { type: Boolean, default: true }
     },
-
+    addresses: [{
+        type: {
+            type: String,
+            enum: ['home', 'work', 'site', 'other'],
+            default: 'home'
+        },
+        street: String,
+        city: String,
+        state: String,
+        pincode: String,
+        country: { type: String, default: "India" },
+        landmark: String,
+        coordinates: {
+            latitude: Number,
+            longitude: Number
+        },
+        isDefault: { type: Boolean, default: false },
+        contactPerson: String,
+        contactPhone: String,
+        instructions: String
+    }],
     // ✅ For store owners
     storeDetails: {
         storeName: String,
@@ -129,6 +162,21 @@ const userSchema = new Schema({
         bio: String
     },
 
+    purchasePreferences: {
+        defaultPaymentMethod: {
+            type: String,
+            enum: ['cash_on_delivery', 'online_payment', 'bank_transfer'],
+            default: 'cash_on_delivery'
+        },
+        saveAddress: { type: Boolean, default: true },
+        receiveSmsUpdates: { type: Boolean, default: true },
+        preferredDeliveryTime: {
+            type: String,
+            enum: ['morning', 'afternoon', 'evening', 'anytime'],
+            default: 'anytime'
+        }
+    },
+
     avatar: {
         type: String,
         default: '',
@@ -151,7 +199,22 @@ const userSchema = new Schema({
     }
 }, { timestamps: true });
 
+userSchema.methods.addAddress = function (addressData) {
+    // If this is set as default, remove default from others
+    if (addressData.isDefault) {
+        this.addresses.forEach(addr => addr.isDefault = false);
+    }
+    this.addresses.push(addressData);
+    return this.save();
+};
 
+// Method to set default address
+userSchema.methods.setDefaultAddress = function (addressId) {
+    this.addresses.forEach(addr => {
+        addr.isDefault = addr._id.toString() === addressId.toString();
+    });
+    return this.save();
+};
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;
