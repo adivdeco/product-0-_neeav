@@ -11,7 +11,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
-        const { productId, quantity, message, shippingAddress, paymentMethod } = req.body;
+        const { productId, quantity, message, shippingAddress, paymentMethod, saveAddress } = req.body;
 
         if (!productId || !quantity) {
             return res.status(400).json({ message: 'Product ID and quantity are required' });
@@ -56,9 +56,21 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
             }
         });
 
+        // Save address to user if requested
+        if (saveAddress && shippingAddress) {
+            await User.findByIdAndUpdate(userId, {
+                $addToSet: {
+                    addresses: {
+                        ...shippingAddress,
+                        isDefault: true
+                    }
+                }
+            });
+        }
+
         // Populate the buy request for response
         const populatedRequest = await BuyRequest.findById(buyRequest._id)
-            .populate('product', 'name price images')
+            .populate('product', 'name price images category brand')
             .populate('user', 'name email phone')
             .populate('shopOwner', 'name email phone');
 
@@ -74,23 +86,36 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
         });
 
         // Real-time notification to shop owner
-        const shopOwnerSocketId = global.users.get(shop.ownerId._id.toString());
-        if (shopOwnerSocketId) {
-            global.io.to(shopOwnerSocketId).emit('new_buy_request', {
-                buyRequest: populatedRequest,
-                notification: {
-                    title: 'New Purchase Request',
-                    message: `New purchase request for ${product.name}`
-                }
-            });
+        try {
+            const shopOwnerSocketId = global.users.get(shop.ownerId._id.toString());
+            console.log('🔍 Shop owner socket ID:', shopOwnerSocketId);
 
-            global.io.to(shopOwnerSocketId).emit('new_notification', {
-                notification,
-                unreadCount: await Notification.countDocuments({
-                    user: shop.ownerId._id,
-                    isRead: false
-                })
-            });
+            if (shopOwnerSocketId && global.io) {
+                // Emit to specific shop owner
+                global.io.to(shopOwnerSocketId).emit('new_buy_request', {
+                    buyRequest: populatedRequest,
+                    notification: {
+                        title: 'New Purchase Request',
+                        message: `New purchase request for ${product.name}`
+                    }
+                });
+
+                // Also send notification
+                global.io.to(shopOwnerSocketId).emit('new_notification', {
+                    notification,
+                    unreadCount: await Notification.countDocuments({
+                        user: shop.ownerId._id,
+                        isRead: false
+                    })
+                });
+
+                console.log('✅ Real-time notifications sent to shop owner');
+            } else {
+                console.log('ℹ️ Shop owner not connected via socket, notification saved to DB');
+            }
+        } catch (socketError) {
+            console.error('Socket emission error:', socketError);
+            // Don't fail the request if socket fails
         }
 
         res.status(201).json({
@@ -100,7 +125,11 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
 
     } catch (error) {
         console.error('Create buy request error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(500).json({
+            message: 'Server error',
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 });
 

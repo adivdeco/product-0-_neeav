@@ -36,34 +36,47 @@ const BuyRequestModal = ({ product, quantity, isOpen, onClose, onSuccess }) => {
 
     // Load user addresses if available
     useEffect(() => {
-        if (user?.addresses?.length > 0) {
-            const defaultAddress = user.addresses.find(addr => addr.isDefault) || user.addresses[0];
-            if (defaultAddress) {
+
+        if (isOpen) {
+            setStep(1);
+            setShowConfetti(false);
+
+
+            if (user?.addresses?.length > 0) {
+                const defaultAddress = user.addresses.find(addr => addr.isDefault) || user.addresses[0];
+                if (defaultAddress) {
+                    setLocation(prev => ({
+                        ...prev,
+                        ...defaultAddress
+                    }));
+                }
+            } else if (user?.address) {
                 setLocation(prev => ({
                     ...prev,
-                    ...defaultAddress
+                    ...user.address
                 }));
             }
-        } else if (user?.address) {
-            setLocation(prev => ({
-                ...prev,
-                ...user.address
-            }));
         }
-    }, [user]);
+    }, [isOpen, user]);
 
     const handleLocationSubmit = () => {
-        // Basic validation
-        if (!location.street || !location.city || !location.pincode) {
+        if (!location.street?.trim() || !location.city?.trim() || !location.pincode?.trim()) {
             toast.error('Please fill in all required address fields');
             return;
         }
+
+        if (!location.contactPerson?.trim() || !location.contactPhone?.trim()) {
+            toast.error('Please provide contact person and phone number');
+            return;
+        }
+
         setStep(2);
     };
 
     const handleBuyNow = async () => {
         try {
             setLoading(true);
+            console.log('🛒 Placing order...', { productId: product._id, quantity });
 
             const response = await axiosClient.post('/buy-requests', {
                 productId: product._id,
@@ -74,6 +87,8 @@ const BuyRequestModal = ({ product, quantity, isOpen, onClose, onSuccess }) => {
                 saveAddress: saveAddress
             });
 
+            console.log('✅ Order placed successfully:', response.data);
+
             // Show confetti
             setShowConfetti(true);
             setStep(3);
@@ -83,16 +98,27 @@ const BuyRequestModal = ({ product, quantity, isOpen, onClose, onSuccess }) => {
                 onSuccess(response.data.buyRequest);
             }
 
-            // Auto close after success
+            // Auto close after success (reduced from 11s to 5s)
             setTimeout(() => {
                 setShowConfetti(false);
                 onClose();
                 setStep(1);
-            }, 3000);
+            }, 11000);
 
         } catch (error) {
-            console.error('Buy request error:', error);
-            toast.error(error.response?.data?.message || 'Failed to place order');
+            console.error('❌ Buy request error:', error);
+
+            // More detailed error message
+            const errorMessage = error.response?.data?.message ||
+                error.response?.data?.error ||
+                'Failed to place order. Please try again.';
+
+            toast.error(errorMessage);
+
+            // Log detailed error for debugging
+            if (error.response?.data?.error) {
+                console.error('Server error details:', error.response.data.error);
+            }
         } finally {
             setLoading(false);
         }
@@ -105,11 +131,25 @@ const BuyRequestModal = ({ product, quantity, isOpen, onClose, onSuccess }) => {
         }));
     };
 
+    const handleClose = () => {
+        setStep(1);
+        setShowConfetti(false);
+        onClose();
+    };
+
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
-            {showConfetti && <Confetti width={width} height={height} recycle={false} numberOfPieces={200} />}
+            {showConfetti && (
+                <Confetti
+                    width={width}
+                    height={height}
+                    recycle={false}
+                    numberOfPieces={200}
+                    onConfettiComplete={() => setShowConfetti(false)}
+                />
+            )}
 
             <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
                 {/* Header */}
@@ -121,7 +161,7 @@ const BuyRequestModal = ({ product, quantity, isOpen, onClose, onSuccess }) => {
                             {step === 3 && 'Order Placed!'}
                         </h2>
                         <button
-                            onClick={onClose}
+                            onClick={handleClose}
                             className="text-gray-400 hover:text-gray-600 text-2xl"
                         >
                             ×
@@ -357,7 +397,7 @@ const BuyRequestModal = ({ product, quantity, isOpen, onClose, onSuccess }) => {
                             They will contact you shortly to confirm the order.
                         </p>
                         <button
-                            onClick={onClose}
+                            onClick={handleClose}
                             className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 font-medium transition-colors"
                         >
                             Continue Shopping
