@@ -88,7 +88,6 @@
 
 // export default new SocketService();
 
-// services/socketService.js
 import { io } from 'socket.io-client';
 import { store } from '../redux/store/store';
 import { addNotification, setUnreadCount } from '../redux/slice/notificationSlice';
@@ -99,17 +98,45 @@ class SocketService {
     constructor() {
         this.socket = null;
         this.isConnected = false;
+        this.connectionAttempts = 0;
+        this.maxConnectionAttempts = 3;
+    }
+
+    // Get token from cookies or localStorage
+    getToken() {
+        // Try to get token from cookies
+        const cookies = document.cookie.split(';');
+        const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('token='));
+        if (tokenCookie) {
+            return tokenCookie.split('=')[1];
+        }
+
+        // Try to get token from localStorage (if you store it there)
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        return token;
     }
 
     connect() {
         try {
+            const token = this.getToken();
+
+            if (!token) {
+                console.warn('No authentication token found. Socket connection will not be established.');
+                return;
+            }
+
+            console.log('🔐 Connecting socket with token...');
+
             this.socket = io("https://product-0-neeav-1.onrender.com", {
                 withCredentials: true,
-                transports: ["websocket", "polling"], // Add polling as fallback
+                transports: ["websocket", "polling"],
                 autoConnect: true,
                 reconnection: true,
                 reconnectionAttempts: 5,
                 reconnectionDelay: 1000,
+                auth: {
+                    token: token
+                }
             });
 
             this.setupEventListeners();
@@ -125,6 +152,13 @@ class SocketService {
         this.socket.on('connect', () => {
             console.log('✅ Connected to server');
             this.isConnected = true;
+            this.connectionAttempts = 0;
+
+            // Join user-specific room after connection
+            const user = store.getState().auth.user;
+            if (user && user._id) {
+                this.joinRoom(user._id);
+            }
         });
 
         this.socket.on('disconnect', (reason) => {
@@ -134,6 +168,29 @@ class SocketService {
 
         this.socket.on('connect_error', (error) => {
             console.error('Socket connection error:', error);
+            this.connectionAttempts++;
+
+            if (this.connectionAttempts >= this.maxConnectionAttempts) {
+                console.warn('Max connection attempts reached. Stopping retries.');
+                this.socket.disconnect();
+            }
+
+            // If it's an authentication error, try to reconnect with fresh token
+            if (error.message.includes('Authentication') || error.message.includes('auth')) {
+                console.log('🔄 Authentication error, attempting to reconnect...');
+                setTimeout(() => {
+                    this.reconnectWithFreshToken();
+                }, 2000);
+            }
+        });
+
+        this.socket.on('authenticated', () => {
+            console.log('🔓 Socket authenticated successfully');
+        });
+
+        this.socket.on('unauthorized', (error) => {
+            console.error('🔐 Socket authentication failed:', error);
+            toast.error('Connection authentication failed');
         });
 
         // Notification events
@@ -207,13 +264,11 @@ class SocketService {
         this.socket.on('buy_request_accepted', (data) => {
             console.log('✅ Buy request accepted:', data);
             toast.success(data.notification?.message || 'Your purchase request was accepted!');
-            // You might want to dispatch to a buy request slice here
         });
 
         this.socket.on('buy_request_rejected', (data) => {
             console.log('❌ Buy request rejected:', data);
             toast.error(data.notification?.message || 'Your purchase request was declined');
-            // You might want to dispatch to a buy request slice here
         });
 
         this.socket.on('new_buy_request', (data) => {
@@ -221,7 +276,6 @@ class SocketService {
             const userRole = store.getState().auth.user?.role;
             if (userRole === 'store_owner') {
                 toast.info('New purchase request received!');
-                // Refresh buy requests list
             }
         });
 
@@ -232,6 +286,26 @@ class SocketService {
                 toast.info('A purchase request was cancelled');
             }
         });
+
+        // Order status events
+        this.socket.on('order_shipped', (data) => {
+            console.log('🚚 Order shipped:', data);
+            toast.info('Your order has been shipped! 🚚');
+        });
+
+        this.socket.on('order_delivered', (data) => {
+            console.log('🎉 Order delivered:', data);
+            toast.success('Your order has been delivered! 🎉');
+        });
+    }
+
+    // Reconnect with fresh token
+    reconnectWithFreshToken() {
+        console.log('🔄 Attempting to reconnect with fresh token...');
+        this.disconnect();
+        setTimeout(() => {
+            this.connect();
+        }, 1000);
     }
 
     // Method to emit events
@@ -245,7 +319,18 @@ class SocketService {
 
     // Method to join specific rooms
     joinRoom(roomId) {
-        this.emit('join_room', roomId);
+        if (this.socket && this.isConnected) {
+            this.socket.emit('join_room', roomId);
+            console.log(`🔗 Joined room: ${roomId}`);
+        }
+    }
+
+    // Leave a room
+    leaveRoom(roomId) {
+        if (this.socket && this.isConnected) {
+            this.socket.emit('leave_room', roomId);
+            console.log(`🚪 Left room: ${roomId}`);
+        }
     }
 
     disconnect() {
@@ -253,6 +338,7 @@ class SocketService {
             this.socket.disconnect();
             this.socket = null;
             this.isConnected = false;
+            this.connectionAttempts = 0;
             console.log('🔌 Socket disconnected');
         }
     }
@@ -260,6 +346,11 @@ class SocketService {
     // Get connection status
     getConnectionStatus() {
         return this.isConnected;
+    }
+
+    // Check if user is authenticated
+    isAuthenticated() {
+        return !!this.getToken();
     }
 }
 

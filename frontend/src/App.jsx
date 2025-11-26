@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { checkAuth } from "./authSlice"; // Fixed import path
-import { useSocket } from './hooks/useSocket'; // Custom hook for socket
 
 // Auth Components
 import Login from "./auth/Login";
@@ -45,6 +44,9 @@ import UserDashboard from './components/UserDashboard';
 
 // sockets
 import SocketService from './utils/socket';
+import { useSocket } from './hooks/useSocket';
+import ShopOwnerDashboard from './components/ShopOwnerDashboard';
+import UserBuyRequestsDashboard from './components/UserBuyRequestsDashboard';
 
 
 const LoadingSpinner = () => (
@@ -60,7 +62,7 @@ function App() {
 
 
 
-  useSocket();
+  const socketService = useSocket();
 
   useEffect(() => {
     dispatch(checkAuth());
@@ -139,7 +141,9 @@ function App() {
       {/* dashbord- Notofaction */}
       <Route path="/contractor/dashboard" element={<ContractorDashboard />} />
       <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
+      <Route path="/shop-owner/dashboard" element={<ShopOwnerDashboard />} />
       <Route path="/my-requests" element={isAuthenticated ? <UserDashboard /> : <Login />} />
+      <Route path='/my-Orders' element={isAuthenticated ? <UserBuyRequestsDashboard /> : <Login />} />
     </Routes>
 
   );

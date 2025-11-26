@@ -14,7 +14,7 @@ const buyRequestSchema = new Schema({
     },
     shopOwner: {
         type: Schema.Types.ObjectId,
-        ref: 'Shop',
+        ref: 'User', // Changed from 'Shop' to 'User'
         required: true
     },
     quantity: {
@@ -28,15 +28,24 @@ const buyRequestSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'accepted', 'rejected', 'cancelled', 'completed'],
+        enum: ['pending', 'accepted', 'rejected', 'cancelled', 'completed', 'shipped'],
         default: 'pending'
     },
     shippingAddress: {
-        address: String,
+        type: {
+            type: String,
+            enum: ['home', 'work', 'site', 'other'],
+            default: 'home'
+        },
+        street: String,
         city: String,
         state: String,
         pincode: String,
-        landmark: String
+        country: { type: String, default: "India" },
+        landmark: String,
+        contactPerson: String,
+        contactPhone: String,
+        instructions: String
     },
     contactInfo: {
         phone: String,
@@ -44,12 +53,13 @@ const buyRequestSchema = new Schema({
     },
     message: String,
     expectedDelivery: Date,
+    actualDelivery: Date, // ADDED: For tracking actual delivery
     paymentMethod: {
         type: String,
         enum: ['cash_on_delivery', 'online_payment', 'bank_transfer'],
         default: 'cash_on_delivery'
     },
-    // For employee assignment (similar to work requests)
+    // For employee assignment
     assignedEmployee: {
         type: Schema.Types.ObjectId,
         ref: 'Employee'
@@ -73,6 +83,9 @@ const buyRequestSchema = new Schema({
         min: 0,
         max: 3
     },
+    rejectionReason: String,
+    cancellationReason: String, // ADDED: For user cancellation
+    lastReminderSent: Date, // ADDED: Missing field
     expiresAt: {
         type: Date,
         default: () => new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
@@ -87,5 +100,4 @@ buyRequestSchema.index({ status: 1 });
 buyRequestSchema.index({ expiresAt: 1 });
 
 const BuyRequest = mongoose.model('BuyRequest', buyRequestSchema);
-
 module.exports = BuyRequest;

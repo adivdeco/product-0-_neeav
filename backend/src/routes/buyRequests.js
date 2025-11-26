@@ -7,18 +7,20 @@ const Shop = require('../models/shopSchema');
 const BuyRequestRouter = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 
-
+// Create buy request
 BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
         const { productId, quantity, message, shippingAddress, paymentMethod, saveAddress } = req.body;
+
+        console.log('📦 Buy request received:', { productId, quantity, userId });
 
         if (!productId || !quantity) {
             return res.status(400).json({ message: 'Product ID and quantity are required' });
         }
 
         // Get product details
-        const product = await Product.findById(productId).populate('shopId');
+        const product = await Product.findById(productId).populate('shopId ProductImage');
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
@@ -32,13 +34,14 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
 
         // Get shop owner
         const shop = await Shop.findById(product.shopId).populate('ownerId');
-        if (!shop) {
-            return res.status(404).json({ message: 'Shop not found' });
+        if (!shop || !shop.ownerId) {
+            return res.status(404).json({ message: 'Shop or owner not found' });
         }
 
         // Calculate total price
-        const taxAmount = (product.price * quantity * product.taxRate) / 100;
-        const totalPrice = (product.price * quantity) + taxAmount;
+        const taxAmount = (product.price * quantity * (product.taxRate || 18)) / 100;
+        const shippingCost = product.shipping?.isFree ? 0 : (product.shipping?.cost || 50);
+        const totalPrice = (product.price * quantity) + taxAmount + shippingCost;
 
         // Create buy request
         const buyRequest = await BuyRequest.create({
@@ -47,11 +50,15 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
             shopOwner: shop.ownerId._id,
             quantity,
             totalPrice,
-            message: message || '',
-            shippingAddress: shippingAddress || {},
+            message: message || `Purchase request for ${quantity} ${product.name}`,
+            shippingAddress: {
+                ...shippingAddress,
+                contactPerson: shippingAddress?.contactPerson || req.finduser.name,
+                contactPhone: shippingAddress?.contactPhone || req.finduser.phone
+            },
             paymentMethod: paymentMethod || 'cash_on_delivery',
             contactInfo: {
-                phone: req.finduser.phone,
+                phone: req.finduser.phone || shippingAddress?.contactPhone,
                 email: req.finduser.email
             }
         });
@@ -70,9 +77,9 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
 
         // Populate the buy request for response
         const populatedRequest = await BuyRequest.findById(buyRequest._id)
-            .populate('product', 'name price images category brand')
-            .populate('user', 'name email phone')
-            .populate('shopOwner', 'name email phone');
+            .populate('product', 'name price ProductImage category brand taxRate shipping unit')
+            .populate('user', 'name email phone avatar')
+            .populate('shopOwner', 'name email phone storeDetails');
 
         // Create notification for shop owner
         const notification = await Notification.create({
@@ -91,7 +98,6 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
             console.log('🔍 Shop owner socket ID:', shopOwnerSocketId);
 
             if (shopOwnerSocketId && global.io) {
-                // Emit to specific shop owner
                 global.io.to(shopOwnerSocketId).emit('new_buy_request', {
                     buyRequest: populatedRequest,
                     notification: {
@@ -100,7 +106,6 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
                     }
                 });
 
-                // Also send notification
                 global.io.to(shopOwnerSocketId).emit('new_notification', {
                     notification,
                     unreadCount: await Notification.countDocuments({
@@ -108,14 +113,9 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
                         isRead: false
                     })
                 });
-
-                console.log('✅ Real-time notifications sent to shop owner');
-            } else {
-                console.log('ℹ️ Shop owner not connected via socket, notification saved to DB');
             }
         } catch (socketError) {
             console.error('Socket emission error:', socketError);
-            // Don't fail the request if socket fails
         }
 
         res.status(201).json({
@@ -127,8 +127,7 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
         console.error('Create buy request error:', error);
         res.status(500).json({
             message: 'Server error',
-            error: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            error: error.message
         });
     }
 });
@@ -143,7 +142,7 @@ BuyRequestRouter.get('/shop-owner/requests', authMiddleware, async (req, res) =>
         if (status) filter.status = status;
 
         const requests = await BuyRequest.find(filter)
-            .populate('product', 'name price images category brand')
+            .populate('product', 'name price ProductImage category brand taxRate shipping unit')
             .populate('user', 'name email phone avatar')
             .sort({ createdAt: -1 })
             .limit(limit * 1)
@@ -174,8 +173,8 @@ BuyRequestRouter.get('/my-requests', authMiddleware, async (req, res) => {
         if (status) filter.status = status;
 
         const requests = await BuyRequest.find(filter)
-            .populate('product', 'name price images category brand')
-            .populate('shopOwner', 'name email phone shopName')
+            .populate('product', 'name price ProductImage category brand taxRate shipping unit')
+            .populate('shopOwner', 'name email phone storeDetails')
             .sort({ createdAt: -1 })
             .limit(limit * 1)
             .skip((page - 1) * limit);
@@ -200,7 +199,7 @@ BuyRequestRouter.put('/:id/accept', authMiddleware, async (req, res) => {
     try {
         const shopOwnerId = req.finduser._id;
         const { id } = req.params;
-        const { expectedDelivery, message } = req.body;
+        const { expectedDelivery } = req.body;
 
         const buyRequest = await BuyRequest.findOne({
             _id: id,
@@ -235,14 +234,14 @@ BuyRequestRouter.put('/:id/accept', authMiddleware, async (req, res) => {
             user: buyRequest.user._id,
             type: 'buy_request_accepted',
             title: 'Purchase Request Accepted',
-            message: `Your purchase request for ${buyRequest.product.name} has been accepted by the seller`,
+            message: `Your purchase request for ${buyRequest.product.name} has been accepted. Expected delivery: ${new Date(expectedDelivery).toLocaleDateString()}`,
             relatedBuyRequest: buyRequest._id,
             priority: 'medium'
         });
 
         // Real-time notification to user
         const userSocketId = global.users.get(buyRequest.user._id.toString());
-        if (userSocketId) {
+        if (userSocketId && global.io) {
             global.io.to(userSocketId).emit('buy_request_accepted', {
                 buyRequest,
                 notification: {
@@ -304,7 +303,7 @@ BuyRequestRouter.put('/:id/reject', authMiddleware, async (req, res) => {
 
         // Real-time notification to user
         const userSocketId = global.users.get(buyRequest.user._id.toString());
-        if (userSocketId) {
+        if (userSocketId && global.io) {
             global.io.to(userSocketId).emit('buy_request_rejected', {
                 buyRequest,
                 notification: {
@@ -333,23 +332,138 @@ BuyRequestRouter.put('/:id/reject', authMiddleware, async (req, res) => {
     }
 });
 
+// MARK AS SHIPPED - NEW ENDPOINT
+BuyRequestRouter.put('/:id/ship', authMiddleware, async (req, res) => {
+    try {
+        const shopOwnerId = req.finduser._id;
+        const { id } = req.params;
+
+        const buyRequest = await BuyRequest.findOne({
+            _id: id,
+            shopOwner: shopOwnerId,
+            status: 'accepted'
+        }).populate('product').populate('user');
+
+        if (!buyRequest) {
+            return res.status(404).json({ message: 'Request not found or cannot be shipped' });
+        }
+
+        buyRequest.status = 'shipped';
+        await buyRequest.save();
+
+        // Create notification for user
+        const notification = await Notification.create({
+            user: buyRequest.user._id,
+            type: 'order_shipped',
+            title: 'Order Shipped',
+            message: `Your order for ${buyRequest.product.name} has been shipped and is on its way!`,
+            relatedBuyRequest: buyRequest._id,
+            priority: 'medium'
+        });
+
+        // Real-time notification to user
+        const userSocketId = global.users.get(buyRequest.user._id.toString());
+        if (userSocketId && global.io) {
+            global.io.to(userSocketId).emit('order_shipped', {
+                buyRequest,
+                notification: {
+                    title: 'Order Shipped',
+                    message: `Your order for ${buyRequest.product.name} is on its way!`
+                }
+            });
+        }
+
+        res.json({
+            message: 'Order marked as shipped successfully',
+            buyRequest
+        });
+
+    } catch (error) {
+        console.error('Ship order error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// MARK AS COMPLETED - FIXED ENDPOINT
+BuyRequestRouter.put('/:id/complete', authMiddleware, async (req, res) => {
+    try {
+        const shopOwnerId = req.finduser._id;
+        const { id } = req.params;
+
+        const buyRequest = await BuyRequest.findOne({
+            _id: id,
+            shopOwner: shopOwnerId,
+            status: { $in: ['accepted', 'shipped'] }
+        }).populate('product').populate('user');
+
+        if (!buyRequest) {
+            return res.status(404).json({ message: 'Request not found or cannot be completed' });
+        }
+
+        buyRequest.status = 'completed';
+        buyRequest.actualDelivery = new Date();
+        await buyRequest.save();
+
+        // Create notification for user
+        const notification = await Notification.create({
+            user: buyRequest.user._id,
+            type: 'order_delivered',
+            title: 'Order Delivered',
+            message: `Your order for ${buyRequest.product.name} has been delivered successfully!`,
+            relatedBuyRequest: buyRequest._id,
+            priority: 'medium'
+        });
+
+        // Real-time notification to user
+        const userSocketId = global.users.get(buyRequest.user._id.toString());
+        if (userSocketId && global.io) {
+            global.io.to(userSocketId).emit('order_delivered', {
+                buyRequest,
+                notification: {
+                    title: 'Order Delivered',
+                    message: `Your order for ${buyRequest.product.name} has been delivered!`
+                }
+            });
+        }
+
+        res.json({
+            message: 'Order marked as completed successfully',
+            buyRequest
+        });
+
+    } catch (error) {
+        console.error('Complete order error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
 // User cancels buy request
 BuyRequestRouter.put('/:id/cancel', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
         const { id } = req.params;
+        const { reason } = req.body;
 
         const buyRequest = await BuyRequest.findOne({
             _id: id,
             user: userId,
-            status: 'pending'
+            status: { $in: ['pending', 'accepted'] }
         }).populate('shopOwner').populate('product');
 
         if (!buyRequest) {
             return res.status(404).json({ message: 'Request not found or cannot be cancelled' });
         }
 
+        // If order was accepted, restore stock
+        if (buyRequest.status === 'accepted') {
+            await Product.findByIdAndUpdate(
+                buyRequest.product._id,
+                { $inc: { stock: buyRequest.quantity } }
+            );
+        }
+
         buyRequest.status = 'cancelled';
+        buyRequest.cancellationReason = reason;
         await buyRequest.save();
 
         // Notify shop owner
@@ -363,21 +477,13 @@ BuyRequestRouter.put('/:id/cancel', authMiddleware, async (req, res) => {
 
         // Real-time notification to shop owner
         const shopOwnerSocketId = global.users.get(buyRequest.shopOwner._id.toString());
-        if (shopOwnerSocketId) {
+        if (shopOwnerSocketId && global.io) {
             global.io.to(shopOwnerSocketId).emit('buy_request_cancelled', {
                 buyRequest,
                 notification: {
                     title: 'Purchase Cancelled',
                     message: `Purchase request for ${buyRequest.product.name} was cancelled`
                 }
-            });
-
-            global.io.to(shopOwnerSocketId).emit('new_notification', {
-                notification,
-                unreadCount: await Notification.countDocuments({
-                    user: buyRequest.shopOwner._id,
-                    isRead: false
-                })
             });
         }
 
@@ -388,6 +494,48 @@ BuyRequestRouter.put('/:id/cancel', authMiddleware, async (req, res) => {
 
     } catch (error) {
         console.error('Cancel buy request error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// Mark buy request as received by user
+BuyRequestRouter.put('/:id/received', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.finduser._id;
+        const { id } = req.params;
+
+        const buyRequest = await BuyRequest.findOne({
+            _id: id,
+            user: userId,
+            status: { $in: ['accepted', 'shipped'] }
+        }).populate('shopOwner').populate('product');
+
+        if (!buyRequest) {
+            return res.status(404).json({
+                message: 'Request not found or cannot be marked as received'
+            });
+        }
+
+        buyRequest.status = 'completed';
+        buyRequest.actualDelivery = new Date();
+        await buyRequest.save();
+
+        // Notify shop owner
+        await Notification.create({
+            user: buyRequest.shopOwner._id,
+            type: 'order_delivered',
+            title: 'Order Delivered',
+            message: `Customer confirmed delivery: ${buyRequest.product.name}`,
+            relatedBuyRequest: buyRequest._id
+        });
+
+        res.json({
+            message: 'Order marked as received successfully',
+            buyRequest
+        });
+
+    } catch (error) {
+        console.error('Mark as received error:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
