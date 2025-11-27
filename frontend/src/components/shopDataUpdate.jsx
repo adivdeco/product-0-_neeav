@@ -66,7 +66,7 @@ const ShopProfileUpdate = () => {
     const fetchShopData = async () => {
         try {
             const response = await axiosClient.get('/auth/Shop_profile');
-            console.log(response.data);
+            // console.log(response.data);
 
             if (response.data.shop) {
                 const shop = response.data.shop;
@@ -240,7 +240,7 @@ const ShopProfileUpdate = () => {
 
         try {
             const result = await uploadAvatarToCloudinary(selectedAvatarFile);
-            console.log("Avatar upload result:", result);
+            // console.log("Avatar upload result:", result);
 
             const cloudinaryUrl = result.imageUrl || result.url || result.data?.url;
 
@@ -268,7 +268,7 @@ const ShopProfileUpdate = () => {
     };
 
     const handleOtherImages = (imagesArray) => {
-        console.log("Other images received:", imagesArray);
+        // console.log("Other images received:", imagesArray);
 
         if (!imagesArray) {
             console.error("No images array received");
@@ -285,7 +285,7 @@ const ShopProfileUpdate = () => {
             return null;
         }).filter(url => url !== null);
 
-        console.log("Processed image URLs:", imageUrls);
+        // console.log("Processed image URLs:", imageUrls);
 
         setImagesUrl(imageUrls);
         setShopData(prev => ({
@@ -310,7 +310,7 @@ const ShopProfileUpdate = () => {
                 images: imagesUrl
             };
 
-            console.log("Submitting shop data:", submitData);
+            // console.log("Submitting shop data:", submitData);
 
             const response = await axiosClient.put('/auth/shop/data', submitData, {
                 headers: {
@@ -688,7 +688,7 @@ const ShopProfileUpdate = () => {
                             <h4 className="text-lg font-semibold text-gray-900 mb-4">Store Images</h4>
                             <ImgUpload
                                 onUploadSuccess={(results) => {
-                                    console.log('Upload successful:', results);
+                                    // console.log('Upload successful:', results);
                                 }}
                                 onAvatarUpdate={handleOtherImages}
                             />
