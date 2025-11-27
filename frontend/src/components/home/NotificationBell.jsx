@@ -1,13 +1,28 @@
-// components/NotificationBell.jsx
 import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getNotifications, markAsRead, markAllAsRead } from '../../redux/slice/notificationSlice';
 import { PiBellRingingFill } from "react-icons/pi";
 import SocketService from '../../utils/socket'; // Import socket
-
+import {
+    Bell,
+    CheckCircle,
+    XCircle,
+    Clock,
+    AlertCircle,
+    ShoppingCart,
+    Truck,
+    Package,
+    Star,
+    CheckCircle2,
+    MessageSquare,
+    Wrench,
+    Building
+} from 'lucide-react';
+import { useNavigate } from 'react-router';
 
 const NotificationBell = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { notifications, unreadCount } = useSelector((state) => state.notifications);
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -44,21 +59,41 @@ const NotificationBell = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleMarkAsRead = async (notificationId) => {
+    const handleMarkAsRead = async (notificationId, e) => {
+        e.stopPropagation();
         await dispatch(markAsRead(notificationId));
     };
 
-    const handleMarkAllAsRead = async () => {
+    const handleMarkAllAsRead = async (e) => {
+        e.stopPropagation();
         await dispatch(markAllAsRead());
     };
 
     const getNotificationIcon = (type) => {
+        const iconClass = "w-5 h-5";
         switch (type) {
-            case 'work_request': return '📋';
-            case 'request_accepted': return '✅';
-            case 'request_rejected': return '❌';
-            case 'work_completed': return '🎉';
-            default: return '🔔';
+            case 'work_request':
+                return <Wrench className={`${iconClass} text-blue-600`} />;
+            case 'request_accepted':
+                return <CheckCircle2 className={`${iconClass} text-green-600`} />;
+            case 'request_rejected':
+                return <XCircle className={`${iconClass} text-red-600`} />;
+            case 'work_completed':
+                return <Star className={`${iconClass} text-yellow-600`} />;
+            case 'status_updated':
+                return <Clock className={`${iconClass} text-purple-600`} />;
+            case 'buy_request':
+                return <ShoppingCart className={`${iconClass} text-orange-600`} />;
+            case 'buy_request_accepted':
+                return <CheckCircle className={`${iconClass} text-green-600`} />;
+            case 'buy_request_rejected':
+                return <XCircle className={`${iconClass} text-red-600`} />;
+            case 'order_shipped':
+                return <Truck className={`${iconClass} text-indigo-600`} />;
+            case 'order_delivered':
+                return <Package className={`${iconClass} text-emerald-600`} />;
+            default:
+                return <Bell className={`${iconClass} text-gray-600`} />;
         }
     };
 
@@ -67,6 +102,21 @@ const NotificationBell = () => {
             case 'high': return 'border-red-500';
             case 'medium': return 'border-yellow-500';
             default: return 'border-gray-300';
+        }
+    };
+
+    const formatTime = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+
+        if (diffInHours < 1) {
+            const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+            return `${diffInMinutes}m ago`;
+        } else if (diffInHours < 24) {
+            return `${diffInHours}h ago`;
+        } else {
+            return date.toLocaleDateString();
         }
     };
 
@@ -88,11 +138,18 @@ const NotificationBell = () => {
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-200 z-50">
+                <div className="absolute -left-54 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-200 z-50">
+                    {/* header */}
                     <div className="p-4 border-b border-gray-200">
                         <div className="flex justify-between items-center">
-                            <h3 className="font-semibold text-gray-900">Notifications</h3>
-                            {unreadCount > 0 && (
+                            <div>
+                                <h3 className="font-semibold text-gray-900 text-lg">Notifications</h3>
+                                {unreadCount > 0 && (
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        {unreadCount} unread {unreadCount === 1 ? 'notification' : 'notifications'}
+                                    </p>
+                                )}
+                            </div>                            {unreadCount > 0 && (
                                 <button
                                     onClick={handleMarkAllAsRead}
                                     className="text-sm text-blue-600 hover:text-blue-800"
@@ -105,8 +162,10 @@ const NotificationBell = () => {
 
                     <div className="max-h-96 overflow-y-auto">
                         {notifications.length === 0 ? (
-                            <div className="p-4 text-center text-gray-500">
-                                No notifications
+                            <div className="flex flex-col items-center justify-center p-8 text-gray-500">
+                                <Bell className="w-12 h-12 text-gray-300 mb-3" />
+                                <p className="font-medium">No notifications</p>
+                                <p className="text-sm mt-1">We'll notify you when something arrives</p>
                             </div>
                         ) : (
                             notifications.slice(0, 10).map((notification) => (
@@ -118,6 +177,7 @@ const NotificationBell = () => {
                                     <div className="flex gap-3">
                                         <span className="text-lg">{getNotificationIcon(notification.type)}</span>
                                         <div className="flex-1">
+
                                             <div className="flex justify-between items-start">
                                                 <h4 className={`font-medium ${!notification.isRead ? 'text-gray-900' : 'text-gray-600'}`}>
                                                     {notification.title}
@@ -131,10 +191,20 @@ const NotificationBell = () => {
                                                     </button>
                                                 )}
                                             </div>
+
                                             <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
-                                            <p className="text-xs text-gray-400 mt-2">
-                                                {new Date(notification.createdAt).toLocaleDateString()}
+                                            <p className="text-xs text-gray-400 mt-2 flex justify-between">
+                                                <span className="text-xs text-gray-400">
+                                                    {formatTime(notification.createdAt)}
+                                                </span>
+                                                <span>{new Date(notification.createdAt).toLocaleDateString()} </span>
+
                                             </p>
+                                            {notification.actionRequired && !notification.isRead && (
+                                                <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full border border-orange-200">
+                                                    Action required
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
