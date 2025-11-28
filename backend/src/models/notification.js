@@ -19,7 +19,19 @@ const notificationSchema = new Schema({
             'buy_request_accepted',
             'buy_request_rejected',
             'order_shipped',
-            'order_delivered'
+            'order_delivered',
+            // In your notification schema, add these types:
+
+            'buy_request_pending',
+            'buy_request_accepted',
+            'buy_request_rejected',
+            'buy_request_cancelled',
+            'buy_request_shipped',
+            'buy_request_delivered',
+            'buy_request_completed',
+            'employee_contact_buyer',
+            'employee_contact_shop'
+
         ],
         required: true
     },

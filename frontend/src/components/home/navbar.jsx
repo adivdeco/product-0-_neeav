@@ -55,7 +55,7 @@ function Navbar() {
     const adminMenuItems = [
         { icon: Users, label: "Users Management", href: "/admin/user/allusers", color: "text-blue-600", description: "Manage all users" },
         { icon: Wrench, label: "Services Dashboard", href: "/employee/dashboard", color: "text-amber-600", description: "Manage services" },
-        { icon: BarChart3, label: "Analytics", href: "/admin/analytics", color: "text-purple-600", description: "View insights" },
+        { icon: BarChart3, label: "Buy Requests Dashboard", href: "/employee/buy/dashboard", color: "text-purple-600", description: "Manage buy requests" },
         { icon: Shield, label: "Admin Settings", href: "/admin/settings", color: "text-gray-600", description: "System configuration" },
     ];
 

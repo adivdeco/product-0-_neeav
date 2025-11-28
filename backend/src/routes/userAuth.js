@@ -51,11 +51,12 @@ authRouter.get('/check-session', authMiddleware, async (req, res) => {
     //     })
     // });
     const _id = req.finduser._id
+    const user = req.finduser
 
     if (!_id) {
         return res.json({ message: "loginFailed" })
     } else {
-        const user = await User.findById(_id).select(-"password")
+        // const user = await User.findById(_id).select(-"password")
         res.status(200).json({
             message: "valid user",
             user

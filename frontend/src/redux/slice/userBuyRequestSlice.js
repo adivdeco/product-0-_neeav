@@ -21,6 +21,11 @@ export const cancelBuyRequest = createAsyncThunk(
     'userBuyRequests/cancelBuyRequest',
     async ({ requestId, reason }, { rejectWithValue }) => {
         try {
+            // Add validation to check if requestId is valid
+            if (!requestId || requestId === 'undefined') {
+                throw new Error('Invalid request ID');
+            }
+
             const response = await axiosClient.put(`/buy-requests/${requestId}/cancel`, { reason });
             return response.data;
         } catch (error) {

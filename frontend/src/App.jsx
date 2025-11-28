@@ -47,6 +47,7 @@ import SocketService from './utils/socket';
 import { useSocket } from './hooks/useSocket';
 import ShopOwnerDashboard from './components/ShopOwnerDashboard';
 import UserBuyRequestsDashboard from './components/UserBuyRequestsDashboard';
+import EmployeeBuyDashboard from './components/EmployeeBuyDashbord';
 
 
 const LoadingSpinner = () => (
@@ -141,6 +142,7 @@ function App() {
       {/* dashbord- Notofaction */}
       <Route path="/contractor/dashboard" element={<ContractorDashboard />} />
       <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
+      <Route path='/employee/buy/dashboard' element={isAuthenticated ? <EmployeeBuyDashboard /> : <Login />} />
       <Route path="/shop-owner/dashboard" element={<ShopOwnerDashboard />} />
       <Route path="/my-requests" element={isAuthenticated ? <UserDashboard /> : <Login />} />
       <Route path='/my-Orders' element={isAuthenticated ? <UserBuyRequestsDashboard /> : <Login />} />

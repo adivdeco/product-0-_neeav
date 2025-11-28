@@ -37,16 +37,13 @@ export default function Homepg() {
         const completion = calculateCompletion();
 
         if (completion < 100) {
-            // Redirect to profile settings if not 100% complete
             navigate("/setting/user");
             return;
         }
 
-        // If 100% complete, proceed to the intended link
         navigate(link);
     };
 
-    // Sample featured categories data
     const features = [
         {
             id: 1,

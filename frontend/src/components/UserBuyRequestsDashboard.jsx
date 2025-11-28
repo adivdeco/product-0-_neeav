@@ -90,7 +90,11 @@ const UserBuyRequestsDashboard = () => {
 
     const confirmCancel = async () => {
         if (selectedRequest) {
-            await dispatch(cancelBuyRequest(selectedRequest._id));
+            await dispatch(cancelBuyRequest({
+                requestId: selectedRequest._id,
+                reason: 'Cancelled by user'
+            }));
+
             setShowCancelModal(false);
             setSelectedRequest(null);
             toast.success('Purchase request cancelled successfully!');

@@ -1,4 +1,3 @@
-// components/EmployeeDashboard.jsx
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import axiosClient from '../api/auth';
@@ -507,3 +506,4 @@ const EmployeeDashboard = () => {
 };
 
 export default EmployeeDashboard;
+

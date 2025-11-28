@@ -14,7 +14,7 @@ const buyRequestSchema = new Schema({
     },
     shopOwner: {
         type: Schema.Types.ObjectId,
-        ref: 'User', // Changed from 'Shop' to 'User'
+        ref: 'User',
         required: true
     },
     quantity: {

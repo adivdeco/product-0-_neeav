@@ -6,6 +6,7 @@ const User = require('../models/userSchema');
 const Shop = require('../models/shopSchema');
 const BuyRequestRouter = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
+const { default: mongoose } = require('mongoose');
 
 // Create buy request
 BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
@@ -444,6 +445,14 @@ BuyRequestRouter.put('/:id/cancel', authMiddleware, async (req, res) => {
         const { id } = req.params;
         const { reason } = req.body;
 
+
+        // Validate request ID
+        if (!id || id === 'undefined' || !mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                message: 'Invalid request ID format'
+            });
+        }
+
         const buyRequest = await BuyRequest.findOne({
             _id: id,
             user: userId,
@@ -451,11 +460,13 @@ BuyRequestRouter.put('/:id/cancel', authMiddleware, async (req, res) => {
         }).populate('shopOwner').populate('product');
 
         if (!buyRequest) {
-            return res.status(404).json({ message: 'Request not found or cannot be cancelled' });
+            return res.status(404).json({
+                message: 'Request not found or cannot be cancelled'
+            });
         }
 
         // If order was accepted, restore stock
-        if (buyRequest.status === 'accepted') {
+        if (buyRequest.status === 'accepted' && buyRequest.product) {
             await Product.findByIdAndUpdate(
                 buyRequest.product._id,
                 { $inc: { stock: buyRequest.quantity } }
@@ -471,7 +482,7 @@ BuyRequestRouter.put('/:id/cancel', authMiddleware, async (req, res) => {
             user: buyRequest.shopOwner._id,
             type: 'status_updated',
             title: 'Purchase Request Cancelled',
-            message: `Purchase request for ${buyRequest.product.name} has been cancelled by the buyer`,
+            message: `Purchase request for ${buyRequest.product?.name || 'product'} has been cancelled by the buyer`,
             relatedBuyRequest: buyRequest._id
         });
 
@@ -482,7 +493,7 @@ BuyRequestRouter.put('/:id/cancel', authMiddleware, async (req, res) => {
                 buyRequest,
                 notification: {
                     title: 'Purchase Cancelled',
-                    message: `Purchase request for ${buyRequest.product.name} was cancelled`
+                    message: `Purchase request for ${buyRequest.product?.name || 'product'} was cancelled`
                 }
             });
         }
@@ -494,7 +505,17 @@ BuyRequestRouter.put('/:id/cancel', authMiddleware, async (req, res) => {
 
     } catch (error) {
         console.error('Cancel buy request error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                message: 'Invalid request ID format'
+            });
+        }
+
+        res.status(500).json({
+            message: 'Server error',
+            error: error.message
+        });
     }
 });
 
