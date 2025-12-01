@@ -14,7 +14,8 @@ import { toast } from 'react-toastify';
 import {
     FaBox, FaRupeeSign, FaMapMarkerAlt, FaCalendarAlt, FaStore,
     FaPhone, FaEnvelope, FaTimes, FaCheck, FaTruck, FaShippingFast,
-    FaUser, FaExclamationTriangle, FaMoneyBillWave
+    FaUser, FaExclamationTriangle, FaMoneyBillWave,
+    FaCheckCircle
 } from 'react-icons/fa';
 import Navbar from './home/navbar';
 
@@ -406,182 +407,294 @@ const ShopOwnerDashboard = () => {
                                 </p>
                             </div>
                         ) : (
-                            shopOwnerRequests.map((request) => (
-                                <div key={request._id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                                    {/* Order Header */}
-                                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
-                                        <div className="flex items-start gap-4 flex-1">
-                                            <img
-                                                src={request.product?.images?.[0]?.url || request.product?.ProductImage || '/placeholder-product.jpg'}
-                                                alt={request.product?.name}
-                                                className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                                            />
-                                            <div className="flex-1">
-                                                <div className="flex items-start justify-between">
-                                                    <div>
-                                                        <h3 className="text-lg font-semibold text-gray-900">
-                                                            {request.product?.name}
-                                                        </h3>
-                                                        <p className="text-sm text-gray-600 mt-1">
-                                                            {request.product?.category} • {request.product?.brand || 'Generic Brand'}
-                                                        </p>
+                            shopOwnerRequests.map((request) => {
+                                const statusConfig = {
+                                    pending: {
+                                        bg: 'bg-yellow-50 border-yellow-200',
+                                        accent: 'border-l-4 border-l-yellow-500',
+                                        headerBg: 'bg-yellow-100'
+                                    },
+                                    accepted: {
+                                        bg: 'bg-green-50 border-green-200',
+                                        accent: 'border-l-4 border-l-green-500',
+                                        headerBg: 'bg-green-100'
+                                    },
+                                    shipped: {
+                                        bg: 'bg-blue-50 border-blue-200',
+                                        accent: 'border-l-4 border-l-blue-500',
+                                        headerBg: 'bg-blue-100'
+                                    },
+                                    completed: {
+                                        bg: 'bg-purple-50 border-purple-200',
+                                        accent: 'border-l-4 border-l-purple-500',
+                                        headerBg: 'bg-purple-100'
+                                    },
+                                    rejected: {
+                                        bg: 'bg-red-50 border-red-200',
+                                        accent: 'border-l-4 border-l-red-500',
+                                        headerBg: 'bg-red-100'
+                                    },
+                                    cancelled: {
+                                        bg: 'bg-gray-50 border-gray-200',
+                                        accent: 'border-l-4 border-l-gray-500',
+                                        headerBg: 'bg-gray-100'
+                                    }
+                                };
+
+                                const config = statusConfig[request.status] || statusConfig.pending;
+
+                                return (
+                                    <div
+                                        key={request._id}
+                                        className={`${config.bg} ${config.accent} rounded-2xl p-6 shadow-sm border hover:shadow-md transition-all duration-300`}
+                                    >
+                                        {/* Order Header with status-colored background */}
+                                        <div className={`${config.headerBg} -m-6 mb-6 p-6 rounded-t-2xl`}>
+                                            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                                                <div className="flex items-start gap-4 flex-1">
+                                                    <div className="relative">
+                                                        <img
+                                                            src={request.product?.images?.[0]?.url || request.product?.ProductImage || '/placeholder-product.jpg'}
+                                                            alt={request.product?.name}
+                                                            className="w-16 h-16 object-cover rounded-lg border-2 border-white shadow-sm"
+                                                        />
+                                                        <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border-2 border-white flex items-center justify-center shadow-sm">
+                                                            <span className="text-xs font-bold">
+                                                                {getStatusBadge(request.status).icon}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <div className="text-right">
-                                                        {getStatusBadge(request.status)}
-                                                        <p className="text-lg font-bold text-green-600 mt-2">
-                                                            {formatCurrency(request.totalPrice)}
-                                                        </p>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-start justify-between">
+                                                            <div>
+                                                                <h3 className="text-lg font-bold text-gray-900">
+                                                                    {request.product?.name}
+                                                                </h3>
+                                                                <p className="text-sm text-gray-700 mt-1">
+                                                                    {request.product?.category} • {request.product?.brand || 'Generic Brand'}
+                                                                </p>
+                                                                <div className="mt-2">
+                                                                    {getStatusBadge(request.status)}
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="text-2xl font-bold text-gray-900">
+                                                                    {formatCurrency(request.totalPrice)}
+                                                                </p>
+                                                                <p className="text-sm text-gray-600 mt-1">
+                                                                    {formatDateTime(request.createdAt)}
+                                                                </p>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* Order Timeline */}
-                                    <OrderTimeline request={request} />
-
-                                    {/* Order Details */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
-                                        {/* Product & Quantity */}
-                                        <div className="space-y-3">
-                                            <h4 className="font-semibold text-gray-900 flex items-center">
-                                                <FaBox className="w-4 h-4 mr-2 text-blue-500" />
-                                                Order Details
-                                            </h4>
-                                            <div className="space-y-2 text-sm">
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600">Quantity:</span>
-                                                    <span className="font-medium">{request.quantity} {request.product?.unit}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600">Unit Price:</span>
-                                                    <span className="font-medium">{formatCurrency(request.product?.price)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600">Order Date:</span>
-                                                    <span className="font-medium">{formatDateTime(request.createdAt)}</span>
-                                                </div>
-                                                {request.message && (
-                                                    <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
-                                                        <span className="font-medium">Note:</span> {request.message}
-                                                    </div>
-                                                )}
-                                            </div>
+                                        {/* Order Timeline - with matching accent color */}
+                                        <div className="mb-6">
+                                            <OrderTimeline request={request} />
                                         </div>
 
-                                        {/* Customer Info */}
-                                        <div className="space-y-3">
-                                            <h4 className="font-semibold text-gray-900 flex items-center">
-                                                <FaUser className="w-4 h-4 mr-2 text-green-500" />
-                                                Customer
-                                            </h4>
-                                            <div className="space-y-2 text-sm">
-                                                <div className="flex items-center">
-                                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-semibold text-sm">
-                                                        {request.user?.name?.charAt(0) || 'C'}
+                                        {/* Order Details */}
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
+                                            {/* Product & Quantity */}
+                                            <div className="space-y-3 p-4 bg-white/70 rounded-xl border border-gray-100">
+                                                <h4 className="font-semibold text-gray-900 flex items-center">
+                                                    <FaBox className="w-4 h-4 mr-2 text-gray-600" />
+                                                    Order Details
+                                                </h4>
+                                                <div className="space-y-2 text-sm">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">Quantity:</span>
+                                                        <span className="font-medium bg-gray-100 px-2 py-1 rounded">
+                                                            {request.quantity} {request.product?.unit}
+                                                        </span>
                                                     </div>
-                                                    <div className="ml-3">
-                                                        <p className="font-medium text-gray-900">{request.user?.name}</p>
-                                                        <p className="text-gray-600">{request.user?.phone}</p>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">Unit Price:</span>
+                                                        <span className="font-medium">{formatCurrency(request.product?.price)}</span>
                                                     </div>
-                                                </div>
-                                                <div className="flex items-center text-gray-600">
-                                                    <FaEnvelope className="w-3 h-3 mr-2" />
-                                                    <span className="text-xs">{request.user?.email}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Delivery Info */}
-                                        <div className="space-y-3">
-                                            <h4 className="font-semibold text-gray-900 flex items-center">
-                                                <FaMapMarkerAlt className="w-4 h-4 mr-2 text-red-500" />
-                                                Delivery
-                                            </h4>
-                                            <div className="space-y-2 text-sm">
-                                                <div className="text-gray-600">
-                                                    <p className="font-medium">{request.shippingAddress?.contactPerson}</p>
-                                                    <p>{request.shippingAddress?.street}</p>
-                                                    <p>{request.shippingAddress?.city}, {request.shippingAddress?.state}</p>
-                                                    <p>{request.shippingAddress?.pincode}</p>
-                                                    {request.shippingAddress?.landmark && (
-                                                        <p className="text-xs text-gray-500">
-                                                            Landmark: {request.shippingAddress.landmark}
-                                                        </p>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">Total Items:</span>
+                                                        <span className="font-medium">{request.quantity}</span>
+                                                    </div>
+                                                    {request.message && (
+                                                        <div className="mt-3 p-3 bg-blue-50/50 rounded-lg border border-blue-100">
+                                                            <span className="font-medium text-blue-700">Customer Note:</span>
+                                                            <p className="text-blue-600 text-sm mt-1">{request.message}</p>
+                                                        </div>
                                                     )}
                                                 </div>
-                                                <div className="flex items-center text-gray-600">
-                                                    <FaPhone className="w-3 h-3 mr-2" />
-                                                    <span>{request.shippingAddress?.contactPhone}</span>
+                                            </div>
+
+                                            {/* Customer Info */}
+                                            <div className="space-y-3 p-4 bg-white/70 rounded-xl border border-gray-100">
+                                                <h4 className="font-semibold text-gray-900 flex items-center">
+                                                    <FaUser className="w-4 h-4 mr-2 text-gray-600" />
+                                                    Customer Info
+                                                </h4>
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center">
+                                                        <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center text-blue-700 font-bold text-base shadow-sm">
+                                                            {request.user?.name?.charAt(0)?.toUpperCase() || 'C'}
+                                                        </div>
+                                                        <div className="ml-3">
+                                                            <p className="font-bold text-gray-900">{request.user?.name}</p>
+                                                            <p className="text-sm text-gray-600">{request.user?.phone}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center text-gray-600">
+                                                            <FaEnvelope className="w-3 h-3 mr-2" />
+                                                            <span className="text-sm truncate">{request.user?.email}</span>
+                                                        </div>
+                                                        {request.contactInfo?.phone && (
+                                                            <div className="flex items-center text-gray-600">
+                                                                <FaPhone className="w-3 h-3 mr-2" />
+                                                                <span className="text-sm">{request.contactInfo.phone}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Delivery Info */}
+                                            <div className="space-y-3 p-4 bg-white/70 rounded-xl border border-gray-100">
+                                                <h4 className="font-semibold text-gray-900 flex items-center">
+                                                    <FaMapMarkerAlt className="w-4 h-4 mr-2 text-gray-600" />
+                                                    Delivery Address
+                                                </h4>
+                                                <div className="space-y-2 text-sm">
+                                                    <div className="text-gray-700">
+                                                        <p className="font-bold text-gray-900">{request.shippingAddress?.contactPerson}</p>
+                                                        <p className="mt-1">{request.shippingAddress?.street}</p>
+                                                        <p>{request.shippingAddress?.city}, {request.shippingAddress?.state}</p>
+                                                        <p className="font-medium">{request.shippingAddress?.pincode}</p>
+                                                        {request.shippingAddress?.landmark && (
+                                                            <p className="text-xs text-gray-500 mt-2">
+                                                                <span className="font-medium">Landmark:</span> {request.shippingAddress.landmark}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <div className="pt-2 border-t border-gray-100">
+                                                        <div className="flex items-center text-gray-600">
+                                                            <FaPhone className="w-3 h-3 mr-2" />
+                                                            <span>{request.shippingAddress?.contactPhone}</span>
+                                                        </div>
+                                                        {request.paymentMethod && (
+                                                            <div className="flex items-center text-gray-600 mt-1">
+                                                                <FaMoneyBillWave className="w-3 h-3 mr-2" />
+                                                                <span>Payment: {request.paymentMethod.replace('_', ' ').toUpperCase()}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* Actions */}
-                                    <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-4 border-t border-gray-200">
-                                        {request.status === 'pending' && (
-                                            <>
-                                                <button
-                                                    onClick={() => handleAccept(request)}
-                                                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center"
-                                                >
-                                                    <FaCheck className="w-4 h-4 mr-2" />
-                                                    Accept Order
-                                                </button>
-                                                <button
-                                                    onClick={() => handleReject(request)}
-                                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center"
-                                                >
-                                                    <FaTimes className="w-4 h-4 mr-2" />
-                                                    Reject Order
-                                                </button>
-                                            </>
-                                        )}
+                                        {/* Actions - with matching status colors */}
+                                        <div className={`mt-8 pt-6 border-t ${config.headerBg.replace('100', '200')}`}>
+                                            <div className="flex flex-col sm:flex-row gap-3">
+                                                {request.status === 'pending' && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleAccept(request)}
+                                                            className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-sm hover:shadow flex items-center justify-center"
+                                                        >
+                                                            <FaCheck className="w-4 h-4 mr-2" />
+                                                            Accept Order
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleReject(request)}
+                                                            className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all shadow-sm hover:shadow flex items-center justify-center"
+                                                        >
+                                                            <FaTimes className="w-4 h-4 mr-2" />
+                                                            Reject Order
+                                                        </button>
+                                                    </>
+                                                )}
 
-                                        {request.status === 'accepted' && (
-                                            <button
-                                                onClick={() => handleShipOrder(request._id)}
-                                                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center"
-                                            >
-                                                <FaTruck className="w-4 h-4 mr-2" />
-                                                Mark as Shipped
-                                            </button>
-                                        )}
+                                                {request.status === 'accepted' && (
+                                                    <button
+                                                        onClick={() => handleShipOrder(request._id)}
+                                                        className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm hover:shadow flex items-center justify-center"
+                                                    >
+                                                        <FaTruck className="w-4 h-4 mr-2" />
+                                                        Mark as Shipped
+                                                    </button>
+                                                )}
 
-                                        {request.status === 'shipped' && (
-                                            <button
-                                                onClick={() => handleCompleteOrder(request._id)}
-                                                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center"
-                                            >
-                                                <FaCheck className="w-4 h-4 mr-2" />
-                                                Mark as Delivered
-                                            </button>
-                                        )}
+                                                {request.status === 'shipped' && (
+                                                    <button
+                                                        onClick={() => handleCompleteOrder(request._id)}
+                                                        className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-purple-700 transition-all shadow-sm hover:shadow flex items-center justify-center"
+                                                    >
+                                                        <FaCheckCircle className="w-4 h-4 mr-2" />
+                                                        Mark as Delivered
+                                                    </button>
+                                                )}
 
-                                        {request.status === 'rejected' && request.rejectionReason && (
-                                            <div className="flex-1 p-3 bg-red-50 rounded-lg">
-                                                <p className="text-sm text-red-700">
-                                                    <span className="font-medium">Rejection Reason:</span> {request.rejectionReason}
-                                                </p>
-                                            </div>
-                                        )}
+                                                {request.status === 'rejected' && request.rejectionReason && (
+                                                    <div className="flex-1 p-4 bg-red-100/50 rounded-xl border border-red-200">
+                                                        <p className="text-red-800 font-medium flex items-center">
+                                                            <FaExclamationTriangle className="w-4 h-4 mr-2" />
+                                                            Order Rejected
+                                                        </p>
+                                                        <p className="text-sm text-red-700 mt-1">
+                                                            <span className="font-medium">Reason:</span> {request.rejectionReason}
+                                                        </p>
+                                                    </div>
+                                                )}
 
-                                        {request.status === 'completed' && (
-                                            <div className="flex-1 p-3 bg-green-50 rounded-lg text-center">
-                                                <p className="text-sm text-green-700 font-medium">
-                                                    ✅ Order Completed
-                                                </p>
-                                                {request.actualDelivery && (
-                                                    <p className="text-xs text-green-600">
-                                                        Delivered: {formatDateTime(request.actualDelivery)}
-                                                    </p>
+                                                {request.status === 'cancelled' && request.cancellationReason && (
+                                                    <div className="flex-1 p-4 bg-gray-100/50 rounded-xl border border-gray-200">
+                                                        <p className="text-gray-800 font-medium flex items-center">
+                                                            <FaTimes className="w-4 h-4 mr-2" />
+                                                            Order Cancelled
+                                                        </p>
+                                                        <p className="text-sm text-gray-700 mt-1">
+                                                            <span className="font-medium">Reason:</span> {request.cancellationReason}
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {request.status === 'completed' && (
+                                                    <div className="flex-1 p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl border border-green-200">
+                                                        <p className="text-green-800 font-bold flex items-center">
+                                                            <FaCheckCircle className="w-5 h-5 mr-2" />
+                                                            Order Completed Successfully!
+                                                        </p>
+                                                        {request.actualDelivery && (
+                                                            <p className="text-sm text-green-700 mt-1">
+                                                                Delivered on {formatDateTime(request.actualDelivery)}
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </div>
-                                        )}
+
+                                            {/* Optional: Show expected delivery for accepted orders */}
+                                            {request.status === 'accepted' && request.expectedDelivery && (
+                                                <div className="mt-4 p-3 bg-blue-50/50 rounded-lg border border-blue-100">
+                                                    <p className="text-sm text-blue-700 font-medium">
+                                                        📅 Expected Delivery: {formatDate(request.expectedDelivery)}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {/* Optional: Show tracking info for shipped orders */}
+                                            {request.status === 'shipped' && request.trackingNumber && (
+                                                <div className="mt-4 p-3 bg-blue-50/50 rounded-lg border border-blue-100">
+                                                    <p className="text-sm text-blue-700 font-medium">
+                                                        📦 Tracking Number: <span className="font-mono">{request.trackingNumber}</span>
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                     </div>
                 )}

@@ -159,7 +159,7 @@ function App() {
       </Routes>
 
       {/* <SocketStatus /> */}
-      <SocketDebug />
+      {/* <SocketDebug /> */}
 
     </>
 
