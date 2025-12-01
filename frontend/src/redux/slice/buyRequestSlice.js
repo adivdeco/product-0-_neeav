@@ -94,6 +94,14 @@ const buyRequestSlice = createSlice({
             if (request) {
                 request.status = status;
             }
+        },
+        // ✅ NEW: Handle buy request cancelled
+        buyRequestCancelled: (state, action) => {
+            const { requestId } = action.payload;
+            const request = state.shopOwnerRequests.find(req => req._id === requestId);
+            if (request) {
+                request.status = 'cancelled';
+            }
         }
     },
     extraReducers: (builder) => {
@@ -151,5 +159,5 @@ const buyRequestSlice = createSlice({
     }
 });
 
-export const { clearError, addRealTimeRequest, updateRequestStatus } = buyRequestSlice.actions;
+export const { clearError, addRealTimeRequest, updateRequestStatus, buyRequestCancelled } = buyRequestSlice.actions;
 export default buyRequestSlice.reducer;

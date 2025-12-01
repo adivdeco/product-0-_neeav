@@ -1,4 +1,3 @@
-// utils/createEmployeeRecords.js
 const User = require('../models/userSchema');
 const Employee = require('../models/employee');
 

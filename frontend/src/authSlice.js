@@ -62,24 +62,20 @@ export const loginUser = createAsyncThunk(
 );
 
 
+
 export const checkAuth = createAsyncThunk(
-    'auth/checkthunk',
+    'auth/checkAuth',
     async (_, { rejectWithValue }) => {
         try {
-            const { data } = await axiosClient.get('/auth/check-session', { withCredentials: true });
-            // const res = await axios.get(
-            //     "https://product-0-neeav-1.onrender.com/auth/check-session",
-            //     { withCredentials: true }
-            // );
-            console.log('Check session response:', data);
-            // return res.data.user;
+            const response = await axiosClient.get('/auth/check-session');
 
-            return data?.user;
+            return {
+                user: response.data.user,
+                token: response.data.token,
+                isAuthenticated: true
+            };
         } catch (error) {
-            console.log('Error in checkAuth:', error);
-
-            // return rejectWithValue(error);
-            return null
+            return rejectWithValue(error.response?.data?.message || 'Authentication failed');
         }
     }
 );
@@ -109,9 +105,28 @@ const authSlice = createSlice({
         user: null,
         isAuthenticated: false,
         loading: false,
-        error: null
+        error: null,
+        token: null,
+
     },
     reducers: {
+        loginSuccess: (state, action) => {
+            state.user = action.payload.user;
+            state.token = action.payload.token;
+            state.isAuthenticated = true;
+            state.loading = false;
+            state.error = null;
+        },
+        logout: (state) => {
+            state.user = null;
+            state.token = null;
+            state.isAuthenticated = false;
+            state.loading = false;
+            state.error = null;
+        },
+        clearError: (state) => {
+            state.error = null;
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -151,20 +166,20 @@ const authSlice = createSlice({
             // Check Auth Cases
             .addCase(checkAuth.pending, (state) => {
                 state.loading = true;
-                state.error = null;
-                // state.error = action.payload?.message || 'Something went wrong';
-
             })
             .addCase(checkAuth.fulfilled, (state, action) => {
+                state.user = action.payload.user;
+                state.token = action.payload.token;
+                state.isAuthenticated = true;
                 state.loading = false;
-                state.isAuthenticated = !!action.payload;
-                state.user = action.payload;
+                state.error = null;
             })
             .addCase(checkAuth.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload?.message || 'Something went wrong';
-                state.isAuthenticated = false;
                 state.user = null;
+                state.token = null;
+                state.isAuthenticated = false;
+                state.loading = false;
+                state.error = action.payload;
             })
 
             // Logout User Cases
@@ -187,5 +202,6 @@ const authSlice = createSlice({
     }
 });
 
+export const { loginSuccess, logout, clearError } = authSlice.actions;
 export default authSlice.reducer;
 

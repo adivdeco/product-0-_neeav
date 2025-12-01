@@ -48,7 +48,8 @@ import { useSocket } from './hooks/useSocket';
 import ShopOwnerDashboard from './components/ShopOwnerDashboard';
 import UserBuyRequestsDashboard from './components/UserBuyRequestsDashboard';
 import EmployeeBuyDashboard from './components/EmployeeBuyDashbord';
-
+import SocketStatus from './components/SocketStatus';
+import SocketDebug from './components/SocketDebug';
 
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -59,94 +60,109 @@ const LoadingSpinner = () => (
 
 function App() {
   const dispatch = useDispatch();
-  const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
-
-
-
+  const { user, isAuthenticated, loading, token } = useSelector((state) => state.auth);
   const socketService = useSocket();
+
+
+
 
   useEffect(() => {
     dispatch(checkAuth());
   }, [dispatch]);
 
+  useEffect(() => {
+    if (isAuthenticated && user && token) {
+      // console.log('🏪 App: User authenticated, connecting socket...');
+
+      // Connect socket after a short delay to ensure token is set
+      const connectTimer = setTimeout(() => {
+        socketService.connect();
+      }, 1000);
+
+      return () => {
+        clearTimeout(connectTimer);
+      };
+    } else {
+      // console.log('🔌 App: Disconnecting socket - not authenticated');
+      socketService.disconnect();
+    }
+  }, [isAuthenticated, user, token, socketService]);
+
   if (loading) {
     return <LoadingSpinner />;
   }
 
-  // useEffect(() => {
-  //   if (isAuthenticated && user) {
-  //     SocketService.connect();
-  //   } else {
-  //     SocketService.disconnect();
-  //   }
 
-  //   return () => {
-  //     // SocketService.disconnect();
-  //   };
-  // }, [isAuthenticated, user]);
 
 
   return (
 
 
+    <>
+      <Routes>
+        {/* <Route path="/" element={<Main1 />} /> */}
+        <Route path="/" element={isAuthenticated ? <Homepg /> : <Login />} />
 
-    <Routes>
-      {/* <Route path="/" element={<Main1 />} /> */}
-      <Route path="/" element={isAuthenticated ? <Homepg /> : <Login />} />
+        <Route
+          path="/register"
+          element={
+            isAuthenticated ? <Homepg /> : <Register />
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            isAuthenticated ? <Homepg /> : <Navigate to="/register" />
+          }
+        />
+        <Route path='/localShop' element={isAuthenticated ? <LocalShop /> : <Login />} />
 
-      <Route
-        path="/register"
-        element={
-          isAuthenticated ? <Homepg /> : <Register />
-        }
-      />
-      <Route
-        path="/dashboard"
-        element={
-          isAuthenticated ? <Homepg /> : <Navigate to="/register" />
-        }
-      />
-      <Route path='/localShop' element={isAuthenticated ? <LocalShop /> : <Login />} />
+        <Route path='/Services' element={isAuthenticated ? <Services /> : <Login />} />
+        <Route path="/contractor/:id" element={isAuthenticated ? <ContractorProfile /> : <Login />} />
 
-      <Route path='/Services' element={isAuthenticated ? <Services /> : <Login />} />
-      <Route path="/contractor/:id" element={isAuthenticated ? <ContractorProfile /> : <Login />} />
+        <Route path='/Planning_tools' element={isAuthenticated ? <Ai_tools /> : <Login />} />
+        <Route path='/Material_market' element={isAuthenticated ? <Material_market /> : <Login />} />
+        <Route path='/product/:productId' element={isAuthenticated ? <ProductDetail /> : <Login />} />
 
-      <Route path='/Planning_tools' element={isAuthenticated ? <Ai_tools /> : <Login />} />
-      <Route path='/Material_market' element={isAuthenticated ? <Material_market /> : <Login />} />
-      <Route path='/product/:productId' element={isAuthenticated ? <ProductDetail /> : <Login />} />
-
-      <Route path='/addShop' element={isAuthenticated ? <Add_shop /> : <Login />} />
-      <Route path='/addServices' element={isAuthenticated ? <Add_services /> : <Login />} />
-      <Route path='/business' element={isAuthenticated ? <Business /> : <Login />} />
-      {/* shop */}
-      {/* test */}
-      <Route path='/shop' element={isAuthenticated ? <ShopHome /> : <Login />} />
-      <Route path='/shop/addBill' element={isAuthenticated ? <AddBill /> : <Login />} />
-      <Route path='/shop/allCustomers' element={isAuthenticated ? <AllCustomers /> : <Login />} />
-      <Route path='/shop/allBills' element={isAuthenticated ? <AllBill /> : <Login />} />
-      <Route path='/addProducts' element={isAuthenticated ? < ProductAddPage /> : <Login />} />
-      <Route path='/allProduct' element={isAuthenticated ? <ProductManagement /> : <Login />} />
-      <Route path="/edit-product/:productId" element={isAuthenticated ? <EditProduct /> : <Login />} />
+        <Route path='/addShop' element={isAuthenticated ? <Add_shop /> : <Login />} />
+        <Route path='/addServices' element={isAuthenticated ? <Add_services /> : <Login />} />
+        <Route path='/business' element={isAuthenticated ? <Business /> : <Login />} />
+        {/* shop */}
+        {/* test */}
+        <Route path='/shop' element={isAuthenticated ? <ShopHome /> : <Login />} />
+        <Route path='/shop/addBill' element={isAuthenticated ? <AddBill /> : <Login />} />
+        <Route path='/shop/allCustomers' element={isAuthenticated ? <AllCustomers /> : <Login />} />
+        <Route path='/shop/allBills' element={isAuthenticated ? <AllBill /> : <Login />} />
+        <Route path='/addProducts' element={isAuthenticated ? < ProductAddPage /> : <Login />} />
+        <Route path='/allProduct' element={isAuthenticated ? <ProductManagement /> : <Login />} />
+        <Route path="/edit-product/:productId" element={isAuthenticated ? <EditProduct /> : <Login />} />
 
 
-      {/* userPage */}
-      {/* <Route path='/admin/user' element={isAuthenticated ? <UserHome /> : <Login />} /> */}
-      <Route path='/admin/user/allusers' element={isAuthenticated ? <AllUsers /> : <Login />} />
-      {/* <Route path='/admin/shop' */}
+        {/* userPage */}
+        {/* <Route path='/admin/user' element={isAuthenticated ? <UserHome /> : <Login />} /> */}
+        <Route path='/admin/user/allusers' element={isAuthenticated ? <AllUsers /> : <Login />} />
+        {/* <Route path='/admin/shop' */}
 
-      {/* updates */}
-      <Route path='/setting/user' element={isAuthenticated ? <UserProfileUpdate /> : <Login />} />
-      <Route path='/setting/shop' element={isAuthenticated ? <ShopProfileUpdate /> : <Login />} />
-      <Route path='/setting/Contractor' element={isAuthenticated ? <ContractorProfileUpdate /> : <Login />} />
+        {/* updates */}
+        <Route path='/setting/user' element={isAuthenticated ? <UserProfileUpdate /> : <Login />} />
+        <Route path='/setting/shop' element={isAuthenticated ? <ShopProfileUpdate /> : <Login />} />
+        <Route path='/setting/Contractor' element={isAuthenticated ? <ContractorProfileUpdate /> : <Login />} />
 
-      {/* dashbord- Notofaction */}
-      <Route path="/contractor/dashboard" element={<ContractorDashboard />} />
-      <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
-      <Route path='/employee/buy/dashboard' element={isAuthenticated ? <EmployeeBuyDashboard /> : <Login />} />
-      <Route path="/shop-owner/dashboard" element={<ShopOwnerDashboard />} />
-      <Route path="/my-requests" element={isAuthenticated ? <UserDashboard /> : <Login />} />
-      <Route path='/my-Orders' element={isAuthenticated ? <UserBuyRequestsDashboard /> : <Login />} />
-    </Routes>
+        {/* dashbord- Notofaction */}
+        <Route path="/contractor/dashboard" element={<ContractorDashboard />} />
+        <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
+        <Route path='/employee/buy/dashboard' element={isAuthenticated ? <EmployeeBuyDashboard /> : <Login />} />
+        <Route path="/shop-owner/dashboard" element={isAuthenticated ? <ShopOwnerDashboard /> : <Login />} />
+        <Route path="/my-requests" element={isAuthenticated ? <UserDashboard /> : <Login />} />
+        <Route path='/my-Orders' element={isAuthenticated ? <UserBuyRequestsDashboard /> : <Login />} />
+
+      </Routes>
+
+      {/* <SocketStatus /> */}
+      <SocketDebug />
+
+    </>
+
 
   );
 }

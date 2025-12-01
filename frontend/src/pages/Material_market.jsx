@@ -104,21 +104,21 @@ const ProductListing = () => {
         toast.success(`${product.name} added to cart!`);
     };
 
-    const buyNow = async (product) => {
-        try {
-            const response = await axiosClient.post('/buy-requests', {
-                productId: product._id,
-                quantity: 1, // Default to 1 in listing
-                message: `I want to buy ${product.name}`,
-                paymentMethod: 'cash_on_delivery'
-            });
+    // const buyNow = async (product) => {
+    //     try {
+    //         const response = await axiosClient.post('/buy-requests', {
+    //             productId: product._id,
+    //             quantity: 1, // Default to 1 in listing
+    //             message: `I want to buy ${product.name}`,
+    //             paymentMethod: 'cash_on_delivery'
+    //         });
 
-            toast.success('Buy request sent to seller!');
-        } catch (error) {
-            console.error('Error sending buy request:', error);
-            toast.error(error.response?.data?.message || 'Failed to send buy request');
-        }
-    };
+    //         toast.success('Buy request sent to seller!');
+    //     } catch (error) {
+    //         console.error('Error sending buy request:', error);
+    //         toast.error(error.response?.data?.message || 'Failed to send buy request');
+    //     }
+    // };
 
     const getStockStatusColor = (stock, minStockLevel) => {
         if (stock === 0) return 'text-red-600 bg-red-50';
@@ -350,7 +350,7 @@ const ProductListing = () => {
                                                         Add to Cart
                                                     </button>
                                                     <button
-                                                        onClick={() => buyNow(product)}
+                                                        // onClick={() => buyNow(product)}
                                                         disabled={product.stock === 0}
                                                         className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
                                                     >

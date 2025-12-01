@@ -70,6 +70,23 @@ const userBuyRequestSlice = createSlice({
                 request.status = status;
                 if (actualDelivery) request.actualDelivery = actualDelivery;
             }
+        },
+        // ✅ NEW: Handle order shipped event
+        orderShipped: (state, action) => {
+            const { requestId } = action.payload;
+            const request = state.userBuyRequests.find(req => req._id === requestId);
+            if (request) {
+                request.status = 'shipped';
+            }
+        },
+        // ✅ NEW: Handle order delivered event
+        orderDelivered: (state, action) => {
+            const { requestId, actualDelivery } = action.payload;
+            const request = state.userBuyRequests.find(req => req._id === requestId);
+            if (request) {
+                request.status = 'completed';
+                if (actualDelivery) request.actualDelivery = actualDelivery;
+            }
         }
     },
     extraReducers: (builder) => {
@@ -112,5 +129,5 @@ const userBuyRequestSlice = createSlice({
     }
 });
 
-export const { clearError, updateBuyRequestStatus } = userBuyRequestSlice.actions;
+export const { clearError, updateBuyRequestStatus, orderShipped, orderDelivered } = userBuyRequestSlice.actions;
 export default userBuyRequestSlice.reducer;

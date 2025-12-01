@@ -137,7 +137,8 @@ const ShopOwnerDashboard = () => {
             pending: {
                 color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
                 text: 'Pending Review',
-                icon: '⏰'
+                icon: '⏰',
+
             },
             accepted: {
                 color: 'bg-green-100 text-green-800 border-green-200',

@@ -1,4 +1,6 @@
-// HomeDesignVisualizer.jsx
+// house blue print
+
+
 import React, { useState, useRef } from 'react';
 
 const HomeDesignVisualizer = () => {

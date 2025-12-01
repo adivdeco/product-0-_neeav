@@ -14,7 +14,7 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
         const userId = req.finduser._id;
         const { productId, quantity, message, shippingAddress, paymentMethod, saveAddress } = req.body;
 
-        console.log('📦 Buy request received:', { productId, quantity, userId });
+        // console.log('📦 Buy request received:', { productId, quantity, userId });
 
         if (!productId || !quantity) {
             return res.status(400).json({ message: 'Product ID and quantity are required' });
@@ -95,18 +95,24 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
 
         // Real-time notification to shop owner
         try {
+            // console.log('🔔 Attempting real-time notification to shop owner:', shop.ownerId._id);
+
+            // Get all connected store owners in the room
+            global.io.to('store_owners').emit('new_buy_request', {
+                buyRequest: populatedRequest,
+                notification: {
+                    _id: notification._id,
+                    title: 'New Purchase Request',
+                    message: `You have a new purchase request for ${quantity} ${product.name}`,
+                    type: 'buy_request',
+                    isRead: false,
+                    createdAt: new Date()
+                }
+            });
+
+            // Also send to specific shop owner if connected
             const shopOwnerSocketId = global.users.get(shop.ownerId._id.toString());
-            console.log('🔍 Shop owner socket ID:', shopOwnerSocketId);
-
-            if (shopOwnerSocketId && global.io) {
-                global.io.to(shopOwnerSocketId).emit('new_buy_request', {
-                    buyRequest: populatedRequest,
-                    notification: {
-                        title: 'New Purchase Request',
-                        message: `New purchase request for ${product.name}`
-                    }
-                });
-
+            if (shopOwnerSocketId) {
                 global.io.to(shopOwnerSocketId).emit('new_notification', {
                     notification,
                     unreadCount: await Notification.countDocuments({
@@ -115,8 +121,10 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
                     })
                 });
             }
+
+            // console.log('📤 Real-time notifications sent successfully');
         } catch (socketError) {
-            console.error('Socket emission error:', socketError);
+            console.error('❌ Socket emission error:', socketError);
         }
 
         res.status(201).json({
@@ -365,12 +373,29 @@ BuyRequestRouter.put('/:id/ship', authMiddleware, async (req, res) => {
         // Real-time notification to user
         const userSocketId = global.users.get(buyRequest.user._id.toString());
         if (userSocketId && global.io) {
+            // Send specific event
             global.io.to(userSocketId).emit('order_shipped', {
                 buyRequest,
                 notification: {
                     title: 'Order Shipped',
                     message: `Your order for ${buyRequest.product.name} is on its way!`
                 }
+            });
+
+            // ✅ ALSO send new_notification event for Redux to pick up
+            global.io.to(userSocketId).emit('new_notification', {
+                notification: {
+                    _id: notification._id,
+                    title: 'Order Shipped',
+                    message: `Your order for ${buyRequest.product.name} has been shipped!`,
+                    type: 'order_shipped',
+                    isRead: false,
+                    createdAt: new Date()
+                },
+                unreadCount: await Notification.countDocuments({
+                    user: buyRequest.user._id,
+                    isRead: false
+                })
             });
         }
 
@@ -418,12 +443,29 @@ BuyRequestRouter.put('/:id/complete', authMiddleware, async (req, res) => {
         // Real-time notification to user
         const userSocketId = global.users.get(buyRequest.user._id.toString());
         if (userSocketId && global.io) {
+            // Send specific event
             global.io.to(userSocketId).emit('order_delivered', {
                 buyRequest,
                 notification: {
                     title: 'Order Delivered',
                     message: `Your order for ${buyRequest.product.name} has been delivered!`
                 }
+            });
+
+            // ✅ ALSO send new_notification event
+            global.io.to(userSocketId).emit('new_notification', {
+                notification: {
+                    _id: notification._id,
+                    title: 'Order Delivered',
+                    message: `Your order for ${buyRequest.product.name} has been delivered!`,
+                    type: 'order_delivered',
+                    isRead: false,
+                    createdAt: new Date()
+                },
+                unreadCount: await Notification.countDocuments({
+                    user: buyRequest.user._id,
+                    isRead: false
+                })
             });
         }
 
@@ -489,12 +531,29 @@ BuyRequestRouter.put('/:id/cancel', authMiddleware, async (req, res) => {
         // Real-time notification to shop owner
         const shopOwnerSocketId = global.users.get(buyRequest.shopOwner._id.toString());
         if (shopOwnerSocketId && global.io) {
+            // Send specific event
             global.io.to(shopOwnerSocketId).emit('buy_request_cancelled', {
                 buyRequest,
                 notification: {
                     title: 'Purchase Cancelled',
                     message: `Purchase request for ${buyRequest.product?.name || 'product'} was cancelled`
                 }
+            });
+
+            // ✅ ALSO send new_notification event
+            global.io.to(shopOwnerSocketId).emit('new_notification', {
+                notification: {
+                    _id: notification._id,
+                    title: 'Purchase Request Cancelled',
+                    message: `Purchase request for ${buyRequest.product?.name || 'product'} has been cancelled`,
+                    type: 'status_updated',
+                    isRead: false,
+                    createdAt: new Date()
+                },
+                unreadCount: await Notification.countDocuments({
+                    user: buyRequest.shopOwner._id,
+                    isRead: false
+                })
             });
         }
 

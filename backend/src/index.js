@@ -213,21 +213,94 @@ global.io = io;
 // JWT middleware for socket.io with enhanced error handling
 const jwt = require('jsonwebtoken');
 
+// io.use((socket, next) => {
+//     try {
+//         console.log('🔐 Socket connection attempt from:', socket.handshake.address);
+
+//         // Try multiple ways to get token
+//         let token = socket.handshake.auth?.token;
+
+//         // If not in auth, check cookies
+//         if (!token && socket.handshake.headers.cookie) {
+//             const cookies = socket.handshake.headers.cookie.split(';');
+//             const tokenCookie = cookies.find(cookie =>
+//                 cookie.trim().startsWith('token=')
+//             );
+//             if (tokenCookie) {
+//                 token = tokenCookie.split('=')[1]?.trim();
+//             }
+//         }
+
+//         // If still no token, check authorization header
+//         if (!token && socket.handshake.headers.authorization) {
+//             const authHeader = socket.handshake.headers.authorization;
+//             if (authHeader.startsWith('Bearer ')) {
+//                 token = authHeader.substring(7);
+//             }
+//         }
+
+//         if (!token) {
+//             console.log('❌ No token provided for socket connection');
+//             return next(new Error('Authentication required. Please log in again.'));
+//         }
+
+//         // Verify token
+//         const decoded = jwt.verify(token, "secretkey");
+
+//         if (!decoded.userId) {
+//             console.log('❌ Invalid token payload: missing userId');
+//             return next(new Error('Invalid token format'));
+//         }
+
+//         socket.userId = decoded.userId;
+//         socket.userRole = decoded.role;
+//         socket.userEmail = decoded.email;
+
+//         console.log('✅ Socket authenticated for user:', {
+//             userId: socket.userId,
+//             role: socket.userRole,
+//             email: socket.userEmail
+//         });
+
+//         next();
+//     } catch (error) {
+//         console.error('🔐 Socket authentication error:', {
+//             name: error.name,
+//             message: error.message,
+//             expiredAt: error.expiredAt
+//         });
+
+//         let errorMessage = 'Authentication failed';
+
+//         if (error.name === 'TokenExpiredError') {
+//             errorMessage = 'Token expired. Please log in again.';
+//         } else if (error.name === 'JsonWebTokenError') {
+//             errorMessage = 'Invalid token. Please log in again.';
+//         }
+
+//         next(new Error(errorMessage));
+//     }
+// });
+
+// Socket connection handler
+
 io.use((socket, next) => {
     try {
-        console.log('🔐 Socket connection attempt from:', socket.handshake.address);
+        // console.log('🔐 Socket connection attempt from:', socket.handshake.address);
+        // console.log('📋 Headers:', socket.handshake.headers);
+        // console.log('🔑 Auth:', socket.handshake.auth);
 
-        // Try multiple ways to get token
         let token = socket.handshake.auth?.token;
 
-        // If not in auth, check cookies
+        // If not in auth, check cookies more robustly
         if (!token && socket.handshake.headers.cookie) {
             const cookies = socket.handshake.headers.cookie.split(';');
-            const tokenCookie = cookies.find(cookie =>
-                cookie.trim().startsWith('token=')
-            );
-            if (tokenCookie) {
-                token = tokenCookie.split('=')[1]?.trim();
+            for (let cookie of cookies) {
+                const trimmed = cookie.trim();
+                if (trimmed.startsWith('token=')) {
+                    token = trimmed.substring(6);
+                    break;
+                }
             }
         }
 
@@ -239,9 +312,11 @@ io.use((socket, next) => {
             }
         }
 
+        // console.log('🔍 Extracted token:', token ? 'Yes' : 'No');
+
         if (!token) {
             console.log('❌ No token provided for socket connection');
-            return next(new Error('Authentication required. Please log in again.'));
+            return next(new Error('Authentication required'));
         }
 
         // Verify token
@@ -264,25 +339,19 @@ io.use((socket, next) => {
 
         next();
     } catch (error) {
-        console.error('🔐 Socket authentication error:', {
-            name: error.name,
-            message: error.message,
-            expiredAt: error.expiredAt
-        });
+        console.error('🔐 Socket authentication error:', error.message);
 
         let errorMessage = 'Authentication failed';
-
         if (error.name === 'TokenExpiredError') {
-            errorMessage = 'Token expired. Please log in again.';
+            errorMessage = 'Token expired';
         } else if (error.name === 'JsonWebTokenError') {
-            errorMessage = 'Invalid token. Please log in again.';
+            errorMessage = 'Invalid token';
         }
 
         next(new Error(errorMessage));
     }
 });
 
-// Socket connection handler
 io.on('connection', (socket) => {
     console.log('✅ Socket connected:', {
         socketId: socket.id,
@@ -317,21 +386,21 @@ io.on('connection', (socket) => {
             role: socket.userRole
         });
 
-        console.log('📊 Current connected users:', global.users.size);
+        // console.log('📊 Current connected users:', global.users.size);
     }
 
     // Handle custom room joining
     socket.on('join_room', (roomId) => {
         if (roomId && typeof roomId === 'string') {
             socket.join(roomId);
-            console.log(`🔗 User ${socket.userId} joined room: ${roomId}`);
+            // console.log(`🔗 User ${socket.userId} joined room: ${roomId}`);
         }
     });
 
     socket.on('leave_room', (roomId) => {
         if (roomId && typeof roomId === 'string') {
             socket.leave(roomId);
-            console.log(`🚪 User ${socket.userId} left room: ${roomId}`);
+            // console.log(`🚪 User ${socket.userId} left room: ${roomId}`);
         }
     });
 

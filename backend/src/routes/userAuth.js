@@ -52,6 +52,8 @@ authRouter.get('/check-session', authMiddleware, async (req, res) => {
     // });
     const _id = req.finduser._id
     const user = req.finduser
+    const token = req.cookies.token;
+
 
     if (!_id) {
         return res.json({ message: "loginFailed" })
@@ -59,7 +61,9 @@ authRouter.get('/check-session', authMiddleware, async (req, res) => {
         // const user = await User.findById(_id).select(-"password")
         res.status(200).json({
             message: "valid user",
-            user
+            user,
+            token
+
         })
     }
 
