@@ -137,32 +137,32 @@ const ShopOwnerDashboard = () => {
     const getStatusBadge = (status) => {
         const statusConfig = {
             pending: {
-                color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                color: 'bg-yellow-400 text-yellow-800 border-yellow-200',
                 text: 'Pending Review',
                 icon: '⏰'
             },
             accepted: {
-                color: 'bg-green-100 text-green-800 border-green-200',
+                color: 'bg-green-400 text-green-800 border-green-200',
                 text: 'Accepted',
                 icon: '✅'
             },
             shipped: {
-                color: 'bg-blue-100 text-blue-800 border-blue-200',
+                color: 'bg-blue-400 text-blue-800 border-blue-200',
                 text: 'Shipped',
                 icon: '🚚'
             },
             completed: {
-                color: 'bg-purple-100 text-purple-800 border-purple-200',
+                color: 'bg-purple-400 text-purple-800 border-purple-200',
                 text: 'Delivered',
                 icon: '🎉'
             },
             rejected: {
-                color: 'bg-red-100 text-red-800 border-red-200',
+                color: 'bg-red-400 text-red-800 border-red-200',
                 text: 'Rejected',
                 icon: '❌'
             },
             cancelled: {
-                color: 'bg-gray-100 text-gray-800 border-gray-200',
+                color: 'bg-gray-400 text-gray-800 border-gray-200',
                 text: 'Cancelled',
                 icon: '🚫'
             }
@@ -170,18 +170,15 @@ const ShopOwnerDashboard = () => {
 
         const config = statusConfig[status] || statusConfig.pending;
 
-        return {
-            component: (
-                <span className={`${config.color} px-3 py-1 rounded-full text-xs font-semibold border inline-flex items-center`}>
-                    <span className="mr-1">{config.icon}</span>
-                    {config.text}
-                </span>
-            ),
-            icon: config.icon,
-            color: config.color,
-            text: config.text
-        };
-    };
+        return (
+
+            <span className={`${config.color} px-3 py-1 rounded-full text-xs font-semibold border inline-flex items-center`}>
+                <span className="mr-1">{config.icon}</span>
+                {config.text}
+            </span>
+        )
+
+    }
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-IN', {
@@ -464,11 +461,11 @@ const ShopOwnerDashboard = () => {
                                                             alt={request.product?.name}
                                                             className="w-16 h-16 object-cover rounded-lg border-2 border-white shadow-sm"
                                                         />
-                                                        <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border-2 border-white flex items-center justify-center shadow-sm">
+                                                        {/* <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border-2 border-white flex items-center justify-center shadow-sm">
                                                             <span className="text-xs font-bold">
-                                                                {getStatusBadge(request.status).icon}
+                                                                {getStatusBadge(request.status)}
                                                             </span>
-                                                        </div>
+                                                        </div> */}
                                                     </div>
                                                     <div className="flex-1">
                                                         <div className="flex items-start justify-between">
