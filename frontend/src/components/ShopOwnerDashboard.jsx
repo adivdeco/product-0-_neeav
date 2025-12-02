@@ -133,13 +133,13 @@ const ShopOwnerDashboard = () => {
         }
     };
 
+    // Helper function for status badges
     const getStatusBadge = (status) => {
         const statusConfig = {
             pending: {
                 color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
                 text: 'Pending Review',
-                icon: '⏰',
-
+                icon: '⏰'
             },
             accepted: {
                 color: 'bg-green-100 text-green-800 border-green-200',
@@ -169,12 +169,18 @@ const ShopOwnerDashboard = () => {
         };
 
         const config = statusConfig[status] || statusConfig.pending;
-        return (
-            <span className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 border ${config.color}`}>
-                <span>{config.icon}</span>
-                {config.text}
-            </span>
-        );
+
+        return {
+            component: (
+                <span className={`${config.color} px-3 py-1 rounded-full text-xs font-semibold border inline-flex items-center`}>
+                    <span className="mr-1">{config.icon}</span>
+                    {config.text}
+                </span>
+            ),
+            icon: config.icon,
+            color: config.color,
+            text: config.text
+        };
     };
 
     const formatCurrency = (amount) => {
