@@ -50,9 +50,26 @@ const notificationSlice = createSlice({
         error: null
     },
     reducers: {
+        // addNotification: (state, action) => {
+        //     state.notifications.unshift(action.payload);
+        //     state.unreadCount += 1;
+        // },
         addNotification: (state, action) => {
-            state.notifications.unshift(action.payload);
-            state.unreadCount += 1;
+            // Check if notification already exists
+            const existingIndex = state.notifications.findIndex(
+                n => n._id === action.payload._id
+            );
+
+            if (existingIndex === -1) {
+                // Add new notification
+                state.notifications.unshift(action.payload);
+                if (!action.payload.isRead) {
+                    state.unreadCount += 1;
+                }
+            } else {
+                // Update existing notification
+                state.notifications[existingIndex] = action.payload;
+            }
         },
         setUnreadCount: (state, action) => {
             state.unreadCount = action.payload;
@@ -84,5 +101,5 @@ const notificationSlice = createSlice({
     }
 });
 
-export const { addNotification, setUnreadCount, clearNotifications } = notificationSlice.actions;
+export const { addNotification, setUnreadCount, clearNotifications, } = notificationSlice.actions;
 export default notificationSlice.reducer;

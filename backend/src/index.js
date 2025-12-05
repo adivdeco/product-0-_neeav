@@ -386,7 +386,7 @@ io.on('connection', (socket) => {
             role: socket.userRole
         });
 
-        // console.log('📊 Current connected users:', global.users.size);
+        console.log('📊 Current connected users:', global.users.size);
     }
 
     // Handle custom room joining

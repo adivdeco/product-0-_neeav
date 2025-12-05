@@ -1,39 +1,59 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { getNotifications, markAsRead, markAllAsRead } from '../../redux/slice/notificationSlice';
+import { getNotifications, markAsRead, markAllAsRead, addNotification, setUnreadCount } from '../../redux/slice/notificationSlice';
 import { PiBellRingingFill } from "react-icons/pi";
-import SocketService from '../../utils/socket'; // Import socket
+import SocketService from '../../utils/socket';
 import {
     Bell,
     CheckCircle,
     XCircle,
     Clock,
-    AlertCircle,
     ShoppingCart,
     Truck,
     Package,
     Star,
     CheckCircle2,
-    MessageSquare,
-    Wrench,
-    Building
+    Wrench
 } from 'lucide-react';
-import { useNavigate } from 'react-router';
 
 const NotificationBell = () => {
     const dispatch = useDispatch();
-    const navigate = useNavigate();
     const { notifications, unreadCount } = useSelector((state) => state.notifications);
+    const [newNotification, setNewNotification] = useState(null);
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
     useEffect(() => {
         dispatch(getNotifications({ page: 1, unreadOnly: false }));
+    }, [dispatch]);
 
+    useEffect(() => {
         // Listen for real-time notifications
         const handleNewNotification = (data) => {
             console.log('🔔 Real-time notification in bell:', data);
-            dispatch(getNotifications({ page: 1, unreadOnly: false }));
+
+            if (data.notification) {
+                // Check if notification already exists before adding
+                const existingNotification = notifications.find(
+                    n => n._id === data.notification._id
+                );
+
+                if (!existingNotification) {
+                    // Add to Redux only if it doesn't exist
+                    dispatch(addNotification(data.notification));
+
+                    // Show visual feedback
+                    setNewNotification(data.notification);
+                    setTimeout(() => setNewNotification(null), 3000);
+                } else {
+                    console.log('⚠️ Duplicate notification skipped:', data.notification._id);
+                }
+
+                // Update unread count
+                if (data.unreadCount !== undefined) {
+                    dispatch(setUnreadCount(data.unreadCount));
+                }
+            }
         };
 
         if (SocketService.socket) {
@@ -45,8 +65,7 @@ const NotificationBell = () => {
                 SocketService.socket.off('new_notification', handleNewNotification);
             }
         };
-
-    }, [dispatch]);
+    }, [dispatch, notifications]); // Added notifications dependency
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -120,6 +139,17 @@ const NotificationBell = () => {
         }
     };
 
+    // Get unique notifications by _id to prevent duplicates
+    const uniqueNotifications = notifications.reduce((acc, current) => {
+        const isDuplicate = acc.find(item => item._id === current._id);
+        if (!isDuplicate) {
+            acc.push(current);
+        } else {
+            console.log('🔄 Removing duplicate notification:', current._id);
+        }
+        return acc;
+    }, []);
+
     return (
         <div className="relative" ref={dropdownRef}>
             {/* Bell Icon */}
@@ -129,8 +159,13 @@ const NotificationBell = () => {
             >
                 <PiBellRingingFill className='text-yellow-400 text-2xl ' />
 
+                {/* Pulse animation for new notifications */}
+                {newNotification && (
+                    <span className="absolute inset-0 animate-ping bg-yellow-400 rounded-full opacity-75"></span>
+                )}
+
                 {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center animate-bounce ">
+                    <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center animate-bounce">
                         {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                 )}
@@ -139,7 +174,7 @@ const NotificationBell = () => {
             {/* Dropdown */}
             {isOpen && (
                 <div className="absolute -left-54 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-200 z-50">
-                    {/* header */}
+                    {/* Header */}
                     <div className="p-4 border-b border-gray-200">
                         <div className="flex justify-between items-center">
                             <div>
@@ -149,7 +184,8 @@ const NotificationBell = () => {
                                         {unreadCount} unread {unreadCount === 1 ? 'notification' : 'notifications'}
                                     </p>
                                 )}
-                            </div>                            {unreadCount > 0 && (
+                            </div>
+                            {unreadCount > 0 && (
                                 <button
                                     onClick={handleMarkAllAsRead}
                                     className="text-sm text-blue-600 hover:text-blue-800"
@@ -161,44 +197,41 @@ const NotificationBell = () => {
                     </div>
 
                     <div className="max-h-96 overflow-y-auto">
-                        {notifications.length === 0 ? (
+                        {uniqueNotifications.length === 0 ? (
                             <div className="flex flex-col items-center justify-center p-8 text-gray-500">
                                 <Bell className="w-12 h-12 text-gray-300 mb-3" />
                                 <p className="font-medium">No notifications</p>
                                 <p className="text-sm mt-1">We'll notify you when something arrives</p>
                             </div>
                         ) : (
-                            notifications.slice(0, 10).map((notification) => (
+                            uniqueNotifications.slice(0, 10).map((notification) => (
                                 <div
-                                    key={notification._id}
+                                    key={`${notification._id}-${notification.createdAt}`} // Added timestamp to key
                                     className={`p-4 border-l-4 ${getPriorityColor(notification.priority)} ${!notification.isRead ? 'bg-blue-50' : 'hover:bg-gray-50'
                                         } transition-colors`}
                                 >
                                     <div className="flex gap-3">
                                         <span className="text-lg">{getNotificationIcon(notification.type)}</span>
                                         <div className="flex-1">
-
                                             <div className="flex justify-between items-start">
                                                 <h4 className={`font-medium ${!notification.isRead ? 'text-gray-900' : 'text-gray-600'}`}>
                                                     {notification.title}
                                                 </h4>
                                                 {!notification.isRead && (
                                                     <button
-                                                        onClick={() => handleMarkAsRead(notification._id)}
+                                                        onClick={(e) => handleMarkAsRead(notification._id, e)}
                                                         className="text-xs text-blue-600 hover:text-blue-800"
                                                     >
                                                         Mark read
                                                     </button>
                                                 )}
                                             </div>
-
                                             <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
                                             <p className="text-xs text-gray-400 mt-2 flex justify-between">
-                                                <span className="text-xs text-gray-400">
+                                                <span>
                                                     {formatTime(notification.createdAt)}
                                                 </span>
-                                                <span>{new Date(notification.createdAt).toLocaleDateString()} </span>
-
+                                                <span>{new Date(notification.createdAt).toLocaleDateString()}</span>
                                             </p>
                                             {notification.actionRequired && !notification.isRead && (
                                                 <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full border border-orange-200">
@@ -212,7 +245,7 @@ const NotificationBell = () => {
                         )}
                     </div>
 
-                    {notifications.length > 0 && (
+                    {uniqueNotifications.length > 0 && (
                         <div className="p-3 border-t border-gray-200">
                             <button
                                 onClick={() => {/* Navigate to full notifications page */ }}

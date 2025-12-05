@@ -108,6 +108,8 @@ const workRequestSlice = createSlice({
     name: 'workRequests',
     initialState: {
         contractorRequests: [],
+        userRequests: [], // ADD THIS
+        userPagination: {},
         loading: false,
         error: null,
         pagination: {
@@ -121,13 +123,45 @@ const workRequestSlice = createSlice({
             state.error = null;
         },
         addRealTimeRequest: (state, action) => {
-            state.contractorRequests.unshift(action.payload);
+            if (!state.contractorRequests.find(req => req._id === action.payload._id)) {
+                state.contractorRequests.unshift(action.payload);
+            }
         },
         updateRequestStatus: (state, action) => {
             const { requestId, status } = action.payload;
-            const request = state.contractorRequests.find(req => req._id === requestId);
+
+            // Update in contractor requests
+            const contractorRequest = state.contractorRequests.find(req => req._id === requestId);
+            if (contractorRequest) {
+                contractorRequest.status = status;
+            }
+
+            // Update in user requests
+            const userRequest = state.userRequests?.find(req => req._id === requestId);
+            if (userRequest) {
+                userRequest.status = status;
+            }
+        },
+        addToUserRequests: (state, action) => {
+            if (!state.userRequests) {
+                state.userRequests = [];
+            }
+            if (!state.userRequests.find(req => req._id === action.payload._id)) {
+                state.userRequests.unshift(action.payload);
+            }
+        },
+        updateUserRequestStatus: (state, action) => {
+            const { requestId, status } = action.payload;
+            const request = state.userRequests?.find(req => req._id === requestId);
             if (request) {
                 request.status = status;
+            }
+        },
+        // ✅ NEW: Handle new work request event from socket
+        handleNewWorkRequest: (state, action) => {
+            const workRequest = action.payload;
+            if (!state.contractorRequests.find(req => req._id === workRequest._id)) {
+                state.contractorRequests.unshift(workRequest);
             }
         }
     },
@@ -210,5 +244,5 @@ const workRequestSlice = createSlice({
     }
 });
 
-export const { clearError, addRealTimeRequest, updateRequestStatus } = workRequestSlice.actions;
+export const { clearError, addRealTimeRequest, updateRequestStatus, addToUserRequests, updateUserRequestStatus, handleNewWorkRequest } = workRequestSlice.actions;
 export default workRequestSlice.reducer;
