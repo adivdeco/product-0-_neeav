@@ -1,89 +1,15 @@
 const express = require('express');
-// const User = require('../models/userSchema.js')
-const { registerUser, loginUser, logOutUser, allUsers, updateUser, deleteUser, updateContractorServices, updateShopData, updateUserProfile, getShopProfile, getContractorProfile } = require('../controllers/userAuthent.js');
-const User = require('../models/userSchema.js');
-const Product = require('../models/productSchema')
-const authMiddleware = require('../middleware/authMiddleware.js')
-const adminMiddleware = require('../middleware/adminMiddleware.js')
+const cartRouter = express.Router();
+const authMiddleware = require('../middleware/authMiddleware');
+const Product = require('../models/productSchema');
+const User = require('../models/userSchema');
 
-const authRouter = express.Router();
-
-
-authRouter.post('/register', registerUser)
-authRouter.post('/login', loginUser)
-authRouter.post('/logout', authMiddleware, logOutUser)
-
-authRouter.get('/all_users', adminMiddleware, allUsers)
-authRouter.put('/update_user/:id', adminMiddleware, updateUser)
-authRouter.delete('/delete_user/:id', adminMiddleware, deleteUser)
-
-// User routes
-authRouter.put('/profile', authMiddleware, updateUserProfile);  // done
-
-authRouter.get('/Shop_profile', authMiddleware, getShopProfile);  // done
-authRouter.put('/shop/data', authMiddleware, updateShopData);   // done
-
-authRouter.get('/Contractor_Profile', authMiddleware, getContractorProfile); // done
-authRouter.put('/contractor/services', authMiddleware, updateContractorServices);  // done
-
-
-authRouter.get('/check-session', authMiddleware, async (req, res) => {
-
-    // const sessionID = req.sessionID
-    // if (req.sessionID && req.session.userId) {
-    //     const user = await User.findById(req.session.userId).select("-password");
-    //     return res.json({ success: true, isLoggedIn: true, user, sessionID });
-    // } else {
-    //     return res.json({ success: true, isLoggedIn: false, message: "no cokkies saved" });
-    // }
-    //     const reply = {
-    //         name: req.finduser.name,
-    //         email: req.finduser.email,
-    //         _id: req.finduser._id,
-    //         role: req.finduser.role,
-    //     };
-
-    //     console.log(reply);
-
-
-    //     res.status(200).json({
-    //         message: "valid user",
-    //         user: reply
-    //     })
-    // });
-    const _id = req.finduser._id
-    const user = req.finduser
-    const token = req.cookies.token;
-
-
-    if (!_id) {
-        return res.json({ message: "loginFailed" })
-    } else {
-        // const user = await User.findById(_id).select(-"password")
-        res.status(200).json({
-            message: "valid user",
-            user,
-            token
-
-        })
-    }
-
-});
-
-authRouter.get('/cart', authMiddleware, async (req, res) => {
+// Get cart
+cartRouter.get('/', authMiddleware, async (req, res) => {
     try {
-        const userId = req.finduser._id;
-        const user = await User.findById(userId)
-            .populate({
-                path: 'cart.productId',
-                select: 'name price ProductImage stock unit category rating images',
-                populate: {
-                    path: 'shopId',
-                    select: 'shopName rating'
-                }
-            });
-
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        const user = await User.findById(req.finduser._id)
+            .populate('cart.productId', 'name price ProductImage stock unit category')
+            .select('cart');
 
         // Calculate totals and check stock
         const cartItems = user.cart.map(item => {
@@ -92,13 +18,10 @@ authRouter.get('/cart', authMiddleware, async (req, res) => {
                 productId: product._id,
                 name: product.name,
                 price: product.price,
-                image: product.ProductImage || (product.images?.[0]?.url),
+                image: product.ProductImage,
                 stock: product.stock,
                 unit: product.unit,
                 category: product.category,
-                rating: product.rating,
-                shopId: product.shopId?._id,
-                shopName: product.shopId?.shopName,
                 quantity: item.quantity,
                 subtotal: product.price * item.quantity,
                 inStock: item.quantity <= product.stock
@@ -119,7 +42,8 @@ authRouter.get('/cart', authMiddleware, async (req, res) => {
     }
 });
 
-authRouter.post('/cart/add', authMiddleware, async (req, res) => {
+// Add to cart
+cartRouter.post('/add', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
         const { productId, quantity } = req.body;
@@ -187,7 +111,8 @@ authRouter.post('/cart/add', authMiddleware, async (req, res) => {
     }
 });
 
-authRouter.put('/cart/update/:productId', authMiddleware, async (req, res) => {
+// Update cart item quantity
+cartRouter.put('/update/:productId', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
         const { productId } = req.params;
@@ -237,7 +162,8 @@ authRouter.put('/cart/update/:productId', authMiddleware, async (req, res) => {
     }
 });
 
-authRouter.delete('/cart/remove/:productId', authMiddleware, async (req, res) => {
+// Remove from cart
+cartRouter.delete('/remove/:productId', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
         const { productId } = req.params;
@@ -249,12 +175,9 @@ authRouter.delete('/cart/remove/:productId', authMiddleware, async (req, res) =>
 
         await user.save();
 
-        // Get updated cart count
-        const cartCount = user.cart.reduce((total, item) => total + item.quantity, 0);
-
         res.json({
             message: 'Product removed from cart',
-            cartCount
+            cartCount: user.cart.length
         });
 
     } catch (error) {
@@ -262,7 +185,8 @@ authRouter.delete('/cart/remove/:productId', authMiddleware, async (req, res) =>
     }
 });
 
-authRouter.delete('/cart/clear', authMiddleware, async (req, res) => {
+// Clear cart
+cartRouter.delete('/clear', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
         const user = await User.findById(userId);
@@ -277,4 +201,4 @@ authRouter.delete('/cart/clear', authMiddleware, async (req, res) => {
     }
 });
 
-module.exports = authRouter;
+module.exports = cartRouter;

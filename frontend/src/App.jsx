@@ -50,11 +50,51 @@ import UserBuyRequestsDashboard from './components/UserBuyRequestsDashboard';
 import EmployeeBuyDashboard from './components/EmployeeBuyDashbord';
 import SocketStatus from './components/SocketStatus';
 import SocketDebug from './components/SocketDebug';
+import Cart from './pages/Cart';
+import { fetchCart } from './redux/slice/cartSlice';
+
 
 const LoadingSpinner = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-    <span className="ml-3 text-gray-600">Checking authentication...</span>
+  <div className="min-h-screen">
+    {/* <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div> */}
+    <div className="animate-pulse">
+
+      {/* Hero text */}
+      <div className="mt-36 flex flex-col items-center gap-4">
+        <div className="h-8 w-60 bg-gray-200 rounded"></div>
+        <div className="h-8 w-80 bg-gray-200 rounded"></div>
+        <div className="h-4 w-96 bg-gray-200 rounded mt-2"></div>
+        {/* <div className="h-4 w-72 bg-gray-200 rounded"></div> */}
+      </div>
+
+      {/* Search Bar Skeleton */}
+      <div className="mt-26 flex justify-center gap-4">
+        <div className="h-10 w-[400px] bg-gray-200 rounded-2xl shadow"></div>
+        <div className="h-10 w-[400px] bg-gray-200 rounded-2xl shadow"></div>
+
+      </div>
+
+      {/* Feature Cards */}
+      <div className="mt-10 flex justify-center gap-6">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="w-64 h-40 bg-gray-200 rounded-2xl shadow"
+          ></div>
+        ))}
+      </div>
+
+      {/* Section Title */}
+      <div className="mt-14 flex justify-center">
+        <div className="h-6 w-80 bg-gray-200 rounded"></div>
+      </div>
+
+      {/* Big Banner Skeleton */}
+      <div className="mt-6 flex justify-center">
+        <div className="h-48 w-[90%] bg-gray-200 rounded-2xl shadow"></div>
+      </div>
+
+    </div>
   </div>
 );
 
@@ -69,6 +109,12 @@ function App() {
   useEffect(() => {
     dispatch(checkAuth());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchCart());
+    }
+  }, [dispatch, user]);
 
   useEffect(() => {
     if (isAuthenticated && user && token) {
@@ -91,8 +137,6 @@ function App() {
   if (loading) {
     return <LoadingSpinner />;
   }
-
-
 
 
   return (
@@ -155,6 +199,7 @@ function App() {
         <Route path="/shop-owner/dashboard" element={isAuthenticated ? <ShopOwnerDashboard /> : <Login />} />
         <Route path="/my-requests" element={isAuthenticated ? <UserDashboard /> : <Login />} />
         <Route path='/my-Orders' element={isAuthenticated ? <UserBuyRequestsDashboard /> : <Login />} />
+        <Route path="/cart" element={isAuthenticated ? <Cart /> : <Login />} />
 
       </Routes>
 

@@ -107,7 +107,7 @@ ownRouter.delete('/contractors/:id', adminMiddleware, deleteContractor);    // D
 
 ownRouter.post('/:id/reviews', authMiddleware, async (req, res) => {
     try {
-        const usrId = req.finduser?.userId;
+        const usrId = req.finduser?._id;
         if (!usrId) {
             return res.status(401).json({ message: 'Authentication required to add review' });
         }

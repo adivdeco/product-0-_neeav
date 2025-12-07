@@ -81,7 +81,27 @@ const productSchema = new Schema({
     },
     rating: {
         average: { type: Number, default: 0, min: 0, max: 5 },
-        count: { type: Number, default: 0 }
+        count: { type: Number, default: 0 },
+        reviews: [{
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            rating: {
+                type: Number,
+                min: 1,
+                max: 5
+            },
+            comment: {
+                type: String,
+                required: true,
+                maxlength: 500
+            },
+            createdAt: {
+                type: Date,
+                default: Date.now
+            }
+        }]
     },
 
     shipping: {

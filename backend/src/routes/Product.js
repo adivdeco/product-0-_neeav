@@ -682,5 +682,118 @@ ProductRouter.get('/public/products/:productId', async (req, res) => {
     }
 });
 
+// POST /products/:id/reviews
+ProductRouter.post('/:id/reviews', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.finduser._id;
+        const productId = req.params.id;
+        const { rating, comment, images } = req.body;
+
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        // Check if user already reviewed this product
+        const existingReviewIndex = product.rating.reviews.findIndex(
+            review => review.userId.toString() === userId.toString()
+        );
+
+        if (existingReviewIndex >= 0) {
+            return res.status(400).json({ message: 'You have already reviewed this product' });
+        }
+
+        // Check if user has purchased this product (optional validation)
+        // const hasPurchased = await Order.exists({
+        //     userId,
+        //     'items.productId': productId,
+        //     status: 'completed'
+        // });
+        // if (!hasPurchased) {
+        //     return res.status(403).json({ message: 'You must purchase this product before reviewing' });
+        // }
+
+        // Create new review
+        const newReview = {
+            userId,
+            rating: Math.min(5, Math.max(1, parseInt(rating))),
+            comment: comment.trim(),
+            images: images || [],
+            createdAt: new Date()
+        };
+
+        product.rating.reviews.push(newReview);
+
+        // Recalculate average rating
+        const totalRating = product.rating.reviews.reduce((sum, review) => sum + review.rating, 0);
+        product.rating.average = +(totalRating / product.rating.reviews.length).toFixed(2);
+        product.rating.count = product.rating.reviews.length;
+
+        await product.save();
+
+        // Populate user info
+        await product.populate('rating.reviews.userId', 'name email avatar');
+
+        const savedReview = product.rating.reviews[product.rating.reviews.length - 1];
+
+        res.status(201).json({
+            message: 'Review added successfully',
+            review: savedReview,
+            averageRating: product.rating.average,
+            totalReviews: product.rating.count
+        });
+
+    } catch (error) {
+        console.error('Add review error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// DELETE /products/:id/reviews/:reviewId
+ProductRouter.delete('/:id/reviews/:reviewId', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.finduser._id;
+        const { id: productId, reviewId } = req.params;
+
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        // Find review index
+        const reviewIndex = product.rating.reviews.findIndex(
+            review => review._id.toString() === reviewId && review.userId.toString() === userId.toString()
+        );
+
+        if (reviewIndex === -1) {
+            return res.status(404).json({ message: 'Review not found or unauthorized' });
+        }
+
+        // Remove review
+        product.rating.reviews.splice(reviewIndex, 1);
+
+        // Recalculate average
+        if (product.rating.reviews.length > 0) {
+            const totalRating = product.rating.reviews.reduce((sum, review) => sum + review.rating, 0);
+            product.rating.average = +(totalRating / product.rating.reviews.length).toFixed(2);
+            product.rating.count = product.rating.reviews.length;
+        } else {
+            product.rating.average = 0;
+            product.rating.count = 0;
+        }
+
+        await product.save();
+
+        res.json({
+            message: 'Review deleted successfully',
+            averageRating: product.rating.average,
+            totalReviews: product.rating.count
+        });
+
+    } catch (error) {
+        console.error('Delete review error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
 
 module.exports = ProductRouter;

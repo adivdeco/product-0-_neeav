@@ -4,6 +4,7 @@ import workRequestReducer from '../slice/workRequestSlice';
 import notificationReducer from '../slice/notificationSlice';
 import buyRequestReducer from '../slice/buyRequestSlice';
 import userBuyRequestReducer from '../slice/userBuyRequestSlice';
+import cartReducer from '../slice/cartSlice';
 
 export const store = configureStore({
     reducer: {
@@ -12,5 +13,7 @@ export const store = configureStore({
         notifications: notificationReducer,
         buyRequests: buyRequestReducer,
         userBuyRequests: userBuyRequestReducer,
+        cart: cartReducer,
+
     },
 });
