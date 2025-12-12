@@ -1368,89 +1368,88 @@ const ProductDetail = () => {
                             </ul>
                         )}
 
-                        {/* Compact Tabs System (The requested small filter part) */}
-                        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                            <div className="flex border-b border-gray-100 bg-gray-50/50">
-                                {['description', 'specifications', 'delivery'].map((tab) => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => setActiveTab(tab)}
-                                        className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide transition-colors ${activeTab === tab
-                                            ? 'text-blue-600 bg-white border-b-2 border-blue-600 shadow-sm'
-                                            : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100/50'
-                                            }`}
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <div className="p-5 max-h-[300px] overflow-y-auto custom-scrollbar">
-                                <AnimatePresence mode="wait">
-                                    <motion.div
-                                        key={activeTab}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="text-sm leading-relaxed text-gray-600"
-                                    >
-                                        {activeTab === 'description' && (
-                                            <div className="space-y-4">
-                                                <p>{product.description}</p>
-                                                {product.sku && <p className="text-xs text-gray-400 font-mono">SKU: {product.sku}</p>}
-                                            </div>
-                                        )}
-                                        {activeTab === 'specifications' && (
-                                            <div className="space-y-2">
-                                                {product.specifications ? (
-                                                    Object.entries(product.specifications).map(([key, value]) => (
-                                                        <div key={key} className="flex justify-between border-b border-gray-50 pb-2">
-                                                            <span className="font-medium text-gray-700 capitalize">{key.replace(/([A-Z])/g, ' $1')}</span>
-                                                            <span className="text-gray-900">{value}</span>
-                                                        </div>
-                                                    ))
-                                                ) : (
-                                                    // Fallbacks
-                                                    <>
-                                                        {product.unit && <div className="flex justify-between border-b border-gray-50 pb-1"><span>Unit</span><span className="font-semibold text-gray-800">{product.unit}</span></div>}
-                                                        {product.weight && <div className="flex justify-between border-b border-gray-50 pb-1"><span>Weight</span><span className="font-semibold text-gray-800">{product.weight}</span></div>}
-                                                    </>
-                                                )}
-                                            </div>
-                                        )}
-                                        {activeTab === 'delivery' && (
-                                            <div className="space-y-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-blue-50 text-blue-600 rounded-full"><Truck className="w-5 h-5" /></div>
-                                                    <div>
-                                                        <div className="font-bold text-gray-900">{product.shipping?.isFree ? 'Free Shipping' : `₹${product.shipping?.cost}`}</div>
-                                                        <div className="text-xs">Est. {product.shipping?.estimatedDays || '3-5 business days'}</div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-purple-50 text-purple-600 rounded-full"><Shield className="w-5 h-5" /></div>
-                                                    <div>
-                                                        <div className="font-bold text-gray-900">{product.warranty?.period || '1 Year Warranty'}</div>
-                                                        <div className="text-xs">Comprehensive coverage</div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-orange-50 text-orange-600 rounded-full"><RefreshCw className="w-5 h-5" /></div>
-                                                    <div>
-                                                        <div className="font-bold text-gray-900">7 Day Returns</div>
-                                                        <div className="text-xs">No questions asked</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                </AnimatePresence>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="flex border-b border-gray-100 bg-gray-50/50">
+                        {['description', 'specifications', 'delivery'].map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide transition-colors ${activeTab === tab
+                                    ? 'text-blue-600 bg-white border-b-2 border-blue-600 shadow-sm'
+                                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100/50'
+                                    }`}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="p-5 max-h-[300px] overflow-y-auto custom-scrollbar">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={activeTab}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                                className="text-sm leading-relaxed text-gray-600"
+                            >
+                                {activeTab === 'description' && (
+                                    <div className="space-y-4">
+                                        <p>{product.description}</p>
+                                        {product.sku && <p className="text-xs text-gray-400 font-mono">SKU: {product.sku}</p>}
+                                    </div>
+                                )}
+                                {activeTab === 'specifications' && (
+                                    <div className="space-y-2">
+                                        {product.specifications ? (
+                                            Object.entries(product.specifications).map(([key, value]) => (
+                                                <div key={key} className="flex justify-between border-b border-gray-50 pb-2">
+                                                    <span className="font-medium text-gray-700 capitalize">{key.replace(/([A-Z])/g, ' $1')}</span>
+                                                    <span className="text-gray-900">{value}</span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            // Fallbacks
+                                            <>
+                                                {product.unit && <div className="flex justify-between border-b border-gray-50 pb-1"><span>Unit</span><span className="font-semibold text-gray-800">{product.unit}</span></div>}
+                                                {product.weight && <div className="flex justify-between border-b border-gray-50 pb-1"><span>Weight</span><span className="font-semibold text-gray-800">{product.weight}</span></div>}
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                                {activeTab === 'delivery' && (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-blue-50 text-blue-600 rounded-full"><Truck className="w-5 h-5" /></div>
+                                            <div>
+                                                <div className="font-bold text-gray-900">{product.shipping?.isFree ? 'Free Shipping' : `₹${product.shipping?.cost}`}</div>
+                                                <div className="text-xs">Est. {product.shipping?.estimatedDays || '3-5 business days'}</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-purple-50 text-purple-600 rounded-full"><Shield className="w-5 h-5" /></div>
+                                            <div>
+                                                <div className="font-bold text-gray-900">{product.warranty?.period || '1 Year Warranty'}</div>
+                                                <div className="text-xs">Comprehensive coverage</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-orange-50 text-orange-600 rounded-full"><RefreshCw className="w-5 h-5" /></div>
+                                            <div>
+                                                <div className="font-bold text-gray-900">7 Day Returns</div>
+                                                <div className="text-xs">No questions asked</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+                </div>
                 {/* Professional Ratings Section */}
                 <div className="mt-20">
                     <div className="flex flex-col md:flex-row items-end justify-between mb-8 gap-4 border-b border-gray-200 pb-4">
