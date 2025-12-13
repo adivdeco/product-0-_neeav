@@ -3,7 +3,6 @@ import { FaHardHat, FaHammer, FaTruck, FaTools } from 'react-icons/fa';
 import { IoSearchSharp, IoConstruct } from 'react-icons/io5';
 import { GiBrickWall, GiMetalBar, GiNails, GiConcreteBag } from 'react-icons/gi';
 import { MdCarpenter, MdPlumbing, MdElectricalServices } from 'react-icons/md';
-import { FaLocationArrow } from 'react-icons/fa6';
 
 const AnimatedSearchBar = ({ user, isProfileIncomplete, navigate }) => {
     const [placeholder, setPlaceholder] = useState('');
@@ -95,22 +94,7 @@ const AnimatedSearchBar = ({ user, isProfileIncomplete, navigate }) => {
     return (
         <div className="max-w-4xl mx-auto bg-gradient-to-r from-white to-gray-50 p-2 rounded-2xl shadow-2xl ring-1 ring-gray-200/50 backdrop-blur-sm transform transition-all duration-300 hover:shadow-3xl">
             <div className="flex flex-col md:flex-row gap-3 items-center">
-                {/* Location */}
-                <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 bg-gradient-to-r from-blue-50 to-white rounded-xl border-2 border-blue-100 transition-all duration-300 hover:border-blue-300 hover:shadow-md group">
-                    <div className="relative">
-                        <FaLocationArrow className="text-blue-600 text-xl mr-2 group-hover:scale-110 transition-transform duration-300" />
-                        <div className="absolute -top-1 right-1 w-2 h-2 bg-yellow-400/60 rounded-full animate-ping opacity-75"></div>
-                    </div>
-                    <input
-                        type="text"
-                        placeholder={
-                            user?.address?.street
-                                ? `${user.address.street}, ${user.address.city}, ${user.address.state}`
-                                : "📍 Enter your location"
-                        }
-                        className="bg-transparent w-full focus:outline-none text-gray-800 placeholder-gray-500 font-medium text-sm md:text-base"
-                    />
-                </div>
+
 
                 {/* Search Service */}
                 <div className="flex-[1.5] w-full md:w-auto flex items-center px-4 py-3 bg-gradient-to-r from-gray-50 to-white rounded-xl border-2 border-gray-100 transition-all duration-300 hover:border-gray-300 hover:shadow-md group">
@@ -122,15 +106,19 @@ const AnimatedSearchBar = ({ user, isProfileIncomplete, navigate }) => {
                         <input
                             type="text"
                             onKeyPress={handleKeyPress}
+                            placeholder={placeholder || "Search services..."}
+                            // autoFocus
+                            autoComplete="off"
+                            spellCheck="true"
                             ref={placeholderRef}
                             className="bg-transparent w-full focus:outline-none text-gray-800 font-medium text-sm md:text-base pr-8"
                         />
-                        <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
+                        {/* <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
                             <span className="text-gray-400">
                                 {placeholder}
                                 <span className="ml-1 inline-block w-[2px] h-5 bg-blue-500 animate-pulse"></span>
                             </span>
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* Quick Category Selector */}

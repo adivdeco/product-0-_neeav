@@ -1,9 +1,11 @@
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../../authSlice";
 import { useState, useRef, useEffect } from "react";
-import { LogOut, Settings, Bell, User, Briefcase, Building, Wrench, BarChart3, Shield, Users, ClipboardList, ShoppingBag, ShoppingCart, ChevronDown, HandHelping, Smartphone } from "lucide-react";
+import { LogOut, Settings, Bell, User, Briefcase, Building, Wrench, BarChart3, Shield, Users, ClipboardList, ShoppingBag, ShoppingCart, ChevronDown, HandHelping, Smartphone, Coins } from "lucide-react";
 import NotificationBell from "./NotificationBell";
 import { useNavigate } from "react-router";
+import { FaLocationArrow } from "react-icons/fa6";
+import { PiCoinVerticalDuotone, } from "react-icons/pi";
 
 function Navbar() {
     const dispatch = useDispatch();
@@ -106,21 +108,23 @@ function Navbar() {
 
     return (
         <header className="bg-white/95 backdrop-blur-md border-b border-gray-200/80 sticky top-0 z-50 shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
+            <div className="max-w-7xl  mx-auto px-4 sm:px-6 lg:px-8">
+
+                <div className="flex items-center justify-between md:h-14 h-12">
                     {/* Logo Section */}
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">N</span>
+                            <div className="w-11 h-11  rounded-lg flex items-center justify-center">
+                                {/* <span className="text-white font-bold text-sm">N</span> */}
+                                <img src="/Logo.svg" alt="" srcset="" />
                             </div>
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-800 to-purple-700 bg-clip-text text-transparent leading-none">
-                                Neerman
+                            <h1 className="text-2xl -ml-2 mt-2 font-bold bg-gradient-to-r from-blue-800 to-purple-700 bg-clip-text text-transparent leading-none">
+                                eerman
                             </h1>
                         </div>
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full border border-blue-200 font-medium">
+                        {/* <span className="text-xs bg-blue-100 text-blue-800 px-1 mb-3 -ml-3  rounded-full border border-blue-200 font-medium">
                             Beta
-                        </span>
+                        </span> */}
                     </div>
 
                     {/* Desktop Navigation */}
@@ -473,6 +477,30 @@ function Navbar() {
                         </div>
                     </div>
                 </div>
+
+                {/* Location Bar */}
+                <div className=" flex gap-4  py-1.5 ">
+                    <div className="flex-1 w-full md:w-auto flex items-center px-3  md:py-1.5 bg-gradient-to-r from-blue-50 to-white rounded-xl border-2 border-blue-100 transition-all duration-300 hover:border-blue-300 hover:shadow-md group">
+                        <div className="relative">
+                            <FaLocationArrow className="text-blue-600 text-lg mr-2 group-hover:scale-110 transition-transform duration-300" />
+                            <div className="absolute -top-1 right-0 w-2 h-2 bg-yellow-400/60 rounded-full animate-ping opacity-75"></div>
+                        </div>
+                        <input
+                            type="text"
+                            placeholder={
+                                user?.address?.street
+                                    ? `${user.address.street}, ${user.address.city}, ${user.address.state}`
+                                    : "📍 Enter your location"
+                            }
+                            className="bg-transparent w-full focus:outline-none text-gray-800 placeholder-gray-500 font-medium text-sm md:text-base"
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-center px-1   bg-gradient-to-br from-yellow-300 to-yellow-50 rounded-xl border-2 border-yellow-200 transition-all duration-300 hover:border-yellow-300 hover:shadow-md group cursor-pointer">
+                        <PiCoinVerticalDuotone className="text-yellow-700 text-xl group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                </div>
+
             </div>
         </header>
     );

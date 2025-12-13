@@ -107,6 +107,8 @@ export default function Homepg() {
         <div className="min-h-screen bg-gray-50 font-sans">
             <Navbar className="z-50 relative bg-white/90 backdrop-blur-md shadow-sm" />
 
+
+
             {/* Profile Completion Banner - Sleeker Design */}
             {isProfileIncomplete && (
                 <div className="bg-yellow-50 border-b border-yellow-100 px-4 py-3">
