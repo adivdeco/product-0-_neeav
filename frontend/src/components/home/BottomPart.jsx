@@ -3,20 +3,33 @@ import {
     Home,
     ClipboardList,
     ShoppingBag,
-    User,
+    Brain,
     ShoppingCart
 } from "lucide-react";
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from "react-router";
 
 const BottomPart = () => {
-    const [activeTab, setActiveTab] = useState('home');
-        const { totalItems: cartCount } = useSelector((state) => state.cart);
-
-
+    // const [activeTab, setActiveTab] = useState('home');
+    const { totalItems: cartCount } = useSelector((state) => state.cart);
     const navigate = useNavigate();
-        const dispatch = useDispatch();
-    
+    const location = useLocation();
+
+    // const dispatch = useDispatch();
+    const getActiveTab = () => {
+        const pathToIdMap = {
+            '/': 'home',
+            '/Services': 'services',
+            '/Material_market': 'buy',
+            '/Planning_tools': 'ai',
+            '/cart': 'cart'
+        };
+
+        return pathToIdMap[location.pathname] || 'home';
+    };
+
+    const activeTab = getActiveTab();
+
 
     const navItems = [
         {
@@ -47,10 +60,10 @@ const BottomPart = () => {
             glowColor: 'shadow-emerald-200'
         },
         {
-            id: 'account',
-            label: 'Account',
-            icon: User,
-            path: '/setting/user',
+            id: 'ai',
+            label: 'AI Tools',
+            icon: Brain,
+            path: '/Planning_tools',
             activeColor: 'text-amber-600',
             bgColor: 'bg-amber-50',
             glowColor: 'shadow-amber-200'
@@ -68,7 +81,7 @@ const BottomPart = () => {
     ];
 
     const handleNavigation = (id, path) => {
-        setActiveTab(id);
+        // setActiveTab(id);
         navigate(path);
         console.log(`Navigating to: ${path}`);
     };

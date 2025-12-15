@@ -116,7 +116,7 @@ function Navbar() {
                         <div className="flex items-center gap-2">
                             <div className="w-11 h-11  rounded-lg flex items-center justify-center">
                                 {/* <span className="text-white font-bold text-sm">N</span> */}
-                                <img src="/Logo.svg" alt="" srcset="" />
+                                <img src="/Logo.svg" alt="" />
                             </div>
                             <h1 className="text-2xl -ml-2 mt-2 font-bold bg-gradient-to-r from-blue-800 to-purple-700 bg-clip-text text-transparent leading-none">
                                 eerman

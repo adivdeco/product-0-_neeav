@@ -1,16 +1,23 @@
-
 import { useDispatch, useSelector } from "react-redux";
-// import { FaLocationDot, FaStore, FaRobot, FaRightFromBracket } from "react-icons/fa6";
 import { FaLocationDot, FaStore, FaRobot, FaHammer, FaArrowRight, FaLock } from "react-icons/fa6";
 import { MdDesignServices, MdEmail, MdVerified } from "react-icons/md";
-// import { MdDesignServices } from "react-icons/md";
-import { IoSearchSharp } from "react-icons/io5";
 import Navbar from "../components/home/navbar";
 import { useNavigate } from "react-router";
-import NotificationSubscribeButton from '../components/NotificationSubscribeButton';
 import { Phone } from "lucide-react";
 import AnimatedSearchBar from "../components/home/AnimatedSearchBar";
 import BottomPart from "../components/home/BottomPart";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { useState, useEffect } from "react";
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
+
+import "./swiper.css";
+
+import { Autoplay, Pagination, Navigation } from 'swiper/modules';
+
 
 const heroBgImage = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3";
 const imgLocalStore = "https://res.cloudinary.com/djupaqjuz/image/upload/v1765559027/Gemini_Generated_Image_o1jfko1jfko1jfko_xbcaxx.png";
@@ -23,7 +30,19 @@ export default function Homepg() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { user, isAuthenticated, loading, error } = useSelector((state) => state.auth);
+    const [isMobile, setIsMobile] = useState(false);
 
+    // Check if device is mobile
+    useEffect(() => {
+        const checkIfMobile = () => {
+            setIsMobile(window.innerWidth <= 768);
+        };
+
+        checkIfMobile();
+        window.addEventListener('resize', checkIfMobile);
+
+        return () => window.removeEventListener('resize', checkIfMobile);
+    }, []);
 
     const calculateCompletion = () => {
         if (!user) return 0;
@@ -48,8 +67,6 @@ export default function Homepg() {
 
 
     const handleFeatureClick = (link) => {
-        // const completion = calculateCompletion();
-
         if (isProfileIncomplete) {
             navigate("/setting/user");
             return;
@@ -76,7 +93,6 @@ export default function Homepg() {
             image: imgContractor,
             link: "/Services",
             cta: "Find Experts"
-
         },
         {
             id: 3,
@@ -86,7 +102,6 @@ export default function Homepg() {
             image: imgAiTools,
             link: "/Planning_tools",
             cta: "Start Designing"
-
         },
         {
             id: 4,
@@ -96,18 +111,14 @@ export default function Homepg() {
             image: imgMaterials,
             link: "/Material_market",
             cta: "Shop Materials"
-
         }
     ];
-    // console.log(user);
 
 
     return (
         <div>
             <div className="min-h-screen bg-gray-50 font-sans">
                 <Navbar className="z-50 relative bg-white/90 backdrop-blur-md shadow-sm" />
-
-
 
                 {/* Profile Completion Banner - Sleeker Design */}
                 {isProfileIncomplete && (
@@ -158,42 +169,7 @@ export default function Homepg() {
                         </p>
 
                         {/* Modern Search Bar */}
-                        <div className="max-w-4xl mx-auto bg-white  rounded-2xl shadow-2xl ring-1 ring-gray-200/50 backdrop-blur-sm">
-                            {/* <div className="flex flex-col md:flex-row gap-2 items-center">
-                           
-                           <div className="flex-1 w-full md:w-auto flex items-center px-4 py-4 bg-gray-50 rounded-xl border-b md:border-b-0 md:border-r border-gray-200">
-                                <FaLocationDot className="text-blue-500 text-xl mr-3" />
-                                <input
-                                    type="text"
-                                    placeholder={user.address?.street ? `${user.address.street},${user.address.city}, ${user.address.state}` : "Enter your location"}
-                                    className="bg-transparent w-full focus:outline-none text-gray-800 placeholder-gray-400 font-medium"
-                                />
-                            </div>
-
-                            <div className="flex-[1.5] w-full md:w-auto flex items-center px-4 py-4 bg-gray-50 rounded-xl">
-                                <IoSearchSharp className="text-gray-400 text-xl mr-3" />
-                                <input
-                                    type="text"
-                                    placeholder="What do you need help with?"
-                                    className="bg-transparent w-full focus:outline-none text-gray-800 placeholder-gray-400 font-medium"
-                                />
-                            </div>
-
-                            <button
-                                onClick={() => {
-                                    if (isProfileIncomplete) {
-                                        navigate("/setting/user");
-                                    } else {
-                                        // Handle search
-                                    }
-                                }}
-                                className="w-full md:w-auto bg-blue-600 text-white px-10 py-4 rounded-xl hover:bg-blue-700 transition duration-200 font-bold text-lg shadow-md flex items-center justify-center"
-                            >
-                                Search
-                            </button>
-
-                           
-                        </div> */}
+                        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl ring-1 ring-gray-200/50 backdrop-blur-sm">
                             <AnimatedSearchBar
                                 user={user}
                                 isProfileIncomplete={isProfileIncomplete}
@@ -203,71 +179,152 @@ export default function Homepg() {
                     </div>
                 </section>
 
-                {/* Main Categories Section (Overlapping the Hero slightly for depth) */}
-                <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mt-16 mb-20">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {features.map((feature) => (
-                            <div
-                                key={feature.id}
-                                onClick={() => handleFeatureClick(feature.link)}
-                                className="group cursor-pointer rounded-2xl overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative h-full flex flex-col"
+                {/* Main Categories Section */}
+                <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mt-10 mb-30">
+                    {/* <h2 className="text-3xl font-bold text-gray-900 mb-10 text-center">Our Services</h2> */}
+
+                    {isMobile ? (
+                        // Mobile: Swiper Slider - Show only ONE slide at a time
+                        <div className="features-swiper-container">
+                            <Swiper
+                                spaceBetween={20}
+                                slidesPerView={1} // Show only one slide
+                                // Remove centeredSlides if you want strict one-at-a-time
+                                centeredSlides={false}
+                                loop={true} // Optional: makes it infinite
+                                autoplay={{
+                                    delay: 3500,
+                                    disableOnInteraction: false,
+                                }}
+                                pagination={{
+                                    clickable: true,
+                                    dynamicBullets: true,
+                                }}
+                                modules={[Autoplay, Pagination, Navigation]}
+                                className="mySwiper"
                             >
-                                {/* Image Container */}
-                                <div className="relative h-48 overflow-hidden">
-                                    <img
-                                        src={feature.image}
-                                        alt={feature.title}
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70"></div>
-                                    <div className="absolute top-4 left-4 bg-white/90 p-2 rounded-lg text-blue-600 shadow-sm">
-                                        {feature.icon}
-                                    </div>
-                                </div>
+                                {features.map((feature) => (
+                                    <SwiperSlide key={feature.id}>
+                                        <div
+                                            onClick={() => handleFeatureClick(feature.link)}
+                                            className="group cursor-pointer rounded-2xl overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300 relative h-full flex flex-col"
+                                            style={{ margin: '0 10px' }} // Add margin on sides
+                                        >
+                                            {/* Image Container */}
+                                            <div className="relative h-56 overflow-hidden">
+                                                <img
+                                                    src={feature.image}
+                                                    alt={feature.title}
+                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70"></div>
+                                                <div className="absolute top-4 left-4 bg-white/90 p-3 rounded-lg text-blue-600 shadow-sm">
+                                                    {feature.icon}
+                                                </div>
+                                            </div>
 
-                                {/* Content Container */}
-                                <div className="p-6 flex flex-col flex-grow">
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center justify-between">
-                                        {feature.title}
-                                    </h3>
-                                    <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow">
-                                        {feature.description}
-                                    </p>
-                                    <div className="flex items-center text-blue-600 font-semibold text-sm group-hover:underline">
-                                        {feature.cta} <FaArrowRight className="ml-2 text-xs group-hover:translate-x-1 transition-transform" />
-                                    </div>
-                                </div>
+                                            {/* Content Container */}
+                                            <div className="p-6 flex flex-col flex-grow">
+                                                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                                                    {feature.title}
+                                                </h3>
+                                                <p className="text-gray-600 text-base leading-relaxed mb-6 flex-grow">
+                                                    {feature.description}
+                                                </p>
+                                                <div className="flex items-center text-blue-600 font-semibold text-base group-hover:underline">
+                                                    {feature.cta} <FaArrowRight className="ml-2 text-sm group-hover:translate-x-1 transition-transform" />
+                                                </div>
+                                            </div>
 
-                                {/* Lock Overlay if incomplete */}
-                                {isProfileIncomplete && (
-                                    <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-white transition-opacity duration-300">
-                                        <div className="bg-white/20 p-4 rounded-full mb-4">
-                                            <FaLock size={24} />
+                                            {/* Lock Overlay if incomplete */}
+                                            {isProfileIncomplete && (
+                                                <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-white transition-opacity duration-300">
+                                                    <div className="bg-white/20 p-4 rounded-full mb-4">
+                                                        <FaLock size={24} />
+                                                    </div>
+                                                    <p className="font-bold text-lg mb-2">Access Locked</p>
+                                                    <p className="text-sm text-center text-gray-200 mb-4">Complete your profile to unlock this feature.</p>
+                                                    <span className="text-xs bg-blue-500/80 px-3 py-1 rounded-full">
+                                                        {completionPercentage}% Complete
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
-                                        <p className="font-bold text-lg mb-2">Access Locked</p>
-                                        <p className="text-sm text-center text-gray-200 mb-4">Complete your profile to unlock this feature.</p>
-                                        <span className="text-xs bg-blue-500/80 px-3 py-1 rounded-full">
-                                            {completionPercentage}% Complete
-                                        </span>
+                                    </SwiperSlide>
+                                ))}
+                            </Swiper>
+                        </div>
+                    ) : (
+                        // Desktop: Grid Layout
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {features.map((feature) => (
+                                <div
+                                    key={feature.id}
+                                    onClick={() => handleFeatureClick(feature.link)}
+                                    className="group cursor-pointer rounded-2xl overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative h-full flex flex-col"
+                                >
+                                    {/* Image Container */}
+                                    <div className="relative h-48 overflow-hidden">
+                                        <img
+                                            src={feature.image}
+                                            alt={feature.title}
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70"></div>
+                                        <div className="absolute top-4 left-4 bg-white/90 p-2 rounded-lg text-blue-600 shadow-sm">
+                                            {feature.icon}
+                                        </div>
                                     </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
+
+                                    {/* Content Container */}
+                                    <div className="p-6 flex flex-col flex-grow">
+                                        <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center justify-between">
+                                            {feature.title}
+                                        </h3>
+                                        <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow">
+                                            {feature.description}
+                                        </p>
+                                        <div className="flex items-center text-blue-600 font-semibold text-sm group-hover:underline">
+                                            {feature.cta} <FaArrowRight className="ml-2 text-xs group-hover:translate-x-1 transition-transform" />
+                                        </div>
+                                    </div>
+
+                                    {/* Lock Overlay if incomplete */}
+                                    {isProfileIncomplete && (
+                                        <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-white transition-opacity duration-300">
+                                            <div className="bg-white/20 p-4 rounded-full mb-4">
+                                                <FaLock size={24} />
+                                            </div>
+                                            <p className="font-bold text-lg mb-2">Access Locked</p>
+                                            <p className="text-sm text-center text-gray-200 mb-4">Complete your profile to unlock this feature.</p>
+                                            <span className="text-xs bg-blue-500/80 px-3 py-1 rounded-full">
+                                                {completionPercentage}% Complete
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </section>
 
-                {/* Trust/Verification Banner (E-commerce style) */}
+
+
                 <section className="bg-white py-8 border-y border-gray-100 mb-16">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap justify-center md:justify-between items-center gap-6 text-gray-600 text-sm font-medium">
-                        <div className="flex items-center gap-2"><MdVerified className="text-blue-500 text-xl" /> Verified Local Pros</div>
-                        <div className="flex items-center gap-2"><MdVerified className="text-green-500 text-xl" /> Secure Material Transactions</div>
-                        <div className="flex items-center gap-2"><MdVerified className="text-purple-500 text-xl" /> AI-Powered Cost Estimates</div>
-                        <div className="flex items-center gap-2"><MdVerified className="text-orange-500 text-xl" /> 24/7 Customer Support</div>
-                    </div>
+                    <marquee
+
+                    >
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-nowrap items-center gap-8 text-gray-600 text-sm font-medium">
+                            <div className="flex items-center gap-2 whitespace-nowrap"><MdVerified className="text-blue-500 text-xl" /> Verified Local Pros</div>
+                            <div className="flex items-center gap-2 whitespace-nowrap"><MdVerified className="text-green-500 text-xl" /> Secure Material Transactions</div>
+                            <div className="flex items-center gap-2 whitespace-nowrap"><MdVerified className="text-purple-500 text-xl" /> AI-Powered Cost Estimates</div>
+                            <div className="flex items-center gap-2 whitespace-nowrap"><MdVerified className="text-orange-500 text-xl" /> 24/7 Customer Support</div>
+
+                        </div>
+                    </marquee>
                 </section>
 
-
-                {/* Promotional Section with Image Background */}
+                {/* Business Promotion Section */}
                 <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
                     <div className="relative rounded-3xl overflow-hidden shadow-2xl">
                         <img src={businessPromoBg} alt="Business Growth" className="absolute inset-0 w-full h-full object-cover filter brightness-[0.4]" />
@@ -288,7 +345,7 @@ export default function Homepg() {
                     </div>
                 </section>
 
-                {/* Footer - Sleeker */}
+                {/* Footer */}
                 <footer className="bg-gradient-to-b from-gray-900 to-black text-gray-300 py-12 relative overflow-hidden">
                     {/* Animated background elements */}
                     <div className="absolute inset-0 overflow-hidden">
@@ -454,14 +511,11 @@ export default function Homepg() {
                         </div>
                     </div>
                 </footer>
-
             </div>
 
-            <div className="fixed   bottom-0 w-full z-50">
+            <div className="fixed bottom-0 w-full z-50">
                 <BottomPart />
             </div>
         </div>
-
-
     );
 }

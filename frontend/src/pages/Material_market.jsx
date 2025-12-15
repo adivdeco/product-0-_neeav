@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import axiosClient from '../api/auth';
 import toast, { Toaster } from 'react-hot-toast';
 import Navbar from '../components/home/navbar';
+import BottomPart from '../components/home/BottomPart';
 
 const ProductListing = () => {
     const [products, setProducts] = useState([]);
@@ -127,6 +128,7 @@ const ProductListing = () => {
     };
 
     return (
+        <div>
         <div className="min-h-screen bg-gray-50">
             <Toaster position="bottom-center" />
             <Navbar />
@@ -393,6 +395,12 @@ const ProductListing = () => {
                     )}
                 </div>
             </div>
+        </div>
+
+           <div className="fixed   bottom-0 w-full z-50">
+                <BottomPart />
+            </div>
+
         </div>
     );
 };
