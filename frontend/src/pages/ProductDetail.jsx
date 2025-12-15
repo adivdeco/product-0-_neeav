@@ -1226,6 +1226,7 @@ const ProductDetail = () => {
                             </span>
                         )}
                     </button>
+
                 </div>
 
                 <div className="grid lg:grid-cols-2 gap-10 xl:gap-14">
