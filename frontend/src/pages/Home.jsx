@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { FaLocationDot, FaStore, FaRobot, FaHammer, FaArrowRight, FaLock } from "react-icons/fa6";
+import { FaLocationDot, FaStore, FaRobot, FaHammer, FaArrowRight, FaLock, FaLeftLong, FaArrowRightLong } from "react-icons/fa6";
 import { MdDesignServices, MdEmail, MdVerified } from "react-icons/md";
 import Navbar from "../components/home/navbar";
 import { useNavigate } from "react-router";
@@ -8,6 +8,8 @@ import AnimatedSearchBar from "../components/home/AnimatedSearchBar";
 import BottomPart from "../components/home/BottomPart";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useState, useEffect } from "react";
+import Marquee from "react-fast-marquee";
+
 
 // Import Swiper styles
 import 'swiper/css';
@@ -17,6 +19,7 @@ import 'swiper/css/navigation';
 import "./swiper.css";
 
 import { Autoplay, Pagination, Navigation } from 'swiper/modules';
+import FeaturedProducts from "../components/home/FeaturedProducts";
 
 
 const heroBgImage = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3";
@@ -180,12 +183,12 @@ export default function Homepg() {
                 </section>
 
                 {/* Main Categories Section */}
-                <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mt-10 mb-30">
+                <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8   relative z-20 -mt-10 mb-20">
                     {/* <h2 className="text-3xl font-bold text-gray-900 mb-10 text-center">Our Services</h2> */}
 
                     {isMobile ? (
                         // Mobile: Swiper Slider - Show only ONE slide at a time
-                        <div className="features-swiper-container">
+                        <div className="features-swiper-container  ">
                             <Swiper
                                 spaceBetween={20}
                                 slidesPerView={1} // Show only one slide
@@ -208,7 +211,7 @@ export default function Homepg() {
                                         <div
                                             onClick={() => handleFeatureClick(feature.link)}
                                             className="group cursor-pointer rounded-2xl overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300 relative h-full flex flex-col"
-                                            style={{ margin: '0 10px' }} // Add margin on sides
+                                            style={{ margin: '0 10px 30px', }} // Add margin on sides
                                         >
                                             {/* Image Container */}
                                             <div className="relative h-56 overflow-hidden">
@@ -308,10 +311,61 @@ export default function Homepg() {
                     )}
                 </section>
 
+                {/* buy items */}
+
+                {/* <section>
+                    <div className="max-w-7xl  mx-auto px-3 sm:px-6 lg:px-8 mb-30">
+
+                        <div className="relative py-4 bg-violet-100 px-4 rounded-3xl overflow-hidden ">
+
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-10 ">Top Rated</h2>
+                                <h2 className=" bg-black relative  py-0.5 px-2 sm:px-2.5 border border-black rounded-2xl -mt-10"
+                                    onClick={() => navigate('/Material_market')}>
+                                    <FaArrowRightLong className="text-lg text-white " /></h2>
+                            </div>
 
 
-                <section className="bg-white py-8 border-y border-gray-100 mb-16">
-                    <marquee
+                            <div className="grid grid-cols-2  md:grid-cols-2 lg:grid-cols-4 gap-2">
+
+                                <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 text-center">
+                                    <FaLocationDot className="text-blue-500 text-4xl mb-4 mx-auto" />
+                                    <h3 className="text-xl font-semibold mb-2">Local Expertise</h3>
+                                    <p className="text-gray-600 text-sm">Connect with trusted local professionals and suppliers in your area.</p>
+                                </div>
+
+                                <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 text-center">
+                                    <FaRobot className="text-green-500 text-4xl mb-4 mx-auto" />
+                                    <h3 className="text-xl font-semibold mb-2">AI-Powered Tools</h3>
+                                    <p className="text-gray-600 text-sm">Leverage cutting-edge AI technology for design and project planning.</p>
+                                </div>
+
+                                <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 text-center">
+                                    <FaHammer className="text-purple-500 text-4xl mb-4 mx-auto" />
+                                    <h3 className="text-xl font-semibold mb-2">Verified Professionals</h3>
+                                    <p className="text-gray-600 text-sm">Hire from a pool of vetted contractors and service providers.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section> */}
+
+                <section className="pb-4">
+                    <FeaturedProducts />
+                </section>
+
+                {/* marquee tag */}
+                <section className="bg-white py-4 mb-16">
+
+                    <Marquee
+                        pauseOnHover={true}
+                        speed={50}
+                        gradient={true}
+                        autoFill={true}
+                        gradientColor="white"
+                        gradientWidth={100}
+
 
                     >
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-nowrap items-center gap-8 text-gray-600 text-sm font-medium">
@@ -321,7 +375,9 @@ export default function Homepg() {
                             <div className="flex items-center gap-2 whitespace-nowrap"><MdVerified className="text-orange-500 text-xl" /> 24/7 Customer Support</div>
 
                         </div>
-                    </marquee>
+
+                    </Marquee>
+
                 </section>
 
                 {/* Business Promotion Section */}

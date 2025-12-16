@@ -5,7 +5,7 @@ import notificationReducer from '../slice/notificationSlice';
 import buyRequestReducer from '../slice/buyRequestSlice';
 import userBuyRequestReducer from '../slice/userBuyRequestSlice';
 import cartReducer from '../slice/cartSlice';
-
+import productReducer from '../slice/productSlice';
 export const store = configureStore({
     reducer: {
         auth: authReducer,
@@ -14,6 +14,7 @@ export const store = configureStore({
         buyRequests: buyRequestReducer,
         userBuyRequests: userBuyRequestReducer,
         cart: cartReducer,
+        products: productReducer,
 
     },
 });
