@@ -5,7 +5,7 @@ const Product = require('../models/productSchema');
 const User = require('../models/userSchema');
 
 // Get cart
-cartRouter.get('/', authMiddleware, async (req, res) => {
+cartRouter.get('/crt_dta', authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.finduser._id)
             .populate('cart.productId', 'name price ProductImage stock unit category')
