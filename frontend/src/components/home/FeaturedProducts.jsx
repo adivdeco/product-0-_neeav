@@ -135,11 +135,11 @@
 import React, { useEffect, useState } from 'react';
 import { FaArrowRightLong } from 'react-icons/fa6';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  fetchTopRatedProducts, 
-  selectTopRated, 
-  selectLoading,
-  selectShouldFetchTopRated
+import {
+    fetchTopRatedProducts,
+    selectTopRated,
+    selectLoading,
+    selectShouldFetchTopRated
 } from './../../redux/slice/productSlice';
 import { useNavigate } from 'react-router';
 
@@ -151,7 +151,7 @@ const FeaturedProducts = () => {
     const featuredProducts = useSelector(selectTopRated);
     const loading = useSelector(selectLoading);
     const shouldFetch = useSelector(selectShouldFetchTopRated);
-    
+
     const [displayProducts, setDisplayProducts] = useState([]);
 
     // Fetch if needed
@@ -202,7 +202,7 @@ const FeaturedProducts = () => {
             className="group cursor-pointer bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
         >
             {/* Product Image */}
-            <div className="relative h-32 overflow-hidden bg-gray-100">
+            <div className="relative h-32 sm:h-48 overflow-hidden bg-gray-100">
                 <img
                     src={product.ProductImage}
                     alt={product.name}
