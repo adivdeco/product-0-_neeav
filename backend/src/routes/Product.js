@@ -43,7 +43,7 @@ ProductRouter.post('/add_items', authMiddleware, async (req, res) => {
             supplier,
             hsnCode,
             isActive,
-            avatar
+            ProductImage
         } = req.body;
 
 
@@ -101,7 +101,7 @@ ProductRouter.post('/add_items', authMiddleware, async (req, res) => {
             supplier: supplier || '',
             hsnCode: hsnCode || '',
             isActive: isActive !== undefined ? isActive : true,
-            productImage: avatar || ''
+            ProductImage: ProductImage || ''
         });
 
 
@@ -648,7 +648,9 @@ ProductRouter.get('/public/products/:productId', async (req, res) => {
         const product = await Product.findOne({
             _id: productId,
             isActive: true
-        }).populate('shopId', 'name address rating contact ownerId');
+        }).populate('shopId', 'name address rating contact ownerId')
+            .populate('rating.reviews.userId', 'name avatar');
+
 
         if (!product) {
             return res.status(404).json({
@@ -732,7 +734,10 @@ ProductRouter.post('/:id/reviews', authMiddleware, async (req, res) => {
         await product.save();
 
         // Populate user info
-        await product.populate('rating.reviews.userId', 'name email avatar');
+        await product.populate({
+            path: 'rating.reviews.userId',
+            select: 'name email avatar'
+        });
 
         const savedReview = product.rating.reviews[product.rating.reviews.length - 1];
 

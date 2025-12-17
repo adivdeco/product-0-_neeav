@@ -110,14 +110,14 @@ const productSchema = new Schema({
         estimatedDays: String
     },
 
-    reviews: [{
-        userId: { type: Schema.Types.ObjectId, ref: 'User' },
-        rating: { type: Number, required: true, min: 1, max: 5 },
-        comment: String,
-        images: [String],
-        createdAt: { type: Date, default: Date.now },
-        helpful: { type: Number, default: 0 }
-    }],
+    // reviews: [{
+    //     userId: { type: Schema.Types.ObjectId, ref: 'User' },
+    //     rating: { type: Number, required: true, min: 1, max: 5 },
+    //     comment: String,
+    //     images: [String],
+    //     createdAt: { type: Date, default: Date.now },
+    //     helpful: { type: Number, default: 0 }
+    // }],
 
     createdAt: {
         type: Date,
