@@ -12,21 +12,26 @@ import {
     Tag, Zap, ThumbsUp, CheckCircle2,
     ArrowDownNarrowWide,
     ChevronDown,
-    Trash2
+    Trash2,
+    ShoppingCartIcon,
+    CheckLine,
+    Check
 } from 'lucide-react';
-import { updateCartCount } from '../redux/slice/cartSlice';
+import { fetchCart } from '../redux/slice/cartSlice';
 import DOMPurify from 'dompurify';
 
 
 const ProductDetail = () => {
-    // ================= LOGIC SECTION (KEPT 100% SAME) =================
     const { productId } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
+
     const { user } = useSelector((state) => state.auth);
+    const { allProducts, cacheTimestamp, cacheDuration } = useSelector((state) => state.products);
     const [product, setProduct] = useState(null);
     const [similarProducts, setSimilarProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+
     const [quantity, setQuantity] = useState(1);
     const [selectedImage, setSelectedImage] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
@@ -36,11 +41,17 @@ const ProductDetail = () => {
     const [reviewForm, setReviewForm] = useState({ rating: 0, comment: '', images: [] });
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [userReview, setUserReview] = useState(null);
-    const { totalItems: cartCount } = useSelector((state) => state.cart);
+    // const { totalItems: cartCount } = useSelector((state) => state.cart);
     const [isDescExpanded, setIsDescExpanded] = useState(false);
     const [isReviewsExpanded, setIsReviewsExpanded] = useState(false);
 
-    useEffect(() => { fetchProduct(); }, [productId]);
+    const { items: cartItems, totalItems: cartCount } = useSelector((state) => state.cart);
+
+    // Check if product is already in cart
+    const isInCart = cartItems.some(item => (item.productId?._id || item.productId) === productId);
+
+
+    // useEffect(() => { fetchProduct(); }, [productId]);
 
     useEffect(() => {
         if (product && user && product.rating?.reviews) {
@@ -49,21 +60,50 @@ const ProductDetail = () => {
         }
     }, [product, user]);
 
-    const fetchProduct = async () => {
-        try {
+    // const fetchProduct = async () => {
+    //     try {
+    //         setLoading(true);
+    //         const response = await axiosClient.get(`/products/public/products/${productId}`);
+    //         setProduct(response.data.product);
+    //         console.log(response.data.product);
+
+    //         setSimilarProducts(response.data.similarProducts || []);
+    //     } catch (error) {
+    //         toast.error('Failed to load product');
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+    useEffect(() => {
+        const loadProduct = async () => {
             setLoading(true);
-            const response = await axiosClient.get(`/products/public/products/${productId}`);
-            setProduct(response.data.product);
-            console.log(response.data.product);
 
-            setSimilarProducts(response.data.similarProducts || []);
-        } catch (error) {
-            toast.error('Failed to load product');
-        } finally {
-            setLoading(false);
-        }
-    };
+            // 1. Check if product exists in Redux Cache first
+            const cachedProduct = allProducts.find(p => p._id === productId);
+            const isCacheValid = cacheTimestamp && (Date.now() - cacheTimestamp < cacheDuration);
 
+            if (cachedProduct && isCacheValid) {
+                setProduct(cachedProduct);
+                setLoading(false);
+                // Note: Similar products usually require a specific fetch 
+                // but we skip the main product API call.
+            } else {
+                // 2. Fetch from server only if not in cache or cache expired
+                try {
+                    const response = await axiosClient.get(`/products/public/products/${productId}`);
+                    setProduct(response.data.product);
+                    setSimilarProducts(response.data.similarProducts || []);
+                } catch (error) {
+                    toast.error('Product not found');
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadProduct();
+    }, [productId, allProducts, cacheTimestamp]);
 
     const checkUserReview = async () => {
         if (!product || !user) return;
@@ -86,9 +126,9 @@ const ProductDetail = () => {
                 quantity: quantity
             });
             toast.success(`Added to cart!`, { icon: '🛒' });
-            dispatch(updateCartCount(response.data.cartCount));
+            dispatch(fetchCart());
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to add to cart');
+            // toast.error(error.response?.data?.message || 'Failed to add to cart');
         }
     };
 
@@ -105,7 +145,7 @@ const ProductDetail = () => {
                 images: reviewForm.images
             });
             toast.success('Review submitted!');
-            fetchProduct();
+            // fetchProduct();
             setReviewForm({ rating: 0, comment: '', images: [] });
             setShowReviewForm(false);
             setUserReview(response.data.review);
@@ -121,7 +161,7 @@ const ProductDetail = () => {
         try {
             await axiosClient.delete(`/products/${productId}/reviews/${userReview._id}`);
             toast.success('Review deleted');
-            fetchProduct();
+            // fetchProduct();
             setUserReview(null);
         } catch (e) { toast.error('Failed to delete'); }
     };
@@ -145,12 +185,21 @@ const ProductDetail = () => {
         setShowBuyModal(true);
     };
 
+    const handleCartAction = () => {
+        if (!user) return navigate('/login');
+        if (isInCart) {
+            navigate('/cart');
+        } else {
+            addToCart();
+
+        };
+    }
+
     const handleBuySuccess = (buyRequest) => {
         toast.success('Purchase request sent!');
     };
 
-    const incrementQuantity = () => { if (quantity < (product?.stock || 0)) setQuantity(prev => prev + 1); };
-    const decrementQuantity = () => { if (quantity > 1) setQuantity(prev => prev - 1); };
+
 
     const getPrimaryImage = () => {
         if (product?.images?.length > 0) {
@@ -303,18 +352,33 @@ const ProductDetail = () => {
 
                             {/* Desktop Buttons (Hidden on Mobile) */}
                             <div className="hidden lg:flex gap-4 mt-8">
+
                                 <button
-                                    onClick={addToCart}
+                                    onClick={handleCartAction}
                                     disabled={product.stock === 0}
-                                    className="flex-1 py-4 bg-[#ff9f00] text-white font-bold text-lg rounded-sm shadow-sm hover:shadow-md transition-shadow uppercase tracking-wide flex items-center justify-center gap-2"
+                                    className={`flex-1 py-4 font-bold rounded-2xl text-lg focus:ring-2 ring-gray-400 shadow-sm transition-all uppercase tracking-wide flex items-center justify-center gap-2 ${isInCart
+                                        ? "bg-white text-black hover:bg-gray-200"
+                                        : "bg-[#ff9f00] text-white hover:bg-[#f39700]"
+                                        }`}
                                 >
-                                    <ShoppingCart className="w-5 h-5 fill-white" />
-                                    {product.stock === 0 ? "OUT OF STOCK" : "ADD TO CART"}
+                                    {isInCart ? (
+                                        <>
+                                            <span className='h-4 w-4 rounded-2xl overflow-hidden bg-green-500 relative left-9 -top-2'><Check className='h-4 w-4 relative' /></span>
+                                            <ShoppingCartIcon className="w-5 h-5" />
+                                            GO TO CART
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ShoppingCart className="w-5 h-5 fill-white" />
+                                            {product.stock === 0 ? "OUT OF STOCK" : "ADD TO CART"}
+                                        </>
+                                    )}
                                 </button>
+
                                 <button
                                     onClick={buyNow}
                                     disabled={product.stock === 0}
-                                    className="flex-1 py-4 bg-[#fb641b] text-white font-bold text-lg rounded-sm shadow-sm hover:shadow-md transition-shadow uppercase tracking-wide flex items-center justify-center gap-2"
+                                    className="flex-1 py-4 bg-[#f96c26] text-white font-bold text-lg rounded-2xl ring-2 ring-orange-600 shadow-xl hover:shadow-md transition-shadow uppercase tracking-wide flex items-center justify-center gap-2"
                                 >
                                     <Zap className="w-5 h-5 fill-white" />
                                     BUY NOW
@@ -495,7 +559,7 @@ const ProductDetail = () => {
                                                 </div>
                                             </div>
                                             {/* Delete Button */}
-                                            {user?._id?.toString() === userReview?.userId?._id?.toString()&& (
+                                            {user?._id?.toString() === userReview?.userId?._id?.toString() && (
                                                 <button
                                                     onClick={handleReviewDelete}
                                                     className="text-gray-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-all"
@@ -608,21 +672,38 @@ const ProductDetail = () => {
             </div>
 
             {/* MOBILE FIXED BOTTOM BAR */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 flex lg:hidden h-16">
+            <div className="fixed text-center items-center bottom-0 left-0 right-0 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 flex lg:hidden h-16 px-4 py-2 gap-4 ">
                 <button
-                    onClick={addToCart}
+                    onClick={handleCartAction}
                     disabled={product.stock === 0}
-                    className="flex-1 bg-white text-gray-900 font-bold text-sm border-t border-gray-200 flex items-center justify-center disabled:opacity-50 disabled:bg-gray-100"
+                    className={`flex-1 py-2 pr-2 pl-0 font-bold rounded-2xl text-lg focus:ring-1 ring-gray-400 shadow-sm transition-all uppercase tracking-wide flex items-center justify-center gap-2 ${isInCart
+                        ? "bg-white text-black hover:bg-gray-200"
+                        : "bg-[#ff9f00] text-white hover:bg-[#f39700]"
+                        }`}
                 >
-                    {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                    {isInCart ? (
+                        <>
+                            <span className='h-4 w-4 rounded-2xl overflow-hidden bg-green-500 relative left-9 -top-2'><Check className='h-4 w-4 relative' /></span>
+                            <ShoppingCartIcon className="w-5 h-5" />
+                            GO TO CART
+                        </>
+                    ) : (
+                        <>
+                            <ShoppingCart className="w-5 h-5 fill-white" />
+                            {product.stock === 0 ? "OUT OF STOCK" : "ADD TO CART"}
+                        </>
+                    )}
                 </button>
+
                 <button
                     onClick={buyNow}
                     disabled={product.stock === 0}
-                    className="flex-1 bg-[#fb641b] text-white font-bold text-sm flex items-center justify-center disabled:bg-gray-400"
+                    className="flex-1 py-2 bg-[#f96c26] text-white font-bold text-lg rounded-2xl ring-2 ring-orange-600 shadow-xl hover:shadow-md transition-shadow uppercase tracking-wide flex items-center justify-center gap-2"
                 >
-                    Buy Now
+                    <Zap className="w-5 h-5 fill-white" />
+                    BUY NOW
                 </button>
+
             </div>
 
             {/* Modals */}
@@ -636,5 +717,6 @@ const ProductDetail = () => {
         </div>
     );
 };
+
 
 export default ProductDetail;

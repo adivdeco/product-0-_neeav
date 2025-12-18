@@ -73,6 +73,26 @@ export const checkout = createAsyncThunk(
     }
 );
 
+// export const checkout = createAsyncThunk(
+//     'cart/checkout',
+//     async (checkoutData, { rejectWithValue }) => {
+//         try {
+//             // Updated to match your BuyRequestRouter endpoint
+//             const response = await axiosClient.post('/buy-requests', {
+//                 productId: checkoutData.productId,
+//                 quantity: checkoutData.quantity,
+//                 message: checkoutData.message,
+//                 shippingAddress: checkoutData.shippingAddress,
+//                 paymentMethod: checkoutData.paymentMethod || 'cash_on_delivery',
+//                 saveAddress: checkoutData.saveAddress
+//             });
+//             return response.data;
+//         } catch (error) {
+//             return rejectWithValue(error.response?.data?.message || 'Checkout failed');
+//         }
+//     }
+// );
+
 const cartSlice = createSlice({
     name: 'cart',
     initialState: {

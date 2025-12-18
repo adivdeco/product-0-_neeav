@@ -30,7 +30,7 @@ export const fetchTopRatedProducts = createAsyncThunk(
         try {
             const response = await axiosClient.get('/products/public/products', {
                 params: {
-                    limit: 8,
+                    // limit: 8,
                     sortBy: 'rating',
                     sortOrder: 'desc'
                 }
@@ -43,40 +43,58 @@ export const fetchTopRatedProducts = createAsyncThunk(
 );
 
 // Async thunk to fetch all products with caching
+// export const fetchProducts = createAsyncThunk(
+//     'products/fetchProducts',
+//     async ({
+//         page = 1,
+//         limit = 20,
+//         search = '',
+//         category = '',
+//         brand = '',
+//         minPrice = '',
+//         maxPrice = '',
+//         sortBy = 'createdAt',
+//         sortOrder = 'desc'
+//     }, { rejectWithValue }) => {
+//         try {
+//             const params = {
+//                 page,
+//                 limit,
+//                 search,
+//                 category,
+//                 brand,
+//                 minPrice,
+//                 maxPrice,
+//                 sortBy,
+//                 sortOrder
+//             };
+
+//             const response = await axiosClient.get('/products/public/products', { params });
+//             return {
+//                 products: response.data.products,
+//                 pagination: response.data.pagination,
+//                 filters: response.data.filters
+//             };
+//         } catch (error) {
+//             return rejectWithValue(error.response?.data?.message || 'Failed to fetch products');
+//         }
+//     }
+// );
 export const fetchProducts = createAsyncThunk(
     'products/fetchProducts',
-    async ({
-        page = 1,
-        limit = 20,
-        search = '',
-        category = '',
-        brand = '',
-        minPrice = '',
-        maxPrice = '',
-        sortBy = 'createdAt',
-        sortOrder = 'desc'
-    }, { rejectWithValue }) => {
-        try {
-            const params = {
-                page,
-                limit,
-                search,
-                category,
-                brand,
-                minPrice,
-                maxPrice,
-                sortBy,
-                sortOrder
-            };
+    async (params, { getState, rejectWithValue }) => {
+        const state = getState().products;
 
+        // Prevent fetching if same params and cache is valid
+        if (selectIsCacheValid(getState(), params)) {
+            return rejectWithValue('ALREADY_CACHED');
+        }
+
+        try {
             const response = await axiosClient.get('/products/public/products', { params });
-            return {
-                products: response.data.products,
-                pagination: response.data.pagination,
-                filters: response.data.filters
-            };
+            return response.data;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Failed to fetch products');
+            return rejectWithValue(error.message);
         }
     }
 );
