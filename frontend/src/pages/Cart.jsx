@@ -46,7 +46,7 @@ const Cart = () => {
             toast.error('Stock limit reached');
         }
     };
-    console.log(user);
+    // console.log(user);
 
 
     const handleRemoveItem = async (productId) => {
