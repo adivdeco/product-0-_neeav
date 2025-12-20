@@ -111,7 +111,7 @@ const ReviewForm = ({ contractorId, onReviewAdded }) => {
             </div>
 
             {/* Comment */}
-            <div>
+            <div className='w-full'>
                 <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
                     Your Review *
                 </label>

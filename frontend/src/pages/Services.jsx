@@ -525,6 +525,7 @@ import { FiMapPin, FiSearch, FiFilter, FiX, FiArrowRight } from "react-icons/fi"
 import { Link } from "react-router";
 import WorkRequestForm from "../components/WorkRequestForm";
 import BottomPart from "../components/home/BottomPart";
+import Navbar from "./../components/home/navbar"
 
 // --- Sub-Component: Skeleton Loader ---
 const ContractorSkeleton = () => (
@@ -626,16 +627,17 @@ function ContractorPage() {
     return (
         <div className="min-h-screen bg-[#F8FAFC] pb-32">
             {/* Header Section */}
-            <div className="bg-white border-b border-gray-100 pt-12 pb-8">
-                <div className="max-w-7xl mx-auto px-4 text-center">
+            {/* <div className="bg-white border-b border-gray-100 pt-12 pb-8"> */}
+            {/* <div className="max-w-7xl mx-auto px-4 text-center">
                     <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-3">
                         Expert <span className="text-blue-600">Contractors</span>
                     </h1>
                     <p className="text-gray-500 max-w-2xl mx-auto text-lg">
                         Verified professionals for construction, renovation, and maintenance.
                     </p>
-                </div>
-            </div>
+                </div> */}
+            <Navbar />
+            {/* </div> */}
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
 
@@ -780,8 +782,8 @@ function ContractorPage() {
                                         key={i + 1}
                                         onClick={() => setCurrentPage(i + 1)}
                                         className={`w-12 h-12 rounded-2xl font-bold transition-all ${currentPage === i + 1
-                                                ? 'bg-blue-600 text-white shadow-xl shadow-blue-200 scale-110'
-                                                : 'bg-white text-gray-400 hover:bg-gray-50 border border-gray-100'
+                                            ? 'bg-blue-600 text-white shadow-xl shadow-blue-200 scale-110'
+                                            : 'bg-white text-gray-400 hover:bg-gray-50 border border-gray-100'
                                             }`}
                                     >
                                         {i + 1}
