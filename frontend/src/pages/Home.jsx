@@ -20,6 +20,7 @@ import "./swiper.css";
 
 import { Autoplay, Pagination, Navigation } from 'swiper/modules';
 import FeaturedProducts from "../components/home/FeaturedProducts";
+import FeaturedService from "../components/home/FeaturedService";
 
 
 const heroBgImage = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3";
@@ -379,6 +380,12 @@ export default function Homepg() {
                     </Marquee>
 
                 </section>
+
+                <section className="pb-4">
+                    <FeaturedService />
+                </section>
+
+
 
                 {/* Business Promotion Section */}
                 <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
