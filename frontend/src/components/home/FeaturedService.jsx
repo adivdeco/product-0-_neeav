@@ -343,7 +343,7 @@ const FeaturedService = () => {
     if (displayContractors.length === 0) return null;
 
     return (
-        <section className="py-8">
+        <section className="py-12 bg-white">
             <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
                 <div className="relative py-6 bg-gradient-to-r from-blue-100 to-indigo-50 px-3 rounded-3xl overflow-hidden mb-8">
 

@@ -156,7 +156,7 @@ export default function Homepg() {
                 )}
 
                 {/* Hero Section with Background Image */}
-                <section className="relative pt-20 pb-32 flex items-center min-h-[600px]">
+                <section className="relative pt-20 pb-32 flex items-center min-h-[700px]">
                     {/* Background Image Overlay */}
                     <div className="absolute inset-0 z-0">
                         <img src={heroBgImage} alt="Dream Home" className="w-full h-full object-cover" />
@@ -352,12 +352,12 @@ export default function Homepg() {
                     </div>
                 </section> */}
 
-                <section className="pb-4">
+                <section className="pb-16">
                     <FeaturedProducts />
                 </section>
 
                 {/* marquee tag */}
-                <section className="bg-white py-4 mb-16">
+                <section className="bg-white py-4 mb-4">
 
                     <Marquee
                         pauseOnHover={true}
@@ -381,7 +381,7 @@ export default function Homepg() {
 
                 </section>
 
-                <section className="pb-4">
+                <section className="py-16 ">
                     <FeaturedService />
                 </section>
 

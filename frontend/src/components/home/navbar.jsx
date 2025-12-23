@@ -412,7 +412,7 @@ function Navbar() {
                             </div>
 
                             {/* Auth Section */}
-                            <div className="border-t border-gray-200 pt-4">
+                            <div className="border-t border-gray-200 pt-1 pb-19">
                                 {isAuthenticated ? (
                                     <div className="space-y-4">
                                         {/* User Info */}

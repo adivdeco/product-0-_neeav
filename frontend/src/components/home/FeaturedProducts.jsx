@@ -256,8 +256,8 @@ const FeaturedProducts = () => {
                                 {discountBadge}
                             </span>
                         )} */}
-                        <span className="bg-white/90 backdrop-blur-sm text-gray-800 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm border border-gray-100">
-                            Top Rated
+                        <span className="bg-green-600/70 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm border border-green-400">
+                            Best Deal
                         </span>
                     </div>
 
@@ -286,7 +286,7 @@ const FeaturedProducts = () => {
                 </div>
 
                 {/* Content Section */}
-                <div className="px-4 pt-4 pb-5">
+                <div className="px-4 pt-4 ">
                     {/* Brand & Rating */}
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -299,12 +299,12 @@ const FeaturedProducts = () => {
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-base font-bold text-gray-900 leading-tight mb-2 line-clamp-2 h-10 group-hover:text-purple-700 transition-colors">
+                    <h3 className="text-base font-bold text-gray-900 leading-tight  line-clamp-2 h-10 group-hover:text-purple-700 transition-colors">
                         {product.name}
                     </h3>
 
-                    {/* Price Block
-                    <div className="flex items-end gap-2 mt-2">
+                    {/* Price Block */}
+                    {/* <div className="flex items-end gap-2 mt-2">
                         <span className="text-lg font-extrabold text-gray-900">
                             {formatPrice(price)}
                         </span>
@@ -357,24 +357,24 @@ const FeaturedProducts = () => {
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 translate-y-1/2 -translate-x-1/2"></div>
 
                     {/* Header */}
-                    <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
+                    <div className="relative flex  sm:flex-row justify-between  items-center sm:items-center mb-10 gap-4">
                         <div>
-                            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+                            <h2 className="text-2xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
                                 Trending Now
                             </h2>
-                            <p className="text-gray-500 mt-1">Top picks for your construction needs</p>
+                            <p className="text-gray-500 display-none sm:display-block text-xs mt-1">Top picks for your construction needs</p>
                         </div>
                         <button
                             onClick={() => navigate('/Material_market')}
-                            className="group flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-6 py-3 rounded-full transition-all duration-300 shadow-lg shadow-gray-200 hover:shadow-gray-400"
+                            className="group flex items-center gap-2 bg-gray-900 -mt-8 sm:mt-0 hover:bg-black text-white px-3 py-2 rounded-full transition-all duration-300 shadow-lg shadow-gray-200 hover:shadow-gray-400"
                         >
-                            <span className="font-medium">Explore Market</span>
-                            <FaArrowRightLong className="group-hover:translate-x-1 transition-transform" />
+                            <span className="font-medium text-xs">Market</span>
+                            <FaArrowRightLong className="group-hover:translate-x-1 text-xs transition-transform" />
                         </button>
                     </div>
 
                     {/* Products Grid */}
-                    <div className="relative grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                    <div className="relative grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 lg:gap-8">
                         {displayProducts.map((product) => renderProductCard(product))}
                     </div>
                 </div>
