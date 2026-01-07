@@ -189,6 +189,7 @@ const userSchema = new Schema({
 
     cart: [{
         productId: { type: Schema.Types.ObjectId, ref: 'Product' },
+        variantId: { type: String, default: null }, // Added variant ID
         quantity: { type: Number, default: 1 }
     }],
 

@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { logoutUser } from "../../authSlice";
+import { logoutUser } from "../../redux/slice/authSlice";
 import { useState, useRef, useEffect } from "react";
 import { LogOut, Settings, Bell, User, Briefcase, Building, Wrench, BarChart3, Shield, Users, ClipboardList, ShoppingBag, ShoppingCart, ChevronDown, HandHelping, Smartphone, Coins } from "lucide-react";
 import NotificationBell from "./NotificationBell";

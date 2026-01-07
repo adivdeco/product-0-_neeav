@@ -2,7 +2,7 @@ import './App.css'
 import { Routes, Route, Navigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import { checkAuth } from "./authSlice"; // Fixed import path
+import { checkAuth } from "./redux/slice/authSlice"; // Fixed import path
 
 // Auth Components
 import Login from "./auth/Login";

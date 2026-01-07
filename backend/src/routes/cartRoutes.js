@@ -5,28 +5,58 @@ const Product = require('../models/productSchema');
 const User = require('../models/userSchema');
 
 // Get cart
+// Get cart
 cartRouter.get('/crt_dta', authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.finduser._id)
-            .populate('cart.productId', 'name price ProductImage stock unit category')
+            .populate('cart.productId', 'name price ProductImage stock unit category variants')
             .select('cart');
 
         // Calculate totals and check stock
         const cartItems = user.cart.map(item => {
             const product = item.productId;
+            if (!product) return null; // Handle deleted products
+
+            let price = product.price;
+            let stock = product.stock;
+            let unit = product.unit;
+            let variantName = null;
+            let image = product.ProductImage;
+
+            // If item has a variantId, fetch specific variant details
+            if (item.variantId && product.variants && product.variants.length > 0) {
+                const variant = product.variants.find(v => v._id.toString() === item.variantId);
+                if (variant) {
+                    price = variant.price;
+                    stock = variant.stock;
+                    unit = variant.unit || unit;
+                    variantName = variant.variantName || `${variant.size} ${variant.unit}`;
+                    // Optionally use variant image if available (not in current schema, but good to be safe)
+                }
+            } else if (product.variants && product.variants.length > 0 && !price) {
+                // Fallback if no variantId but product has variants (logic: maybe default to first variant?)
+                // Or if data is old/corrupt. Ideally we need a price.
+                const firstVariant = product.variants[0];
+                price = firstVariant.price;
+                stock = firstVariant.stock;
+                unit = firstVariant.unit;
+            }
+
             return {
                 productId: product._id,
+                variantId: item.variantId,
                 name: product.name,
-                price: product.price,
-                image: product.ProductImage,
-                stock: product.stock,
-                unit: product.unit,
+                variantName: variantName,
+                price: price || 0,
+                image: image,
+                stock: stock || 0,
+                unit: unit,
                 category: product.category,
                 quantity: item.quantity,
-                subtotal: product.price * item.quantity,
-                inStock: item.quantity <= product.stock
+                subtotal: (price || 0) * item.quantity,
+                inStock: item.quantity <= (stock || 0)
             };
-        });
+        }).filter(item => item !== null); // Remove nulls
 
         const total = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
         const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -38,15 +68,17 @@ cartRouter.get('/crt_dta', authMiddleware, async (req, res) => {
         });
 
     } catch (error) {
+        console.error("Cart Error:", error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
 // Add to cart
+// Add to cart
 cartRouter.post('/add', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
-        const { productId, quantity } = req.body;
+        const { productId, quantity, variantId } = req.body;
 
         // Validate input
         if (!productId || !quantity || quantity <= 0) {
@@ -58,10 +90,28 @@ cartRouter.post('/add', authMiddleware, async (req, res) => {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        if (product.stock < quantity) {
+        let price = product.price;
+        let stock = product.stock;
+        let variantName = null;
+
+        // Handle Variant Logic
+        if (variantId) {
+            const variant = product.variants.find(v => v._id.toString() === variantId);
+            if (!variant) {
+                return res.status(404).json({ message: 'Variant not found' });
+            }
+            price = variant.price;
+            stock = variant.stock;
+            variantName = variant.variantName;
+        } else if (!price && product.variants && product.variants.length > 0) {
+            // If product relies on variants but none provided
+            return res.status(400).json({ message: 'Please select a variant' });
+        }
+
+        if (stock < quantity) {
             return res.status(400).json({
-                message: `Only ${product.stock} items available in stock`,
-                availableStock: product.stock
+                message: `Only ${stock} items available in stock`,
+                availableStock: stock
             });
         }
 
@@ -70,24 +120,25 @@ cartRouter.post('/add', authMiddleware, async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Check if product already in cart
-        const existingItemIndex = user.cart.findIndex(
-            item => item.productId.toString() === productId
+        // Check if product with SAME variant already in cart
+        const existingItemIndex = user.cart.findIndex(item =>
+            item.productId.toString() === productId &&
+            (item.variantId === variantId || (!item.variantId && !variantId))
         );
 
         if (existingItemIndex >= 0) {
             // Update quantity
             const newQuantity = user.cart[existingItemIndex].quantity + quantity;
-            if (newQuantity > product.stock) {
+            if (newQuantity > stock) {
                 return res.status(400).json({
-                    message: `Cannot add more than available stock (${product.stock})`,
-                    availableStock: product.stock
+                    message: `Cannot add more than available stock (${stock})`,
+                    availableStock: stock
                 });
             }
             user.cart[existingItemIndex].quantity = newQuantity;
         } else {
             // Add new item
-            user.cart.push({ productId, quantity });
+            user.cart.push({ productId, variantId, quantity });
         }
 
         await user.save();
@@ -100,9 +151,11 @@ cartRouter.post('/add', authMiddleware, async (req, res) => {
             cartCount,
             cartItem: {
                 productId: product._id,
+                variantId: variantId,
                 name: product.name,
+                variantName: variantName,
                 quantity: existingItemIndex >= 0 ? user.cart[existingItemIndex].quantity : quantity,
-                price: product.price
+                price: price
             }
         });
 
@@ -112,11 +165,12 @@ cartRouter.post('/add', authMiddleware, async (req, res) => {
 });
 
 // Update cart item quantity
+// Update cart item quantity
 cartRouter.put('/update/:productId', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
         const { productId } = req.params;
-        const { quantity } = req.body;
+        const { quantity, variantId } = req.body;
 
         if (!quantity || quantity <= 0) {
             return res.status(400).json({ message: 'Invalid quantity' });
@@ -127,16 +181,34 @@ cartRouter.put('/update/:productId', authMiddleware, async (req, res) => {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        if (quantity > product.stock) {
+        let stock = product.stock;
+        let price = product.price;
+
+        if (variantId) {
+            const variant = product.variants.find(v => v._id.toString() === variantId);
+            if (variant) {
+                stock = variant.stock;
+                price = variant.price;
+            }
+        } else if (product.variants && product.variants.length > 0) {
+            // Try to match if existing item in cart used a default first variant price but had no variantId saved?
+            // Should not happen with new logic, but if so, fallback
+            const firstVariant = product.variants[0];
+            stock = firstVariant.stock;
+            price = firstVariant.price;
+        }
+
+        if (quantity > stock) {
             return res.status(400).json({
-                message: `Only ${product.stock} items available`,
-                availableStock: product.stock
+                message: `Only ${stock} items available`,
+                availableStock: stock
             });
         }
 
         const user = await User.findById(userId);
-        const itemIndex = user.cart.findIndex(
-            item => item.productId.toString() === productId
+        const itemIndex = user.cart.findIndex(item =>
+            item.productId.toString() === productId &&
+            (item.variantId === variantId || (!item.variantId && !variantId))
         );
 
         if (itemIndex === -1) {
@@ -150,10 +222,11 @@ cartRouter.put('/update/:productId', authMiddleware, async (req, res) => {
             message: 'Cart updated successfully',
             cartItem: {
                 productId: product._id,
+                variantId: variantId,
                 name: product.name,
                 quantity,
-                price: product.price,
-                subtotal: product.price * quantity
+                price: price,
+                subtotal: (price || 0) * quantity
             }
         });
 
@@ -163,21 +236,26 @@ cartRouter.put('/update/:productId', authMiddleware, async (req, res) => {
 });
 
 // Remove from cart
+// Remove from cart
 cartRouter.delete('/remove/:productId', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
         const { productId } = req.params;
+        const { variantId } = req.query; // Get variantId from query params
 
         const user = await User.findById(userId);
-        user.cart = user.cart.filter(
-            item => item.productId.toString() !== productId
+        user.cart = user.cart.filter(item =>
+            !(item.productId.toString() === productId &&
+                (item.variantId === variantId || (!item.variantId && !variantId)))
         );
 
         await user.save();
 
         res.json({
             message: 'Product removed from cart',
-            cartCount: user.cart.length
+            cartCount: user.cart.length,
+            productId, // Send back ID to help frontend update state
+            variantId
         });
 
     } catch (error) {

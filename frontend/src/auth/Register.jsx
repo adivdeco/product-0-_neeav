@@ -3,7 +3,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, NavLink } from 'react-router';
-import { registerUser } from '../authSlice';
+import { registerUser } from '../redux/slice/authSlice';
 import { useEffect, useState, useCallback } from 'react';
 import { Eye, EyeOff, User, Mail, Lock, ArrowRight, CheckCircle, XCircle } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';

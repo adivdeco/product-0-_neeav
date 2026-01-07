@@ -11,7 +11,7 @@ const productSchema = new Schema({
         type: String,
         required: true,
         trim: true,
-        unique: true
+        // unique: true
     },
     description: String,
 
@@ -36,37 +36,71 @@ const productSchema = new Schema({
 
     brand: String,
     model: String,
-    size: String,
-    weight: Number,
-    color: String,
 
-    price: {
-        type: Number,
-        required: true,
-        min: 0
-    },
-    costPrice: {
-        type: Number,
-        min: 0
-    },
+    // size: String,
+    // weight: Number,
+    // color: String,
+    material: String,
+
+
+    variants: [{
+        sku: { type: String }, // Unique Stock Keeping Unit ID
+        variantName: String,   // e.g., "100g Packet" or "Loose (per kg)"
+
+        size: String,   // e.g., 10mm, 12mm (for rods) or 50kg (for cement bags)
+        color: String,  // e.g., Red, Blue (for paints)
+
+        weightValue: { type: Number, default: 0 },
+
+        // The Unit logic
+        unit: {
+            type: String,
+            enum: ['kg', 'g', 'l', 'ml', 'pcs', 'pack', 'bag', 'ton', 'sqft', 'meter'],
+            required: true
+        },
+
+        price: { type: Number, required: true, min: 0 },
+        costPrice: { type: Number, min: 0 }, // For your profit calculation
+
+        stock: { type: Number, default: 0 },
+        minStockLevel: { type: Number, default: 5 },
+
+        // --- 3. Bulk Pricing (For Steel/Cement) ---
+        // Logic: If user buys quantity >= minQuantity, apply discountPrice
+        // tierPricing: [{
+        //     minQuantity: Number, // e.g., 100 (kg)
+        //     discountPrice: Number // e.g., Lower price per unit
+        // }]
+    }],
+
+    // price: {
+    //     type: Number,
+    //     required: true,
+    //     min: 0
+    // },
+    // costPrice: {
+    //     type: Number,
+    //     min: 0
+    // },
+
     taxRate: {
-        type: Number,
-        default: 18
-    },
-
-    stock: {
         type: Number,
         default: 0
     },
-    minStockLevel: {
-        type: Number,
-        default: 5
-    },
-    unit: {
-        type: String,
-        required: true,
-        enum: ['kg', 'g', 'l', 'ml', 'pcs', 'pack', 'bag', 'ton', 'sqft', 'meter']
-    },
+
+    // stock: {
+    //     type: Number,
+    //     default: 0
+    // },
+    // minStockLevel: {
+    //     type: Number,
+    //     default: 5
+    // },
+    // unit: {
+    //     type: String,
+    //     required: true,
+    //     enum: ['kg', 'g', 'l', 'ml', 'pcs', 'pack', 'bag', 'ton', 'sqft', 'meter']
+    // },
 
     supplier: String,
     hsnCode: String,
@@ -135,10 +169,23 @@ productSchema.pre('save', function (next) {
     next();
 });
 
-// Virtual for stock status
+// 1. Calculate Total Stock across all variants
+productSchema.virtual('totalStock').get(function () {
+    // Loop through variants and add up the stock
+    if (!this.variants || this.variants.length === 0) return 0;
+    return this.variants.reduce((total, variant) => total + (variant.stock || 0), 0);
+});
+
+// 2. Stock Status (Based on total stock)
 productSchema.virtual('stockStatus').get(function () {
-    if (this.stock === 0) return 'Out of Stock';
-    if (this.stock <= this.minStockLevel) return 'Low Stock';
+    const total = this.totalStock; // Uses the virtual above
+
+    if (total === 0) return 'Out of Stock';
+
+    // Check if ANY variant is critically low (optional logic)
+    // Or just check global low stock
+    if (total <= 5) return 'Low Stock';
+
     return 'In Stock';
 });
 

@@ -156,11 +156,11 @@ export default function Homepg() {
                 )}
 
                 {/* Hero Section with Background Image */}
-                <section className="relative pt-20 pb-32 flex items-center min-h-[700px]">
+                <section className="relative pt-20 pb-32 flex items-center min-h-175">
                     {/* Background Image Overlay */}
                     <div className="absolute inset-0 z-0">
                         <img src={heroBgImage} alt="Dream Home" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 to-gray-900/40"></div>
+                        <div className="absolute inset-0 bg-linear-to-r from-gray-900/80 to-gray-900/40"></div>
                     </div>
 
                     <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -221,18 +221,18 @@ export default function Homepg() {
                                                     alt={feature.title}
                                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                 />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70"></div>
+                                                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-70"></div>
                                                 <div className="absolute top-4 left-4 bg-white/90 p-3 rounded-lg text-blue-600 shadow-sm">
                                                     {feature.icon}
                                                 </div>
                                             </div>
 
                                             {/* Content Container */}
-                                            <div className="p-6 flex flex-col flex-grow">
+                                            <div className="p-6 flex flex-col grow">
                                                 <h3 className="text-2xl font-bold text-gray-900 mb-3">
                                                     {feature.title}
                                                 </h3>
-                                                <p className="text-gray-600 text-base leading-relaxed mb-6 flex-grow">
+                                                <p className="text-gray-600 text-base leading-relaxed mb-6 grow">
                                                     {feature.description}
                                                 </p>
                                                 <div className="flex items-center text-blue-600 font-semibold text-base group-hover:underline">
@@ -274,18 +274,18 @@ export default function Homepg() {
                                             alt={feature.title}
                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70"></div>
+                                        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-70"></div>
                                         <div className="absolute top-4 left-4 bg-white/90 p-2 rounded-lg text-blue-600 shadow-sm">
                                             {feature.icon}
                                         </div>
                                     </div>
 
                                     {/* Content Container */}
-                                    <div className="p-6 flex flex-col flex-grow">
+                                    <div className="p-6 flex flex-col grow">
                                         <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center justify-between">
                                             {feature.title}
                                         </h3>
-                                        <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow">
+                                        <p className="text-gray-600 text-sm leading-relaxed mb-6 grow">
                                             {feature.description}
                                         </p>
                                         <div className="flex items-center text-blue-600 font-semibold text-sm group-hover:underline">

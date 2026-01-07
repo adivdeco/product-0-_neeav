@@ -38,10 +38,10 @@ const Cart = () => {
         if (items.length > 0) setSelectedItems(items.map(item => item.productId));
     }, [items]);
 
-    const handleQuantityChange = async (productId, newQuantity) => {
+    const handleQuantityChange = async (productId, newQuantity, variantId) => {
         if (newQuantity < 1) return;
         try {
-            await dispatch(updateCartItemQuantity({ productId, quantity: newQuantity })).unwrap();
+            await dispatch(updateCartItemQuantity({ productId, quantity: newQuantity, variantId })).unwrap();
         } catch (error) {
             toast.error('Stock limit reached');
         }
@@ -49,9 +49,9 @@ const Cart = () => {
     // console.log(user);
 
 
-    const handleRemoveItem = async (productId) => {
+    const handleRemoveItem = async (productId, variantId) => {
         try {
-            await dispatch(removeFromCart(productId)).unwrap();
+            await dispatch(removeFromCart({ productId, variantId })).unwrap();
             toast.success('Item removed');
         } catch (error) {
             toast.error('Failed to remove');
@@ -128,7 +128,7 @@ const Cart = () => {
                 {/* Items List */}
                 <div className="lg:col-span-8 space-y-4">
                     {items.map((item) => (
-                        <div key={item.productId} className={`${glassCard} p-4 sm:p-5 flex gap-4 sm:gap-6 relative group transition-all duration-300 hover:shadow-md`}>
+                        <div key={`${item.productId}-${item.variantId || 'default'}`} className={`${glassCard} p-4 sm:p-5 flex gap-4 sm:gap-6 relative group transition-all duration-300 hover:shadow-md`}>
 
                             {/* Product Image - Added a subtle hover zoom */}
                             <div className="w-24 h-24 sm:w-28 sm:h-28 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100 relative">
@@ -143,12 +143,19 @@ const Cart = () => {
                             <div className="flex-1 flex flex-col justify-between">
                                 <div>
                                     <div className="flex justify-between items-start">
-                                        <h3 className="font-bold text-gray-900 text-sm sm:text-base line-clamp-1 group-hover:text-blue-600 transition-colors">
-                                            {item.name}
-                                        </h3>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 text-sm sm:text-base line-clamp-1 group-hover:text-blue-600 transition-colors">
+                                                {item.name}
+                                            </h3>
+                                            {item.variantName && (
+                                                <p className="text-xs text-gray-500 font-medium mt-1">
+                                                    Variant: <span className="text-gray-800">{item.variantName}</span>
+                                                </p>
+                                            )}
+                                        </div>
                                         {/* Remove Button - More accessible on mobile */}
                                         <button
-                                            onClick={() => handleRemoveItem(item.productId)}
+                                            onClick={() => handleRemoveItem(item.productId, item.variantId)}
                                             className="p-1.5 -mr-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
                                             title="Remove from cart"
                                         >
@@ -175,7 +182,7 @@ const Cart = () => {
                                     <div className="flex items-center gap-3">
                                         <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm h-9">
                                             <button
-                                                onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
+                                                onClick={() => handleQuantityChange(item.productId, item.quantity - 1, item.variantId)}
                                                 className="px-3 hover:bg-gray-50 text-gray-400 disabled:opacity-20 transition-colors"
                                                 disabled={item.quantity <= 1}
                                             >
@@ -185,7 +192,7 @@ const Cart = () => {
                                                 {item.quantity}
                                             </span>
                                             <button
-                                                onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
+                                                onClick={() => handleQuantityChange(item.productId, item.quantity + 1, item.variantId)}
                                                 className="px-3 hover:bg-gray-50 text-gray-400 transition-colors"
                                             >
                                                 <Plus className="w-3.5 h-3.5" />

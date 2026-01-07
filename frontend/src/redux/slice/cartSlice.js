@@ -15,9 +15,9 @@ export const fetchCart = createAsyncThunk(
 
 export const addToCart = createAsyncThunk(
     'cart/addToCart',
-    async ({ productId, quantity }, { rejectWithValue }) => {
+    async ({ productId, quantity, variantId }, { rejectWithValue }) => {
         try {
-            const response = await axiosClient.post('/cart/add', { productId, quantity });
+            const response = await axiosClient.post('/cart/add', { productId, quantity, variantId });
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Failed to add to cart');
@@ -27,9 +27,9 @@ export const addToCart = createAsyncThunk(
 
 export const updateCartItemQuantity = createAsyncThunk(
     'cart/updateCartItemQuantity',
-    async ({ productId, quantity }, { rejectWithValue }) => {
+    async ({ productId, quantity, variantId }, { rejectWithValue }) => {
         try {
-            const response = await axiosClient.put(`/auth/cart/update/${productId}`, { quantity });
+            const response = await axiosClient.put(`/cart/update/${productId}`, { quantity, variantId });
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Failed to update quantity');
@@ -39,10 +39,13 @@ export const updateCartItemQuantity = createAsyncThunk(
 
 export const removeFromCart = createAsyncThunk(
     'cart/removeFromCart',
-    async (productId, { rejectWithValue }) => {
+    async ({ productId, variantId }, { rejectWithValue }) => {
         try {
-            const response = await axiosClient.delete(`/auth/cart/remove/${productId}`);
-            return { productId, ...response.data };
+            const response = await axiosClient.delete(`/cart/remove/${productId}`, {
+                params: { variantId }
+            });
+            // Return both IDs so reducer can filter correctly
+            return { productId, variantId, ...response.data };
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Failed to remove item');
         }
@@ -53,7 +56,7 @@ export const clearCart = createAsyncThunk(
     'cart/clearCart',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axiosClient.delete('/auth/cart/clear');
+            const response = await axiosClient.delete(`/cart/clear`);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Failed to clear cart');
@@ -139,8 +142,11 @@ const cartSlice = createSlice({
 
             // Update Cart Item Quantity
             .addCase(updateCartItemQuantity.fulfilled, (state, action) => {
-                const { productId, quantity, price, subtotal } = action.payload.cartItem;
-                const itemIndex = state.items.findIndex(item => item.productId === productId);
+                const { productId, quantity, price, subtotal, variantId } = action.payload.cartItem;
+                const itemIndex = state.items.findIndex(item =>
+                    item.productId === productId &&
+                    (item.variantId === variantId || (!item.variantId && !variantId))
+                );
 
                 if (itemIndex !== -1) {
                     state.items[itemIndex].quantity = quantity;
@@ -154,7 +160,11 @@ const cartSlice = createSlice({
 
             // Remove from Cart
             .addCase(removeFromCart.fulfilled, (state, action) => {
-                state.items = state.items.filter(item => item.productId !== action.payload.productId);
+                const { productId, variantId } = action.payload; // Payload now has variantId
+                state.items = state.items.filter(item =>
+                    !(item.productId === productId &&
+                        (item.variantId === variantId || (!item.variantId && !variantId)))
+                );
                 state.total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
                 state.totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
             })

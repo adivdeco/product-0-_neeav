@@ -8,21 +8,150 @@ const ProductRouter = express.Router()
 
 
 
+// ProductRouter.post('/add_items', authMiddleware, async (req, res) => {
+//     try {
+//         const userId = req.finduser._id;
+//         const role = req.finduser.role
+
+//         if (role !== 'store_owner') {
+//             return res.status(401).json({ message: 'user must to be store_owner' });
+//         }
+
+
+//         const store = await Shop.findOne({ ownerId: userId });
+//         if (!store) {
+//             return res.status(400).json({
+//                 message: "Shop not found for this user"
+//             });
+//         }
+
+//         const {
+//             name,
+//             description,
+//             category,
+//             brand,
+//             model,
+//             size,
+//             weight,
+//             color,
+//             price,
+//             costPrice,
+//             taxRate,
+//             stock,
+//             minStockLevel,
+//             unit,
+//             supplier,
+//             hsnCode,
+//             isActive,
+//             ProductImage
+//         } = req.body;
+
+
+//         if (!name || !category || !price || !unit) {
+//             return res.status(400).json({
+//                 message: "Missing required fields: name, category, price, and unit are required"
+//             });
+//         }
+
+//         const validCategories = [
+//             'Cement & Concrete',
+//             'Bricks & Blocks',
+//             'Steel & Reinforcement',
+//             'Sand & Aggregates',
+//             'Paints & Finishes',
+//             'Tools & Equipment',
+//             'Plumbing',
+//             'Electrical',
+//             'Tiles & Sanitary',
+//             'Hardware & Fittings',
+//             'Other'
+//         ];
+
+//         if (!validCategories.includes(category)) {
+//             return res.status(400).json({
+//                 message: "Invalid category",
+//                 validCategories: validCategories
+//             });
+//         }
+
+//         const validUnits = ['kg', 'g', 'l', 'ml', 'pcs', 'pack', 'bag', 'ton', 'sqft', 'meter'];
+//         if (!validUnits.includes(unit)) {
+//             return res.status(400).json({
+//                 message: "Invalid unit",
+//                 validUnits: validUnits
+//             });
+//         }
+
+//         const newProduct = new Product({
+//             shopId: store._id,
+//             name: name.trim(),
+//             description: description || '',
+//             category,
+//             brand: brand || '',
+//             model: model || '',
+//             size: size || '',
+//             weight: weight || null,
+//             color: color || '',
+//             price,
+//             costPrice: costPrice || null,
+//             taxRate: taxRate || 18,
+//             stock: stock || 0,
+//             minStockLevel: minStockLevel || 5,
+//             unit,
+//             supplier: supplier || '',
+//             hsnCode: hsnCode || '',
+//             isActive: isActive !== undefined ? isActive : true,
+//             ProductImage: ProductImage || ''
+//         });
+
+
+//         const savedProduct = await newProduct.save();
+
+//         const populatedProduct = await Product.findById(savedProduct._id)
+//             .populate('shopId', 'name address contact')
+
+//         res.status(201).json({
+//             message: "Product created successfully",
+//             product: populatedProduct,
+//             stockStatus: savedProduct.stockStatus
+//         });
+
+//     } catch (error) {
+//         console.error("Error in creating product:", error);
+
+//         if (error.code === 11000) {
+//             return res.status(400).json({
+//                 message: "Product with similar details already exists"
+//             });
+//         }
+
+//         if (error.name === 'ValidationError') {
+//             const errors = Object.values(error.errors).map(err => err.message);
+//             return res.status(400).json({
+//                 message: "Validation error",
+//                 errors: errors
+//             });
+//         }
+
+//         res.status(500).json({
+//             message: "Error in creating product",
+//             error: error.message
+//         });
+//     }
+// });
+
 ProductRouter.post('/add_items', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
         const role = req.finduser.role
 
         if (role !== 'store_owner') {
-            return res.status(401).json({ message: 'user must to be store_owner' });
+            return res.status(401).json({ message: 'User must be a store_owner' });
         }
-
 
         const store = await Shop.findOne({ ownerId: userId });
         if (!store) {
-            return res.status(400).json({
-                message: "Shop not found for this user"
-            });
+            return res.status(400).json({ message: "Shop not found for this user" });
         }
 
         const {
@@ -31,40 +160,52 @@ ProductRouter.post('/add_items', authMiddleware, async (req, res) => {
             category,
             brand,
             model,
-            size,
-            weight,
-            color,
-            price,
-            costPrice,
+            material, // New Field
+            variants, // New Array Structure
+            shipping, // New Object
             taxRate,
-            stock,
-            minStockLevel,
-            unit,
             supplier,
             hsnCode,
             isActive,
             ProductImage
         } = req.body;
 
-
-        if (!name || !category || !price || !unit) {
+        // 1. Basic Validation
+        if (!name || !category) {
             return res.status(400).json({
-                message: "Missing required fields: name, category, price, and unit are required"
+                message: "Missing required fields: Name and Category are required"
             });
         }
 
+        // 2. Variant Validation
+        if (!variants || !Array.isArray(variants) || variants.length === 0) {
+            return res.status(400).json({
+                message: "At least one product variant (Price/Unit) is required"
+            });
+        }
+
+        // Check inside the variants array
+        for (const variant of variants) {
+            if (!variant.price || !variant.unit) {
+                return res.status(400).json({
+                    message: "Every variant must have a Price and a Unit"
+                });
+            }
+
+            const validUnits = ['kg', 'g', 'l', 'ml', 'pcs', 'pack', 'bag', 'ton', 'sqft', 'meter'];
+            if (!validUnits.includes(variant.unit)) {
+                return res.status(400).json({
+                    message: `Invalid unit: ${variant.unit}`,
+                    validUnits: validUnits
+                });
+            }
+        }
+
+        // 3. Category Validation
         const validCategories = [
-            'Cement & Concrete',
-            'Bricks & Blocks',
-            'Steel & Reinforcement',
-            'Sand & Aggregates',
-            'Paints & Finishes',
-            'Tools & Equipment',
-            'Plumbing',
-            'Electrical',
-            'Tiles & Sanitary',
-            'Hardware & Fittings',
-            'Other'
+            'Cement & Concrete', 'Bricks & Blocks', 'Steel & Reinforcement',
+            'Sand & Aggregates', 'Paints & Finishes', 'Tools & Equipment',
+            'Plumbing', 'Electrical', 'Tiles & Sanitary', 'Hardware & Fittings', 'Other'
         ];
 
         if (!validCategories.includes(category)) {
@@ -74,14 +215,7 @@ ProductRouter.post('/add_items', authMiddleware, async (req, res) => {
             });
         }
 
-        const validUnits = ['kg', 'g', 'l', 'ml', 'pcs', 'pack', 'bag', 'ton', 'sqft', 'meter'];
-        if (!validUnits.includes(unit)) {
-            return res.status(400).json({
-                message: "Invalid unit",
-                validUnits: validUnits
-            });
-        }
-
+        // 4. Create Product
         const newProduct = new Product({
             shopId: store._id,
             name: name.trim(),
@@ -89,26 +223,38 @@ ProductRouter.post('/add_items', authMiddleware, async (req, res) => {
             category,
             brand: brand || '',
             model: model || '',
-            size: size || '',
-            weight: weight || null,
-            color: color || '',
-            price,
-            costPrice: costPrice || null,
-            taxRate: taxRate || 18,
-            stock: stock || 0,
-            minStockLevel: minStockLevel || 5,
-            unit,
+            material: material || '', // New
+
+            variants: variants.map(v => ({
+                sku: v.sku || '',
+                variantName: v.variantName || '',
+                size: v.size || '',
+                color: v.color || '',
+                weightValue: v.weightValue || 0,
+                unit: v.unit,
+                price: v.price,
+                costPrice: v.costPrice || 0,
+                stock: v.stock || 0,
+                minStockLevel: v.minStockLevel || 5
+            })),
+
+            shipping: {
+                isFree: shipping?.isFree || false,
+                cost: shipping?.cost || 0,
+                estimatedDays: shipping?.estimatedDays || ''
+            },
+
+            taxRate: taxRate || 0,
             supplier: supplier || '',
             hsnCode: hsnCode || '',
             isActive: isActive !== undefined ? isActive : true,
             ProductImage: ProductImage || ''
         });
 
-
         const savedProduct = await newProduct.save();
 
         const populatedProduct = await Product.findById(savedProduct._id)
-            .populate('shopId', 'name address contact')
+            .populate('shopId', 'name address contact');
 
         res.status(201).json({
             message: "Product created successfully",
@@ -120,40 +266,31 @@ ProductRouter.post('/add_items', authMiddleware, async (req, res) => {
         console.error("Error in creating product:", error);
 
         if (error.code === 11000) {
-            return res.status(400).json({
-                message: "Product with similar details already exists"
-            });
+            return res.status(400).json({ message: "Product with similar details already exists" });
         }
-
         if (error.name === 'ValidationError') {
             const errors = Object.values(error.errors).map(err => err.message);
-            return res.status(400).json({
-                message: "Validation error",
-                errors: errors
-            });
+            return res.status(400).json({ message: "Validation error", errors: errors });
         }
-
-        res.status(500).json({
-            message: "Error in creating product",
-            error: error.message
-        });
+        res.status(500).json({ message: "Error in creating product", error: error.message });
     }
 });
 
+
+
+// Get all products (Store Owner)
 ProductRouter.get('/allProduct', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
-        const role = req.finduser.role
+        const role = req.finduser.role;
 
         if (role !== 'store_owner') {
-            return res.status(401).json({ message: 'user must to be store_owner' });
+            return res.status(401).json({ message: 'User must be a store_owner' });
         }
 
         const store = await Shop.findOne({ ownerId: userId });
         if (!store) {
-            return res.status(400).json({
-                message: "Shop not found for this user"
-            });
+            return res.status(400).json({ message: "Shop not found for this user" });
         }
 
         const {
@@ -168,74 +305,82 @@ ProductRouter.get('/allProduct', authMiddleware, async (req, res) => {
             sortOrder = 'desc'
         } = req.query;
 
-
         const filter = { shopId: store._id };
 
-
+        // 1. Category Filter
         if (category) {
             filter.category = category;
         }
 
-
+        // 2. Search Filter (Updated for Variants)
         if (search) {
             filter.$or = [
                 { name: { $regex: search, $options: 'i' } },
                 { description: { $regex: search, $options: 'i' } },
-                { brand: { $regex: search, $options: 'i' } }
+                { brand: { $regex: search, $options: 'i' } },
+                { 'variants.sku': { $regex: search, $options: 'i' } }, // Search by SKU
+                { 'variants.variantName': { $regex: search, $options: 'i' } } // Search by Variant Name
             ];
         }
 
-
+        // 3. Price Filter (Look inside variants array)
         if (minPrice || maxPrice) {
-            filter.price = {};
-            if (minPrice) filter.price.$gte = Number(minPrice);
-            if (maxPrice) filter.price.$lte = Number(maxPrice);
+            filter['variants.price'] = {};
+            if (minPrice) filter['variants.price'].$gte = Number(minPrice);
+            if (maxPrice) filter['variants.price'].$lte = Number(maxPrice);
         }
 
-
+        // 4. Stock Status Filter (Complex due to arrays)
+        // We use $elemMatch to find products where AT LEAST ONE variant matches the condition
         if (stockStatus) {
             if (stockStatus === 'out_of_stock') {
-                filter.stock = 0;
+                // All variants have 0 stock (Total stock is 0)
+                // It is easier to filter this in memory or use aggregation, 
+                // but for simple query, we check if NO variant has stock > 0
+                filter['variants.stock'] = { $not: { $gt: 0 } };
             } else if (stockStatus === 'low_stock') {
-                filter.$expr = { $lte: ['$stock', '$minStockLevel'] };
-                filter.stock = { $gt: 0 }; // Ensure stock is not zero
+                // At least one variant is low
+                filter.variants = {
+                    $elemMatch: {
+                        stock: { $gt: 0 },
+                        $expr: { $lte: ['$stock', '$minStockLevel'] }
+                    }
+                };
             } else if (stockStatus === 'in_stock') {
-                filter.$expr = { $gt: ['$stock', '$minStockLevel'] };
+                // At least one variant is healthy
+                filter.variants = {
+                    $elemMatch: {
+                        $expr: { $gt: ['$stock', '$minStockLevel'] }
+                    }
+                };
             }
         }
 
-
         const skip = (page - 1) * limit;
 
-
         const sort = {};
-        sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
-
+        // Note: Sorting by 'price' on an array sorts by the min/max value found in that array
+        if (sortBy === 'price') {
+            sort['variants.price'] = sortOrder === 'desc' ? -1 : 1;
+        } else {
+            sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+        }
 
         const products = await Product.find(filter)
             .populate('shopId', 'name address')
             .sort(sort)
             .skip(skip)
-            .limit(Number(limit))
-            .lean(); // Convert to plain JavaScript objects
+            .limit(Number(limit));
+        // Removed .lean() so we can use the virtual 'totalStock' and 'stockStatus'
 
-
+        // Map response to include calculated fields
         const productsWithStatus = products.map(product => {
-            let stockStatus;
-            if (product.stock === 0) {
-                stockStatus = 'Out of Stock';
-            } else if (product.stock <= product.minStockLevel) {
-                stockStatus = 'Low Stock';
-            } else {
-                stockStatus = 'In Stock';
-            }
-
             return {
-                ...product,
-                stockStatus
+                ...product.toObject(),
+                totalStock: product.totalStock, // Uses Schema Virtual
+                stockStatus: product.stockStatus // Uses Schema Virtual
             };
         });
-
 
         const totalProducts = await Product.countDocuments(filter);
         const totalPages = Math.ceil(totalProducts / limit);
@@ -255,10 +400,7 @@ ProductRouter.get('/allProduct', authMiddleware, async (req, res) => {
 
     } catch (error) {
         console.error("Error in fetching products:", error);
-        res.status(500).json({
-            message: "Error in fetching products",
-            error: error.message
-        });
+        res.status(500).json({ message: "Error in fetching products", error: error.message });
     }
 });
 
@@ -268,63 +410,25 @@ ProductRouter.delete('/:productId', authMiddleware, async (req, res) => {
         const { productId } = req.params;
 
         const store = await Shop.findOne({ ownerId: userId });
-        if (!store) {
-            return res.status(400).json({
-                message: "Shop not found for this user"
-            });
-        }
+        if (!store) return res.status(400).json({ message: "Shop not found" });
 
-        const product = await Product.findOne({
-            _id: productId,
-            shopId: store._id
-        });
+        const product = await Product.findOne({ _id: productId, shopId: store._id });
+        if (!product) return res.status(404).json({ message: "Product not found" });
 
-        if (!product) {
-            return res.status(404).json({
-                message: "Product not found or you don't have permission to delete this product"
-            });
-        }
-
-        // Option 1: Hard delete (completely remove from database)
         await Product.findByIdAndDelete(productId);
-
-        // Option 2: Soft delete (recommended - set isActive to false)
-        // await Product.findByIdAndUpdate(
-        //     productId, 
-        //     { 
-        //         isActive: false,
-        //         updatedAt: Date.now()
-        //     }
-        // );
 
         res.status(200).json({
             message: "Product deleted successfully",
-            deletedProduct: {
-                id: product._id,
-                name: product.name,
-                category: product.category
-            }
+            deletedProduct: { id: product._id, name: product.name }
         });
 
     } catch (error) {
         console.error("Error in deleting product:", error);
-
-        // Handle invalid product ID format
-        if (error.name === 'CastError') {
-            return res.status(400).json({
-                message: "Invalid product ID format"
-            });
-        }
-
-        res.status(500).json({
-            message: "Error in deleting product",
-            error: error.message
-        });
+        res.status(500).json({ message: "Error in deleting product", error: error.message });
     }
 });
 
-
-// Update product status (isActive)
+// Update product status (isActive) - No major changes needed
 ProductRouter.patch('/:productId/status', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
@@ -332,22 +436,10 @@ ProductRouter.patch('/:productId/status', authMiddleware, async (req, res) => {
         const { isActive } = req.body;
 
         const store = await Shop.findOne({ ownerId: userId });
-        if (!store) {
-            return res.status(400).json({
-                message: "Shop not found for this user"
-            });
-        }
+        if (!store) return res.status(400).json({ message: "Shop not found" });
 
-        const product = await Product.findOne({
-            _id: productId,
-            shopId: store._id
-        });
-
-        if (!product) {
-            return res.status(404).json({
-                message: "Product not found"
-            });
-        }
+        const product = await Product.findOne({ _id: productId, shopId: store._id });
+        if (!product) return res.status(404).json({ message: "Product not found" });
 
         product.isActive = isActive;
         product.updatedAt = Date.now();
@@ -355,72 +447,71 @@ ProductRouter.patch('/:productId/status', authMiddleware, async (req, res) => {
 
         res.status(200).json({
             message: `Product ${isActive ? 'activated' : 'deactivated'} successfully`,
-            product: {
-                id: product._id,
-                name: product.name,
-                isActive: product.isActive
-            }
+            product: { id: product._id, isActive: product.isActive }
         });
 
     } catch (error) {
-        console.error("Error updating product status:", error);
-        res.status(500).json({
-            message: "Error updating product status",
-            error: error.message
-        });
+        res.status(500).json({ message: "Error updating status", error: error.message });
     }
 });
 
-// Update product stock
+// Update product stock - REWRITTEN FOR VARIANTS
 ProductRouter.patch('/:productId/stock', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
         const { productId } = req.params;
-        const { stock, minStockLevel } = req.body;
+        // Expect variantId (the _id of the subdocument) or sku to identify which variant to update
+        const { stock, minStockLevel, variantId, sku } = req.body;
+
+        if (stock === undefined) {
+            return res.status(400).json({ message: "Stock value is required" });
+        }
 
         const store = await Shop.findOne({ ownerId: userId });
-        if (!store) {
-            return res.status(400).json({
-                message: "Shop not found for this user"
-            });
+        if (!store) return res.status(400).json({ message: "Shop not found" });
+
+        // Logic to update specific variant
+        let query = { _id: productId, shopId: store._id };
+        let update = { $set: { updatedAt: Date.now() } };
+        let arrayFilter = {};
+
+        if (variantId) {
+            query['variants._id'] = variantId;
+            update.$set['variants.$.stock'] = stock;
+            if (minStockLevel !== undefined) update.$set['variants.$.minStockLevel'] = minStockLevel;
+        } else if (sku) {
+            query['variants.sku'] = sku;
+            update.$set['variants.$.stock'] = stock;
+            if (minStockLevel !== undefined) update.$set['variants.$.minStockLevel'] = minStockLevel;
+        } else {
+            // Fallback: If no variant specified, and product has only 1 variant, update the first one
+            // OR return error. Let's return error for safety.
+            return res.status(400).json({ message: "Please provide variantId or sku to update stock" });
         }
 
-        const product = await Product.findOne({
-            _id: productId,
-            shopId: store._id
-        });
-
-        if (!product) {
-            return res.status(404).json({
-                message: "Product not found"
-            });
-        }
-
-        const updateData = { updatedAt: Date.now() };
-        if (stock !== undefined) updateData.stock = stock;
-        if (minStockLevel !== undefined) updateData.minStockLevel = minStockLevel;
-
-        const updatedProduct = await Product.findByIdAndUpdate(
-            productId,
-            updateData,
+        const updatedProduct = await Product.findOneAndUpdate(
+            query,
+            update,
             { new: true }
-        ).populate('shopId', 'name address');
+        ).populate('shopId', 'name');
+
+        if (!updatedProduct) {
+            return res.status(404).json({ message: "Product or Variant not found" });
+        }
 
         res.status(200).json({
-            message: "Product stock updated successfully",
-            product: updatedProduct
+            message: "Stock updated successfully",
+            product: updatedProduct,
+            totalStock: updatedProduct.totalStock // Return virtual
         });
 
     } catch (error) {
-        console.error("Error updating product stock:", error);
-        res.status(500).json({
-            message: "Error updating product stock",
-            error: error.message
-        });
+        console.error("Error updating stock:", error);
+        res.status(500).json({ message: "Error updating stock", error: error.message });
     }
 });
 
-// Update product details
+// Update product details (Full Update)
 ProductRouter.put('/:productId', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
@@ -428,35 +519,23 @@ ProductRouter.put('/:productId', authMiddleware, async (req, res) => {
         const updateData = req.body;
 
         const store = await Shop.findOne({ ownerId: userId });
-        if (!store) {
-            return res.status(400).json({
-                message: "Shop not found for this user"
-            });
-        }
+        if (!store) return res.status(400).json({ message: "Shop not found" });
 
-        const product = await Product.findOne({
-            _id: productId,
-            shopId: store._id
-        });
-
-        if (!product) {
-            return res.status(404).json({
-                message: "Product not found"
-            });
-        }
-
-        // Remove fields that shouldn't be updated
+        // Security: Delete fields that shouldn't be updated via this route
         delete updateData.shopId;
         delete updateData._id;
         delete updateData.createdAt;
-
         updateData.updatedAt = Date.now();
 
-        const updatedProduct = await Product.findByIdAndUpdate(
-            productId,
+        // If updating variants, ensure the structure is correct (handled by Schema validation)
+
+        const updatedProduct = await Product.findOneAndUpdate(
+            { _id: productId, shopId: store._id },
             updateData,
             { new: true, runValidators: true }
-        ).populate('shopId', 'name address');
+        );
+
+        if (!updatedProduct) return res.status(404).json({ message: "Product not found" });
 
         res.status(200).json({
             message: "Product updated successfully",
@@ -465,24 +544,7 @@ ProductRouter.put('/:productId', authMiddleware, async (req, res) => {
 
     } catch (error) {
         console.error("Error updating product:", error);
-
-        if (error.name === 'ValidationError') {
-            return res.status(400).json({
-                message: "Validation error",
-                errors: Object.values(error.errors).map(err => err.message)
-            });
-        }
-
-        if (error.code === 11000) {
-            return res.status(400).json({
-                message: "Product name already exists"
-            });
-        }
-
-        res.status(500).json({
-            message: "Error updating product",
-            error: error.message
-        });
+        res.status(500).json({ message: "Error updating product", error: error.message });
     }
 });
 
@@ -493,40 +555,30 @@ ProductRouter.get('/:productId', authMiddleware, async (req, res) => {
         const { productId } = req.params;
 
         const store = await Shop.findOne({ ownerId: userId });
-        if (!store) {
-            return res.status(400).json({
-                message: "Shop not found for this user"
-            });
-        }
+        const product = await Product.findOne({ _id: productId, shopId: store._id })
+            .populate('shopId', 'name address');
 
-        const product = await Product.findOne({
-            _id: productId,
-            shopId: store._id
-        }).populate('shopId', 'name address');
-
-        if (!product) {
-            return res.status(404).json({
-                message: "Product not found"
-            });
-        }
+        if (!product) return res.status(404).json({ message: "Product not found" });
 
         res.status(200).json({
             message: "Product retrieved successfully",
-            product
+            product: {
+                ...product.toObject(),
+                totalStock: product.totalStock,
+                stockStatus: product.stockStatus
+            }
         });
-
     } catch (error) {
-        console.error("Error fetching product:", error);
-        res.status(500).json({
-            message: "Error fetching product",
-            error: error.message
-        });
+        res.status(500).json({ message: "Error fetching product", error: error.message });
     }
 });
 
-//  user based route frr products 
 
 
+
+// ==========================================
+// PUBLIC / CUSTOMER ROUTES
+// ==========================================
 
 // Get all active products for customers
 ProductRouter.get('/public/products', async (req, res) => {
@@ -546,62 +598,57 @@ ProductRouter.get('/public/products', async (req, res) => {
 
         const filter = { isActive: true };
 
+        // Stock Filter: Check if Total Stock > 0
         if (inStock === 'true') {
-            filter.stock = { $gt: 0 };
+            filter['variants.stock'] = { $gt: 0 }; // At least one variant has stock
         }
 
-        // Category filter
-        if (category) {
-            filter.category = category;
-        }
+        if (category) filter.category = category;
+        if (brand) filter.brand = { $regex: brand, $options: 'i' };
 
-        // Search filter
+        // Search
         if (search) {
             filter.$or = [
                 { name: { $regex: search, $options: 'i' } },
                 { description: { $regex: search, $options: 'i' } },
-                { brand: { $regex: search, $options: 'i' } },
-                { category: { $regex: search, $options: 'i' } }
+                { category: { $regex: search, $options: 'i' } },
+                { 'variants.variantName': { $regex: search, $options: 'i' } }
             ];
         }
 
-        // Price range filter
+        // Price Filter (Variants)
         if (minPrice || maxPrice) {
-            filter.price = {};
-            if (minPrice) filter.price.$gte = Number(minPrice);
-            if (maxPrice) filter.price.$lte = Number(maxPrice);
-        }
-
-        // Brand filter
-        if (brand) {
-            filter.brand = { $regex: brand, $options: 'i' };
+            filter['variants.price'] = {};
+            if (minPrice) filter['variants.price'].$gte = Number(minPrice);
+            if (maxPrice) filter['variants.price'].$lte = Number(maxPrice);
         }
 
         const skip = (page - 1) * limit;
         const sort = {};
-        sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+        if (sortBy === 'price') {
+            // Sort by min price found in variants
+            sort['variants.price'] = sortOrder === 'desc' ? -1 : 1;
+        } else {
+            sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+        }
 
-        // Get products with shop information
         const products = await Product.find(filter)
             .populate('shopId', 'name address rating contact')
             .sort(sort)
             .skip(skip)
-            .limit(Number(limit))
-            .lean();
+            .limit(Number(limit));
 
         const productsWithDetails = products.map(product => {
-            let stockStatus;
-            if (product.stock === 0) {
-                stockStatus = 'Out of Stock';
-            } else if (product.stock <= product.minStockLevel) {
-                stockStatus = 'Low Stock';
-            } else {
-                stockStatus = 'In Stock';
-            }
+            // Determine display price (e.g., lowest price among variants)
+            const prices = product.variants.map(v => v.price);
+            const minP = prices.length > 0 ? Math.min(...prices) : 0;
+            const maxP = prices.length > 0 ? Math.max(...prices) : 0;
 
             return {
-                ...product,
-                stockStatus,
+                ...product.toObject(),
+                displayPrice: minP === maxP ? minP : `${minP} - ${maxP}`, // For UI to show "100 - 200"
+                totalStock: product.totalStock,
+                stockStatus: product.stockStatus,
                 shopName: product.shopId?.name,
                 shopRating: product.shopId?.rating
             };
@@ -610,6 +657,20 @@ ProductRouter.get('/public/products', async (req, res) => {
         const totalProducts = await Product.countDocuments(filter);
         const totalPages = Math.ceil(totalProducts / limit);
 
+        // Calculate Global Min/Max Price for UI Filters
+        // We need aggregation to unwind variants and find absolute min/max
+        const priceAgg = await Product.aggregate([
+            { $match: { isActive: true } },
+            { $unwind: "$variants" },
+            {
+                $group: {
+                    _id: null,
+                    min: { $min: "$variants.price" },
+                    max: { $max: "$variants.price" }
+                }
+            }
+        ]);
+
         res.status(200).json({
             message: "Products retrieved successfully",
             products: productsWithDetails,
@@ -617,70 +678,54 @@ ProductRouter.get('/public/products', async (req, res) => {
                 currentPage: Number(page),
                 totalPages,
                 totalProducts,
-                hasNext: page < totalPages,
-                hasPrev: page > 1,
                 limit: Number(limit)
             },
             filters: {
                 categories: await Product.distinct('category', { isActive: true }),
                 brands: await Product.distinct('brand', { isActive: true, brand: { $ne: null } }),
-                priceRange: {
-                    min: await Product.findOne({ isActive: true }).sort({ price: 1 }).select('price'),
-                    max: await Product.findOne({ isActive: true }).sort({ price: -1 }).select('price')
-                }
+                priceRange: priceAgg.length > 0 ? { min: priceAgg[0].min, max: priceAgg[0].max } : { min: 0, max: 0 }
             }
         });
 
     } catch (error) {
         console.error("Error in fetching products:", error);
-        res.status(500).json({
-            message: "Error in fetching products",
-            error: error.message
-        });
+        res.status(500).json({ message: "Error in fetching products", error: error.message });
     }
 });
 
-// Get single product details
+// Get single product public details
 ProductRouter.get('/public/products/:productId', async (req, res) => {
     try {
         const { productId } = req.params;
 
-        const product = await Product.findOne({
-            _id: productId,
-            isActive: true
-        }).populate('shopId', 'name address rating contact ownerId')
+        const product = await Product.findOne({ _id: productId, isActive: true })
+            .populate('shopId', 'name address rating contact ownerId')
             .populate('rating.reviews.userId', 'name avatar');
 
+        if (!product) return res.status(404).json({ message: "Product not found" });
 
-        if (!product) {
-            return res.status(404).json({
-                message: "Product not found"
-            });
-        }
-
-        // Get similar products from same category
+        // Similar Products Logic
         const similarProducts = await Product.find({
             category: product.category,
             isActive: true,
             _id: { $ne: productId },
-            stock: { $gt: 0 }
+            'variants.stock': { $gt: 0 } // Check variant stock
         })
             .populate('shopId', 'name rating')
-            .limit(4)
-            .lean();
+            .limit(4);
 
         res.status(200).json({
             message: "Product retrieved successfully",
-            product,
+            product: {
+                ...product.toObject(),
+                totalStock: product.totalStock,
+                stockStatus: product.stockStatus
+            },
             similarProducts
         });
 
     } catch (error) {
-        console.error("Error fetching product:", error);
-        res.status(500).json({
-            message: "Error fetching product",
-            error: error.message
-        });
+        res.status(500).json({ message: "Error fetching product", error: error.message });
     }
 });
 

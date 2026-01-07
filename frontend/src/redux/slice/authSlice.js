@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import axiosClient from './api/auth'
+import axiosClient from '../../api/auth'
 // import axios from 'axios';
 
 
@@ -204,4 +204,3 @@ const authSlice = createSlice({
 
 export const { loginSuccess, logout, clearError } = authSlice.actions;
 export default authSlice.reducer;
-
