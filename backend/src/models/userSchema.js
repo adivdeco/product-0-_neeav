@@ -181,7 +181,15 @@ const userSchema = new Schema({
         type: String,
         default: '',
     },
-
+    auth0Id: {
+        type: String,
+        sparse: true,
+        unique: true
+    },
+    loginProvider: {
+        type: String,
+        default: 'email'
+    },
     fcmToken: {
         type: String,
         default: null,

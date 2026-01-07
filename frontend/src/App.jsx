@@ -7,6 +7,8 @@ import { checkAuth } from "./redux/slice/authSlice"; // Fixed import path
 // Auth Components
 import Login from "./auth/Login";
 import Register from "./auth/Register";
+import Auth0Callback from "./auth/Auth0Callback";
+import SessionManager from "./auth/SessionManager";
 
 // Pages
 import Homepg from './pages/Home';
@@ -143,7 +145,10 @@ function App() {
 
 
     <>
+      <SessionManager />
       <Routes>
+        <Route path="/auth/callback" element={<Auth0Callback />} />
+        <Route path="/auth/callback" element={<Auth0Callback />} />
         {/* <Route path="/" element={<Main1 />} /> */}
         <Route path="/" element={isAuthenticated ? <Homepg /> : <Login />} />
 

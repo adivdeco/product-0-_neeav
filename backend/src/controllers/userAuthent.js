@@ -67,6 +67,76 @@ const registerUser = async (req, res) => {
 }
 
 
+const socialLogin = async (req, res) => {
+    try {
+        const { email, name, auth0Id, avatar, email_verified } = req.body;
+
+        if (!email || !auth0Id) {
+            return res.status(400).json({ message: "Invalid social login data" });
+        }
+
+        let user = await User.findOne({
+            $or: [{ auth0Id }, { email }]
+        });
+
+        if (user) {
+            // Update existing user with social ID if missing
+            if (!user.auth0Id) {
+                user.auth0Id = auth0Id;
+                user.loginProvider = auth0Id.startsWith('google') ? 'google' : 'github';
+                if (!user.avatar && avatar) user.avatar = avatar;
+                await user.save();
+            }
+        } else {
+            // Register new user
+            user = await User.create({
+                name,
+                email,
+                auth0Id,
+                avatar,
+                loginProvider: auth0Id.startsWith('google') ? 'google' : 'github',
+                role: 'User',
+                password: await bcrypt.hash(Math.random().toString(36), 10), // Random password
+                emailVerified: email_verified
+            });
+        }
+
+        // Generate Token
+        const token = jwt.sign(
+            { userId: user._id, email: user.email, role: user.role },
+            "secretkey",
+            { expiresIn: 1200 * 1200 }
+        );
+
+        const cookieOptions = {
+            maxAge: 1200 * 1200 * 1000,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'None',
+            path: '/'
+        };
+
+        res.cookie('token', token, cookieOptions);
+
+        res.status(200).json({
+            success: true,
+            message: "Social login successful",
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                avatar: user.avatar
+            }
+        });
+
+    } catch (error) {
+        console.error('Error in social login:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
 const loginUser = async (req, res) => {
 
     try {
@@ -524,4 +594,4 @@ const getContractorProfile = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, updateContractorServices, updateShopData, updateUserProfile, loginUser, logOutUser, allUsers, updateUser, deleteUser, getShopProfile, getContractorProfile }
+module.exports = { registerUser, updateContractorServices, updateShopData, updateUserProfile, loginUser, socialLogin, logOutUser, allUsers, updateUser, deleteUser, getShopProfile, getContractorProfile }

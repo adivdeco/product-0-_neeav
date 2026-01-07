@@ -769,7 +769,7 @@ class SocketService {
                 window.location.hostname === '127.0.0.1';
 
             const serverUrl = isLocalDevelopment
-                ? 'http://localhost:3000'
+                ? 'http://localhost:3001'
                 : 'https://product-0-neeav-1.onrender.com';
 
             console.log('🌐 Connecting to:', serverUrl);

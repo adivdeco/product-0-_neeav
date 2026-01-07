@@ -1,6 +1,6 @@
 const express = require('express');
 // const User = require('../models/userSchema.js')
-const { registerUser, loginUser, logOutUser, allUsers, updateUser, deleteUser, updateContractorServices, updateShopData, updateUserProfile, getShopProfile, getContractorProfile } = require('../controllers/userAuthent.js');
+const { registerUser, loginUser, socialLogin, logOutUser, allUsers, updateUser, deleteUser, updateContractorServices, updateShopData, updateUserProfile, getShopProfile, getContractorProfile } = require('../controllers/userAuthent.js');
 const User = require('../models/userSchema.js');
 const Product = require('../models/productSchema')
 const authMiddleware = require('../middleware/authMiddleware.js')
@@ -11,6 +11,7 @@ const authRouter = express.Router();
 
 authRouter.post('/register', registerUser)
 authRouter.post('/login', loginUser)
+authRouter.post('/social-login', socialLogin)
 authRouter.post('/logout', authMiddleware, logOutUser)
 
 authRouter.get('/all_users', adminMiddleware, allUsers)

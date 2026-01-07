@@ -97,6 +97,22 @@ export const logoutUser = createAsyncThunk(
 );
 
 
+export const socialLogin = createAsyncThunk(
+    'auth/socialLogin',
+    async (socialData, { rejectWithValue }) => {
+        try {
+            const { data } = await axiosClient.post('/auth/social-login', socialData);
+            return data.user;
+        } catch (error) {
+            return rejectWithValue({
+                message: error.response?.data?.message || 'Social login failed',
+                details: error.message
+            });
+        }
+    }
+);
+
+
 //hear we implement logic if user visit again after login ,
 
 const authSlice = createSlice({
@@ -159,6 +175,23 @@ const authSlice = createSlice({
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message || 'Something went wrong';
+                state.isAuthenticated = false;
+                state.user = null;
+            })
+
+            // Social Login Cases
+            .addCase(socialLogin.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(socialLogin.fulfilled, (state, action) => {
+                state.loading = false;
+                state.isAuthenticated = true;
+                state.user = action.payload;
+            })
+            .addCase(socialLogin.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Social login failed';
                 state.isAuthenticated = false;
                 state.user = null;
             })
