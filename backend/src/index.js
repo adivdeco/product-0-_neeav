@@ -27,7 +27,10 @@ const app = express();
 global.users = new Map();
 global.io = null; // Will be initialized after server creation
 
+const compression = require('compression');
+
 // -------- CORS --------
+app.use(compression());
 app.use(
     cors({
         origin: ["http://localhost:5173", "https://product-2-neeav.vercel.app"],

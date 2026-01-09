@@ -1,58 +1,58 @@
 import './App.css'
 import { Routes, Route, Navigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, Suspense, lazy } from "react";
 import { checkAuth } from "./redux/slice/authSlice"; // Fixed import path
 
 // Auth Components
-import Login from "./auth/Login";
-import Register from "./auth/Register";
-import Auth0Callback from "./auth/Auth0Callback";
-import SessionManager from "./auth/SessionManager";
+const Login = lazy(() => import("./auth/Login"));
+const Register = lazy(() => import("./auth/Register"));
+const Auth0Callback = lazy(() => import("./auth/Auth0Callback"));
+const SessionManager = lazy(() => import("./auth/SessionManager"));
 
 // Pages
-import Homepg from './pages/Home';
-import LocalShop from './pages/localShop';
-import Services from './pages/Services';
-import Ai_tools from './pages/Ai_tools';
-import Material_market from './pages/Material_market'
-import ContractorProfile from './pages/allContractor'
-import ProductDetail from './pages/ProductDetail';
+const Homepg = lazy(() => import('./pages/Home'));
+const LocalShop = lazy(() => import('./pages/localShop'));
+const Services = lazy(() => import('./pages/Services'));
+const Ai_tools = lazy(() => import('./pages/Ai_tools'));
+const Material_market = lazy(() => import('./pages/Material_market'));
+const ContractorProfile = lazy(() => import('./pages/allContractor'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 
 // Admin Components
-import Add_shop from './components/admin/Add_shop';
-import Add_services from './components/admin/Add_services';
-import Business from './components/admin/bussiness';
-import AllUsers from './components/admin/Users_data/Allusers';
+const Add_shop = lazy(() => import('./components/admin/Add_shop'));
+const Add_services = lazy(() => import('./components/admin/Add_services'));
+const Business = lazy(() => import('./components/admin/bussiness'));
+const AllUsers = lazy(() => import('./components/admin/Users_data/Allusers'));
 
 // Shop Components
-import ShopHome from './components/shop/shopHome';
-import AddBill from './components/shop/addBill';
-import AllCustomers from './components/shop/AllCustomers';
-import AllBill from './components/shop/allBills';
-import ProductAddPage from './components/shop/addProducts';
-import ProductManagement from './components/shop/productManagment';
-import EditProduct from './components/shop/EditProduct';
+const ShopHome = lazy(() => import('./components/shop/shopHome'));
+const AddBill = lazy(() => import('./components/shop/addBill'));
+const AllCustomers = lazy(() => import('./components/shop/AllCustomers'));
+const AllBill = lazy(() => import('./components/shop/allBills'));
+const ProductAddPage = lazy(() => import('./components/shop/addProducts'));
+const ProductManagement = lazy(() => import('./components/shop/productManagment'));
+const EditProduct = lazy(() => import('./components/shop/EditProduct'));
 
 // Profile Components
-import UserProfileUpdate from './components/userDataUpdate';
-import ShopProfileUpdate from './components/shopDataUpdate';
-import ContractorProfileUpdate from './components/contractorDataUpdate';
+const UserProfileUpdate = lazy(() => import('./components/userDataUpdate'));
+const ShopProfileUpdate = lazy(() => import('./components/shopDataUpdate'));
+const ContractorProfileUpdate = lazy(() => import('./components/contractorDataUpdate'));
 
 // Dashboard Components
-import ContractorDashboard from './components/ContractorDashbord';
-import EmployeeDashboard from './components/EmployeeDashboard';
-import UserDashboard from './components/UserDashboard';
+const ContractorDashboard = lazy(() => import('./components/ContractorDashbord'));
+const EmployeeDashboard = lazy(() => import('./components/EmployeeDashboard'));
+const UserDashboard = lazy(() => import('./components/UserDashboard'));
 
 // sockets
 import SocketService from './utils/socket';
 import { useSocket } from './hooks/useSocket';
-import ShopOwnerDashboard from './components/ShopOwnerDashboard';
-import UserBuyRequestsDashboard from './components/UserBuyRequestsDashboard';
-import EmployeeBuyDashboard from './components/EmployeeBuyDashbord';
+const ShopOwnerDashboard = lazy(() => import('./components/ShopOwnerDashboard'));
+const UserBuyRequestsDashboard = lazy(() => import('./components/UserBuyRequestsDashboard'));
+const EmployeeBuyDashboard = lazy(() => import('./components/EmployeeBuyDashbord'));
 import SocketStatus from './components/SocketStatus';
 import SocketDebug from './components/SocketDebug';
-import Cart from './pages/Cart';
+const Cart = lazy(() => import('./pages/Cart'));
 import { fetchCart } from './redux/slice/cartSlice';
 
 
@@ -145,68 +145,70 @@ function App() {
 
 
     <>
-      <SessionManager />
-      <Routes>
-        <Route path="/auth/callback" element={<Auth0Callback />} />
-        <Route path="/auth/callback" element={<Auth0Callback />} />
-        {/* <Route path="/" element={<Main1 />} /> */}
-        <Route path="/" element={isAuthenticated ? <Homepg /> : <Login />} />
+      <Suspense fallback={<LoadingSpinner />}>
+        <SessionManager />
+        <Routes>
+          <Route path="/auth/callback" element={<Auth0Callback />} />
+          <Route path="/auth/callback" element={<Auth0Callback />} />
+          {/* <Route path="/" element={<Main1 />} /> */}
+          <Route path="/" element={isAuthenticated ? <Homepg /> : <Login />} />
 
-        <Route
-          path="/register"
-          element={
-            isAuthenticated ? <Homepg /> : <Register />
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            isAuthenticated ? <Homepg /> : <Navigate to="/register" />
-          }
-        />
-        <Route path='/localShop' element={isAuthenticated ? <LocalShop /> : <Login />} />
+          <Route
+            path="/register"
+            element={
+              isAuthenticated ? <Homepg /> : <Register />
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              isAuthenticated ? <Homepg /> : <Navigate to="/register" />
+            }
+          />
+          <Route path='/localShop' element={isAuthenticated ? <LocalShop /> : <Login />} />
 
-        <Route path='/Services' element={isAuthenticated ? <Services /> : <Login />} />
-        <Route path="/contractor/:id" element={isAuthenticated ? <ContractorProfile /> : <Login />} />
+          <Route path='/Services' element={isAuthenticated ? <Services /> : <Login />} />
+          <Route path="/contractor/:id" element={isAuthenticated ? <ContractorProfile /> : <Login />} />
 
-        <Route path='/Planning_tools' element={isAuthenticated ? <Ai_tools /> : <Login />} />
-        <Route path='/Material_market' element={isAuthenticated ? <Material_market /> : <Login />} />
-        <Route path='/product/:productId' element={isAuthenticated ? <ProductDetail /> : <Login />} />
+          <Route path='/Planning_tools' element={isAuthenticated ? <Ai_tools /> : <Login />} />
+          <Route path='/Material_market' element={isAuthenticated ? <Material_market /> : <Login />} />
+          <Route path='/product/:productId' element={isAuthenticated ? <ProductDetail /> : <Login />} />
 
-        <Route path='/addShop' element={isAuthenticated ? <Add_shop /> : <Login />} />
-        <Route path='/addServices' element={isAuthenticated ? <Add_services /> : <Login />} />
-        <Route path='/business' element={isAuthenticated ? <Business /> : <Login />} />
-        {/* shop */}
-        {/* test */}
-        <Route path='/shop' element={isAuthenticated ? <ShopHome /> : <Login />} />
-        <Route path='/shop/addBill' element={isAuthenticated ? <AddBill /> : <Login />} />
-        <Route path='/shop/allCustomers' element={isAuthenticated ? <AllCustomers /> : <Login />} />
-        <Route path='/shop/allBills' element={isAuthenticated ? <AllBill /> : <Login />} />
-        <Route path='/addProducts' element={isAuthenticated ? < ProductAddPage /> : <Login />} />
-        <Route path='/allProduct' element={isAuthenticated ? <ProductManagement /> : <Login />} />
-        <Route path="/edit-product/:productId" element={isAuthenticated ? <EditProduct /> : <Login />} />
+          <Route path='/addShop' element={isAuthenticated ? <Add_shop /> : <Login />} />
+          <Route path='/addServices' element={isAuthenticated ? <Add_services /> : <Login />} />
+          <Route path='/business' element={isAuthenticated ? <Business /> : <Login />} />
+          {/* shop */}
+          {/* test */}
+          <Route path='/shop' element={isAuthenticated ? <ShopHome /> : <Login />} />
+          <Route path='/shop/addBill' element={isAuthenticated ? <AddBill /> : <Login />} />
+          <Route path='/shop/allCustomers' element={isAuthenticated ? <AllCustomers /> : <Login />} />
+          <Route path='/shop/allBills' element={isAuthenticated ? <AllBill /> : <Login />} />
+          <Route path='/addProducts' element={isAuthenticated ? < ProductAddPage /> : <Login />} />
+          <Route path='/allProduct' element={isAuthenticated ? <ProductManagement /> : <Login />} />
+          <Route path="/edit-product/:productId" element={isAuthenticated ? <EditProduct /> : <Login />} />
 
 
-        {/* userPage */}
-        {/* <Route path='/admin/user' element={isAuthenticated ? <UserHome /> : <Login />} /> */}
-        <Route path='/admin/user/allusers' element={isAuthenticated ? <AllUsers /> : <Login />} />
-        {/* <Route path='/admin/shop' */}
+          {/* userPage */}
+          {/* <Route path='/admin/user' element={isAuthenticated ? <UserHome /> : <Login />} /> */}
+          <Route path='/admin/user/allusers' element={isAuthenticated ? <AllUsers /> : <Login />} />
+          {/* <Route path='/admin/shop' */}
 
-        {/* updates */}
-        <Route path='/setting/user' element={isAuthenticated ? <UserProfileUpdate /> : <Login />} />
-        <Route path='/setting/shop' element={isAuthenticated ? <ShopProfileUpdate /> : <Login />} />
-        <Route path='/setting/Contractor' element={isAuthenticated ? <ContractorProfileUpdate /> : <Login />} />
+          {/* updates */}
+          <Route path='/setting/user' element={isAuthenticated ? <UserProfileUpdate /> : <Login />} />
+          <Route path='/setting/shop' element={isAuthenticated ? <ShopProfileUpdate /> : <Login />} />
+          <Route path='/setting/Contractor' element={isAuthenticated ? <ContractorProfileUpdate /> : <Login />} />
 
-        {/* dashbord- Notofaction */}
-        <Route path="/contractor/dashboard" element={<ContractorDashboard />} />
-        <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
-        <Route path='/employee/buy/dashboard' element={isAuthenticated ? <EmployeeBuyDashboard /> : <Login />} />
-        <Route path="/shop-owner/dashboard" element={isAuthenticated ? <ShopOwnerDashboard /> : <Login />} />
-        <Route path="/my-requests" element={isAuthenticated ? <UserDashboard /> : <Login />} />
-        <Route path='/my-Orders' element={isAuthenticated ? <UserBuyRequestsDashboard /> : <Login />} />
-        <Route path="/cart" element={isAuthenticated ? <Cart /> : <Login />} />
+          {/* dashbord- Notofaction */}
+          <Route path="/contractor/dashboard" element={<ContractorDashboard />} />
+          <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
+          <Route path='/employee/buy/dashboard' element={isAuthenticated ? <EmployeeBuyDashboard /> : <Login />} />
+          <Route path="/shop-owner/dashboard" element={isAuthenticated ? <ShopOwnerDashboard /> : <Login />} />
+          <Route path="/my-requests" element={isAuthenticated ? <UserDashboard /> : <Login />} />
+          <Route path='/my-Orders' element={isAuthenticated ? <UserBuyRequestsDashboard /> : <Login />} />
+          <Route path="/cart" element={isAuthenticated ? <Cart /> : <Login />} />
 
-      </Routes>
+        </Routes>
+      </Suspense>
 
       {/* <SocketStatus /> */}
       {/* <SocketDebug /> */}

@@ -260,10 +260,23 @@ const allUsers = async (req, res) => {
         }
 
 
-        const users = await User.find();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const totalUsers = await User.countDocuments();
+        const users = await User.find().skip(skip).limit(limit);
+
         res.status(200).json({
             message: "Users retrieved successfully",
-            users
+            users,
+            pagination: {
+                totalUsers,
+                totalPages: Math.ceil(totalUsers / limit),
+                currentPage: page,
+                hasNextPage: page * limit < totalUsers,
+                hasPrevPage: page > 1
+            }
         });
 
     }

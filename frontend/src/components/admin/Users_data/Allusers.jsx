@@ -69,19 +69,30 @@ function AllUsers() {
         'Welding'
     ];
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [hasNextPage, setHasNextPage] = useState(false);
+    const [hasPrevPage, setHasPrevPage] = useState(false);
+
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        fetchUsers(currentPage);
+    }, [currentPage]);
 
     useEffect(() => {
         filterUsers();
     }, [users, searchTerm, roleFilter]);
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await axiosClient.get("/auth/all_users");
+            const response = await axiosClient.get(`/auth/all_users?page=${page}&limit=20`);
             setUsers(response.data.users);
+
+            if (response.data.pagination) {
+                setTotalPages(response.data.pagination.totalPages);
+                setHasNextPage(response.data.pagination.hasNextPage);
+                setHasPrevPage(response.data.pagination.hasPrevPage);
+            }
         } catch (error) {
             console.error("Error fetching users:", error);
             toast.error("Failed to fetch users");
@@ -505,357 +516,363 @@ function AllUsers() {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                                                           
                     )}
                 </div>
             </div>
+                            )}
+        </div>
+    ))
+}
+                </div >
+                    )}
+            </div >
+        </div >
 
-            {/* Delete Confirmation Modal */}
-            {showDeleteModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 max-w-md w-full p-6">
-                        <div className="text-center">
-                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                                <span className="text-red-600 text-xl">⚠️</span>
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                Delete User
-                            </h3>
-                            <p className="text-gray-600 mb-6">
-                                Are you sure you want to delete <strong>{userToDelete?.name}</strong>? This action cannot be undone.
-                            </p>
-                            <div className="flex space-x-3">
-                                <button
-                                    onClick={() => setShowDeleteModal(false)}
-                                    className="flex-1 py-3 px-4 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition duration-150"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={confirmDelete}
-                                    className="flex-1 py-3 px-4 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition duration-150"
-                                >
-                                    Delete User
-                                </button>
-                            </div>
-                        </div>
+    {/* Delete Confirmation Modal */ }
+{
+    showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 max-w-md w-full p-6">
+                <div className="text-center">
+                    <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                        <span className="text-red-600 text-xl">⚠️</span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Delete User
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                        Are you sure you want to delete <strong>{userToDelete?.name}</strong>? This action cannot be undone.
+                    </p>
+                    <div className="flex space-x-3">
+                        <button
+                            onClick={() => setShowDeleteModal(false)}
+                            className="flex-1 py-3 px-4 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition duration-150"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmDelete}
+                            className="flex-1 py-3 px-4 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition duration-150"
+                        >
+                            Delete User
+                        </button>
                     </div>
                 </div>
-            )}
+            </div>
+        </div>
+    )
+}
 
 
-            {/* Update User Modal */}
-            {showUpdateModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
-                    <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-semibold text-gray-900">Update User</h3>
-                                <button
-                                    onClick={() => setShowUpdateModal(false)}
-                                    className="text-gray-400 hover:text-gray-600 transition duration-150"
-                                >
-                                    ✕
-                                </button>
+{/* Update User Modal */ }
+{
+    showUpdateModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
+            <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-xl font-semibold text-gray-900">Update User</h3>
+                        <button
+                            onClick={() => setShowUpdateModal(false)}
+                            className="text-gray-400 hover:text-gray-600 transition duration-150"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleSubmit(handleUpdateSubmit)} className="space-y-6">
+                        {/* Basic Information */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Full Name *
+                                </label>
+                                <input
+                                    type="text"
+                                    {...register("name")}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
+                                />
+                                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                             </div>
 
-                            <form onSubmit={handleSubmit(handleUpdateSubmit)} className="space-y-6">
-                                {/* Basic Information */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Email *
+                                </label>
+                                <input
+                                    type="email"
+                                    {...register("email")}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
+                                />
+                                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Phone
+                                </label>
+                                <input
+                                    type="tel"
+                                    {...register("phone")}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
+                                />
+                            </div>
+
+                            {currentUserRole === "admin" && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Role *
+                                    </label>
+                                    <select
+                                        {...register("role")}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
+                                    >
+                                        <option value="User">User</option>
+                                        <option value="store_owner">Store Owner</option>
+                                        <option value="contractor">Contractor</option>
+                                        <option value="co-admin">Co-Admin</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Address Information */}
+                        <div className="border-t pt-6">
+                            <h4 className="text-lg font-semibold text-gray-900 mb-4">Address Information</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Street
+                                    </label>
+                                    <input
+                                        type="text"
+                                        {...register("address.street")}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        City
+                                    </label>
+                                    <input
+                                        type="text"
+                                        {...register("address.city")}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        State
+                                    </label>
+                                    <input
+                                        type="text"
+                                        {...register("address.state")}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Pincode
+                                    </label>
+                                    <input
+                                        type="text"
+                                        {...register("address.pincode")}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Store Owner Details */}
+                        {(watchedRole === "store_owner" || selectedUser?.role === "store_owner") && (
+                            <div className="border-t pt-6">
+                                <h4 className="text-lg font-semibold text-gray-900 mb-4">Store Details</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Full Name *
+                                            Store Name
                                         </label>
                                         <input
                                             type="text"
-                                            {...register("name")}
+                                            {...register("storeDetails.storeName")}
                                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
                                         />
-                                        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+                                        {errors.storeDetails?.storeName && (
+                                            <p className="text-red-500 text-xs mt-1">{errors.storeDetails.storeName.message}</p>
+                                        )}
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Email *
+                                            GST Number
                                         </label>
                                         <input
-                                            type="email"
-                                            {...register("email")}
+                                            type="text"
+                                            {...register("storeDetails.gstNumber")}
                                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
                                         />
-                                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Phone
+                                            License ID
                                         </label>
                                         <input
-                                            type="tel"
-                                            {...register("phone")}
+                                            type="text"
+                                            {...register("storeDetails.licenseId")}
                                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
                                         />
                                     </div>
-
-                                    {currentUserRole === "admin" && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Role *
-                                            </label>
-                                            <select
-                                                {...register("role")}
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
-                                            >
-                                                <option value="User">User</option>
-                                                <option value="store_owner">Store Owner</option>
-                                                <option value="contractor">Contractor</option>
-                                                <option value="co-admin">Co-Admin</option>
-                                                <option value="admin">Admin</option>
-                                            </select>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Address Information */}
-                                <div className="border-t pt-6">
-                                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Address Information</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Street
-                                            </label>
-                                            <input
-                                                type="text"
-                                                {...register("address.street")}
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                City
-                                            </label>
-                                            <input
-                                                type="text"
-                                                {...register("address.city")}
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                State
-                                            </label>
-                                            <input
-                                                type="text"
-                                                {...register("address.state")}
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Pincode
-                                            </label>
-                                            <input
-                                                type="text"
-                                                {...register("address.pincode")}
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
-                                            />
-                                        </div>
+                                    <div className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            {...register("storeDetails.isVerified")}
+                                            className="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+                                        />
+                                        <label className="ml-2 text-sm text-gray-700">
+                                            Verified Store
+                                        </label>
                                     </div>
                                 </div>
 
-                                {/* Store Owner Details */}
-                                {(watchedRole === "store_owner" || selectedUser?.role === "store_owner") && (
-                                    <div className="border-t pt-6">
-                                        <h4 className="text-lg font-semibold text-gray-900 mb-4">Store Details</h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    Store Name
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    {...register("storeDetails.storeName")}
-                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
-                                                />
-                                                {errors.storeDetails?.storeName && (
-                                                    <p className="text-red-500 text-xs mt-1">{errors.storeDetails.storeName.message}</p>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    GST Number
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    {...register("storeDetails.gstNumber")}
-                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    License ID
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    {...register("storeDetails.licenseId")}
-                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
-                                                />
-                                            </div>
-                                            <div className="flex items-center">
+                                {/* Product Categories */}
+                                <div className="mt-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Product Categories
+                                    </label>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                        {productCategories.map(category => (
+                                            <label key={category} className="flex items-center space-x-2">
                                                 <input
                                                     type="checkbox"
-                                                    {...register("storeDetails.isVerified")}
+                                                    checked={watch("storeDetails.productCategories")?.includes(category) || false}
+                                                    onChange={() => handleCategoryToggle(category)}
                                                     className="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
                                                 />
-                                                <label className="ml-2 text-sm text-gray-700">
-                                                    Verified Store
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        {/* Product Categories */}
-                                        <div className="mt-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Product Categories
+                                                <span className="text-sm text-gray-700">{category}</span>
                                             </label>
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                                {productCategories.map(category => (
-                                                    <label key={category} className="flex items-center space-x-2">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={watch("storeDetails.productCategories")?.includes(category) || false}
-                                                            onChange={() => handleCategoryToggle(category)}
-                                                            className="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-                                                        />
-                                                        <span className="text-sm text-gray-700">{category}</span>
-                                                    </label>
-                                                ))}
-                                            </div>
-                                        </div>
+                                        ))}
                                     </div>
-                                )}
+                                </div>
+                            </div>
+                        )}
 
-                                {/* Contractor Details */}
-                                {(watchedRole === "contractor" || selectedUser?.role === "contractor") && (
-                                    <div className="border-t pt-6">
-                                        <h4 className="text-lg font-semibold text-gray-900 mb-4">Contractor Details</h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    Years of Experience
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    {...register("contractorDetails.yearsOfExperience", { valueAsNumber: true })}
-                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    Hourly Rate (₹)
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    {...register("contractorDetails.hourlyRate", { valueAsNumber: true })}
-                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    License Number
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    {...register("contractorDetails.licenseNumber")}
-                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
-                                                />
-                                            </div>
-                                            <div className="flex items-center">
+                        {/* Contractor Details */}
+                        {(watchedRole === "contractor" || selectedUser?.role === "contractor") && (
+                            <div className="border-t pt-6">
+                                <h4 className="text-lg font-semibold text-gray-900 mb-4">Contractor Details</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Years of Experience
+                                        </label>
+                                        <input
+                                            type="number"
+                                            {...register("contractorDetails.yearsOfExperience", { valueAsNumber: true })}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Hourly Rate (₹)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            {...register("contractorDetails.hourlyRate", { valueAsNumber: true })}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            License Number
+                                        </label>
+                                        <input
+                                            type="text"
+                                            {...register("contractorDetails.licenseNumber")}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
+                                        />
+                                    </div>
+                                    <div className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            {...register("contractorDetails.isVerified")}
+                                            className="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+                                        />
+                                        <label className="ml-2 text-sm text-gray-700">
+                                            Verified Contractor
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Specializations */}
+                                <div className="mt-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Specializations
+                                    </label>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                        {specializations.map(spec => (
+                                            <label key={spec} className="flex items-center space-x-2">
                                                 <input
                                                     type="checkbox"
-                                                    {...register("contractorDetails.isVerified")}
+                                                    checked={watch("contractorDetails.specialization")?.includes(spec) || false}
+                                                    onChange={() => handleSpecializationToggle(spec)}
                                                     className="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
                                                 />
-                                                <label className="ml-2 text-sm text-gray-700">
-                                                    Verified Contractor
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        {/* Specializations */}
-                                        <div className="mt-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Specializations
+                                                <span className="text-sm text-gray-700">{spec}</span>
                                             </label>
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                                {specializations.map(spec => (
-                                                    <label key={spec} className="flex items-center space-x-2">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={watch("contractorDetails.specialization")?.includes(spec) || false}
-                                                            onChange={() => handleSpecializationToggle(spec)}
-                                                            className="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-                                                        />
-                                                        <span className="text-sm text-gray-700">{spec}</span>
-                                                    </label>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Bio */}
-                                        <div className="mt-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Bio
-                                            </label>
-                                            <textarea
-                                                {...register("contractorDetails.bio")}
-                                                rows="3"
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
-                                            />
-                                        </div>
+                                        ))}
                                     </div>
-                                )}
+                                </div>
 
-                                {/* Media Upload */}
-                                <div className="border-t pt-6">
-                                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Profile Image</h4>
-                                    <ImageUpload
-                                        userId={selectedUser?._id}
-                                        onUploadSuccess={(results) => {
-                                            console.log('Upload successful:', results);
-                                        }}
-                                        onAvatarUpdate={handleAvatarUpdate} // Add this prop
+                                {/* Bio */}
+                                <div className="mt-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Bio
+                                    </label>
+                                    <textarea
+                                        {...register("contractorDetails.bio")}
+                                        rows="3"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150"
                                     />
                                 </div>
+                            </div>
+                        )}
 
-                                {/* Submit Buttons */}
-                                <div className="flex space-x-3 pt-6 border-t">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowUpdateModal(false)}
-                                        className="flex-1 py-3 px-4 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition duration-150"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        className="flex-1 py-3 px-4 bg-gray-800 text-white rounded-xl font-medium hover:bg-gray-900 transition duration-150 disabled:opacity-50"
-                                    >
-                                        {isSubmitting ? "Updating..." : "Update User"}
-                                    </button>
-                                </div>
-                            </form>
+                        {/* Media Upload */}
+                        <div className="border-t pt-6">
+                            <h4 className="text-lg font-semibold text-gray-900 mb-4">Profile Image</h4>
+                            <ImageUpload
+                                userId={selectedUser?._id}
+                                onUploadSuccess={(results) => {
+                                    console.log('Upload successful:', results);
+                                }}
+                                onAvatarUpdate={handleAvatarUpdate} // Add this prop
+                            />
                         </div>
-                    </div>
+
+                        {/* Submit Buttons */}
+                        <div className="flex space-x-3 pt-6 border-t">
+                            <button
+                                type="button"
+                                onClick={() => setShowUpdateModal(false)}
+                                className="flex-1 py-3 px-4 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition duration-150"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="flex-1 py-3 px-4 bg-gray-800 text-white rounded-xl font-medium hover:bg-gray-900 transition duration-150 disabled:opacity-50"
+                            >
+                                {isSubmitting ? "Updating..." : "Update User"}
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            )}
+            </div>
+        </div>
+    )
+}
 
         </div >
     );
