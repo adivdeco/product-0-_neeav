@@ -65,8 +65,8 @@ const combinedAuthMiddleware = async (req, res, next) => {
 
 employeeRoutes.get('/pending-requests', combinedAuthMiddleware, async (req, res) => {
     try {
-        console.log('🔍 Employee ID:', req.employee._id);
-        console.log('🔍 User ID from session:', req.finduser._id);
+        // console.log('🔍 Employee ID:', req.employee._id);
+        // console.log('🔍 User ID from session:', req.finduser._id);
 
         const { page = 1, limit = 20 } = req.query;
 
@@ -80,7 +80,7 @@ employeeRoutes.get('/pending-requests', combinedAuthMiddleware, async (req, res)
             // ]
         };
 
-        console.log('🔍 Filter being used:', JSON.stringify(filter, null, 2));
+        // console.log('🔍 Filter being used:', JSON.stringify(filter, null, 2));
 
         const requests = await WorkRequest.find()
             .populate('user', 'name email phone avatar')
@@ -496,7 +496,7 @@ employeeRoutes.get('/buy-requests', combinedAuthMiddleware, async (req, res) => 
 
         // OPTIMIZED: Use lean() for better performance
         const requests = await BuyRequest.find(filter)
-            .populate('product', 'name price category brand ProductImage unit stock')
+            .populate('product', 'name category brand ProductImage variants unit price costPrice stock shipping taxRate description') // Populate more details for full context
             .populate('user', 'name email phone avatar')
             .populate('shopOwner', 'name email phone shopName avatar')
             .populate('assignedEmployee', 'employeeId user')

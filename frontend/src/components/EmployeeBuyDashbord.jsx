@@ -127,24 +127,45 @@ const ContactCard = ({ entity, role, type = 'user' }) => {
     );
 };
 
-const ProductCard = ({ product }) => (
+const ProductCard = ({ product, variantDetails }) => (
     <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
         {product?.ProductImage ? (
             <img
                 src={product.ProductImage}
                 alt={product.name}
-                className="h-10 w-10 rounded-lg object-cover mr-3"
+                className="h-12 w-12 rounded-lg object-cover mr-3"
             />
         ) : (
-            <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                <FaBox className="w-5 h-5 text-blue-600" />
+            <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                <FaBox className="w-6 h-6 text-blue-600" />
             </div>
         )}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
             <h6 className="text-sm font-semibold text-gray-900 truncate">{product?.name}</h6>
-            <div className="flex justify-between text-xs text-gray-600">
-                <span>{product?.category}</span>
-                <span className="font-semibold">₹{product?.price}</span>
+            {variantDetails ? (
+                <div className="flex flex-wrap gap-1 mt-1">
+                    <span className="text-xs bg-white px-2 py-0.5 rounded border border-blue-100 text-blue-700 font-medium">
+                        {variantDetails.size} {variantDetails.unit}
+                    </span>
+
+                    {variantDetails.color && (
+                        <span className="text-xs bg-white px-2 py-0.5 rounded border border-blue-100 text-gray-600">
+                            {variantDetails.color}
+                            
+                        </span>
+                    )}
+                                        <span className="text-xs bg-white px-2 py-0.5 rounded border border-blue-100 text-blue-700 font-medium">
+                       CP : ₹{variantDetails.costPrice}
+                    </span>
+                </div>
+            ) : (
+                <div className="flex justify-between text-xs text-gray-600 mt-1">
+                    <span>{product?.category}</span>
+                </div>
+            )}
+            <div className="flex justify-between text-xs mt-1 text-gray-700">
+                <span>Unit Price:</span>
+                <span className="font-bold">₹{Number(variantDetails?.price || product?.price || 0).toFixed(2)}</span>
             </div>
         </div>
     </div>
@@ -234,18 +255,18 @@ const RequestDetailsModal = ({ request, onClose, onContact }) => {
                 <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Left Column */}
                     <div className="space-y-6">
-                        <ProductCard product={request.product} />
+                        <ProductCard product={request.product} variantDetails={request.variantDetails} />
 
                         <div className="bg-gray-50 rounded-lg p-4">
                             <h4 className="font-semibold text-gray-900 mb-3">Order Details</h4>
                             <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Quantity:</span>
-                                    <span className="font-semibold">{request.quantity} {request.product?.unit}</span>
+                                    <span className="font-semibold">{request.quantity} {request.variantDetails?.unit || request.product?.unit}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Total Price:</span>
-                                    <span className="font-semibold">₹{request.totalPrice}</span>
+                                    <span className="font-semibold">₹{Number(request.totalPrice).toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Payment Method:</span>
@@ -857,6 +878,11 @@ const EmployeeBuyRequestDashboard = () => {
                                             <div className="flex-1">
                                                 <h3 className="text-xl font-bold text-gray-900 mb-2">
                                                     {request.product?.name || 'Unknown Product'}
+                                                    {request.variantDetails && (
+                                                        <span className="ml-2 text-sm font-normal text-gray-500">
+                                                            ({request.variantDetails.size} {request.variantDetails.unit})
+                                                        </span>
+                                                    )}
                                                 </h3>
                                                 <div className="flex flex-wrap gap-2">
                                                     <StatusBadge status={request.status} />
@@ -887,22 +913,22 @@ const EmployeeBuyRequestDashboard = () => {
                                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                             {/* Product & Order Info */}
                                             <div className="space-y-4">
-                                                <ProductCard product={request.product} />
+                                                <ProductCard product={request.product} variantDetails={request.variantDetails} />
 
                                                 <div className="bg-gray-50 rounded-lg p-4">
                                                     <h4 className="font-semibold text-gray-900 mb-2">Order Summary</h4>
                                                     <div className="space-y-1 text-sm">
                                                         <div className="flex justify-between">
                                                             <span>Quantity:</span>
-                                                            <span className="font-semibold">{request.quantity} {request.product?.unit}</span>
+                                                            <span className="font-semibold">{request.quantity} {request.variantDetails?.unit || request.product?.unit}</span>
                                                         </div>
                                                         <div className="flex justify-between">
                                                             <span>Unit Price:</span>
-                                                            <span className="font-semibold">₹{request.product?.price}</span>
+                                                            <span className="font-semibold">₹{Number(request.variantDetails?.price).toFixed(2)}</span>
                                                         </div>
                                                         <div className="flex justify-between border-t pt-1">
                                                             <span>Total:</span>
-                                                            <span className="font-semibold text-lg">₹{request.totalPrice}</span>
+                                                            <span className="font-semibold text-lg">₹{Number(request.totalPrice).toFixed(2)}</span>
                                                         </div>
                                                         <div className="flex justify-between">
                                                             <span>Payment:</span>

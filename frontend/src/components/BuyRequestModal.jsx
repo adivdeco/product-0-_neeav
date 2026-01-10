@@ -5,7 +5,7 @@ import axiosClient from '../api/auth';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 
-const BuyRequestModal = ({ product, quantity, isOpen, onClose, onSuccess }) => {
+const BuyRequestModal = ({ product, activeVariant, quantity, isOpen, onClose, onSuccess }) => {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
     const { width, height } = useWindowSize();
@@ -28,8 +28,9 @@ const BuyRequestModal = ({ product, quantity, isOpen, onClose, onSuccess }) => {
 
     const [saveAddress, setSaveAddress] = useState(true);
 
-    // Calculate pricing
-    const subtotal = product.price * quantity;
+    // Calculate pricing based on variant or base product
+    const currentPrice = activeVariant ? activeVariant.price : product.price;
+    const subtotal = currentPrice * quantity;
     const taxAmount = (subtotal * (product.taxRate || 18)) / 100;
     const shippingCost = product.shipping?.isFree ? 0 : (product.shipping?.cost || 50);
     const totalPrice = subtotal + taxAmount + shippingCost;
@@ -80,9 +81,10 @@ const BuyRequestModal = ({ product, quantity, isOpen, onClose, onSuccess }) => {
 
             const response = await axiosClient.post('/buy-requests', {
                 productId: product._id,
+                variantId: activeVariant?._id, // Add variant ID
                 quantity: quantity,
                 shippingAddress: location,
-                message: `Purchase request for ${quantity} ${product.name}`,
+                message: `Purchase request for ${quantity} ${activeVariant ? activeVariant.unit : product.unit} of ${product.name} ${activeVariant ? `(${activeVariant.size})` : ''}`,
                 paymentMethod: 'cash_on_delivery',
                 saveAddress: saveAddress
             });
@@ -322,8 +324,10 @@ const BuyRequestModal = ({ product, quantity, isOpen, onClose, onSuccess }) => {
                                 />
                                 <div className="flex-1">
                                     <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                                    <p className="text-sm text-gray-600">Quantity: {quantity} {product.unit}</p>
-                                    <p className="text-lg font-bold text-green-600">₹{product.price}/unit</p>
+                                    <p className="text-sm text-gray-600">
+                                        {activeVariant ? `${activeVariant.size} ${activeVariant.unit}` : ''} | Qty: {quantity}
+                                    </p>
+                                    <p className="text-lg font-bold text-green-600">₹{Number(currentPrice).toFixed(2)}/unit</p>
                                 </div>
                             </div>
                         </div>
@@ -356,7 +360,7 @@ const BuyRequestModal = ({ product, quantity, isOpen, onClose, onSuccess }) => {
                             <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">
                                     <span>Price ({quantity} {product.unit})</span>
-                                    <span>₹{subtotal}</span>
+                                    <span>₹{Number(subtotal).toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Tax ({product.taxRate || 18}%)</span>
@@ -365,13 +369,13 @@ const BuyRequestModal = ({ product, quantity, isOpen, onClose, onSuccess }) => {
                                 <div className="flex justify-between">
                                     <span>Shipping</span>
                                     <span>
-                                        {shippingCost === 0 ? 'FREE' : `₹${shippingCost}`}
+                                        <span className="text-green-600">{shippingCost === 0 ? 'Free' : `₹${Number(shippingCost).toFixed(2)}`}</span>
                                     </span>
                                 </div>
                                 <div className="border-t border-gray-200 pt-2">
-                                    <div className="flex justify-between font-semibold text-lg">
+                                    <div className="flex justify-between font-bold text-lg text-gray-900 mt-2">
                                         <span>Total Amount</span>
-                                        <span className="text-green-600">₹{totalPrice.toFixed(2)}</span>
+                                        <span className="text-green-600">₹{Number(totalPrice).toFixed(2)}</span>
                                     </div>
                                 </div>
                             </div>

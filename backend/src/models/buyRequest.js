@@ -17,6 +17,18 @@ const buyRequestSchema = new Schema({
         ref: 'User',
         required: true
     },
+    variantId: {
+        type: Schema.Types.ObjectId,
+        required: true
+    },
+    variantDetails: {
+        name: String,
+        size: String,
+        color: String,
+        unit: String,
+        price: Number,
+        costPrice: Number,
+    },
     quantity: {
         type: Number,
         required: true,

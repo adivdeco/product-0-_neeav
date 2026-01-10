@@ -461,11 +461,6 @@ const ShopOwnerDashboard = () => {
                                                             alt={request.product?.name}
                                                             className="w-16 h-16 object-cover rounded-lg border-2 border-white shadow-sm"
                                                         />
-                                                        {/* <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border-2 border-white flex items-center justify-center shadow-sm">
-                                                            <span className="text-xs font-bold">
-                                                                {getStatusBadge(request.status)}
-                                                            </span>
-                                                        </div> */}
                                                     </div>
                                                     <div className="flex-1">
                                                         <div className="flex items-start justify-between">
@@ -476,6 +471,23 @@ const ShopOwnerDashboard = () => {
                                                                 <p className="text-sm text-gray-700 mt-1">
                                                                     {request.product?.category} • {request.product?.brand || 'Generic Brand'}
                                                                 </p>
+
+                                                                {/* Variant Display */}
+                                                                {request.variantDetails && (
+                                                                    <div className="flex flex-wrap gap-1 mt-2">
+                                                                        <span className="text-xs bg-white px-2 py-0.5 rounded border border-blue-100 text-blue-700 font-medium">
+                                                                            {request.variantDetails.size} {request.variantDetails.unit}
+                                                                        </span>
+                                                                        {request.variantDetails.color && (
+                                                                            <span className="text-xs bg-white px-2 py-0.5 rounded border border-blue-100 text-gray-600">
+                                                                                {request.variantDetails.color}
+                                                                            </span>
+                                                                        )}
+                                                                        <span className="text-xs bg-white px-2 py-0.5 rounded border border-blue-100 text-purple-700 font-medium whitespace-nowrap">
+                                                                            Cost Price: {formatCurrency(request.variantDetails.costPrice)}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
                                                                 <div className="mt-2">
                                                                     {getStatusBadge(request.status)}
                                                                 </div>
@@ -511,12 +523,12 @@ const ShopOwnerDashboard = () => {
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-600">Quantity:</span>
                                                         <span className="font-medium bg-gray-100 px-2 py-1 rounded">
-                                                            {request.quantity} {request.product?.unit}
+                                                            {request.quantity} {request.variantDetails?.unit || request.product?.unit}
                                                         </span>
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-600">Unit Price:</span>
-                                                        <span className="font-medium">{formatCurrency(request.product?.price)}</span>
+                                                        <span className="font-medium">{formatCurrency(request.variantDetails?.price || request.product?.price)}</span>
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-600">Total Items:</span>

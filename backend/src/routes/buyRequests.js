@@ -12,12 +12,12 @@ const { default: mongoose } = require('mongoose');
 BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
     try {
         const userId = req.finduser._id;
-        const { productId, quantity, message, shippingAddress, paymentMethod, saveAddress } = req.body;
+        const { productId, variantId, quantity, message, shippingAddress, paymentMethod, saveAddress } = req.body;
 
-        // console.log('📦 Buy request received:', { productId, quantity, userId });
+        // console.log('📦 Buy request received:', { productId, variantId, quantity, userId });
 
-        if (!productId || !quantity) {
-            return res.status(400).json({ message: 'Product ID and quantity are required' });
+        if (!productId || !variantId || !quantity) {
+            return res.status(400).json({ message: 'Product ID, Variant ID, and quantity are required' });
         }
 
         // Get product details
@@ -26,10 +26,16 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        // Check stock availability
-        if (product.stock < quantity) {
+        // Find the specific variant
+        const variant = product.variants.id(variantId);
+        if (!variant) {
+            return res.status(404).json({ message: 'Product variant not found' });
+        }
+
+        // Check stock availability (using variant stock)
+        if (variant.stock < quantity) {
             return res.status(400).json({
-                message: `Only ${product.stock} items available in stock`
+                message: `Only ${variant.stock} ${variant.unit} available in stock`
             });
         }
 
@@ -39,19 +45,29 @@ BuyRequestRouter.post('/', authMiddleware, async (req, res) => {
             return res.status(404).json({ message: 'Shop or owner not found' });
         }
 
-        // Calculate total price
-        const taxAmount = (product.price * quantity * (product.taxRate || 18)) / 100;
+        // Calculate total price using VARIANT PRICE
+        const price = variant.price;
+        const taxAmount = (price * quantity * (product.taxRate || 18)) / 100;
         const shippingCost = product.shipping?.isFree ? 0 : (product.shipping?.cost || 50);
-        const totalPrice = (product.price * quantity) + taxAmount + shippingCost;
+        const totalPrice = (price * quantity) + taxAmount + shippingCost;
 
         // Create buy request
         const buyRequest = await BuyRequest.create({
             product: productId,
+            variantId: variantId,
+            variantDetails: {
+                name: variant.variantName,
+                size: variant.size,
+                color: variant.color,
+                unit: variant.unit,
+                price: variant.price,
+                costPrice: variant.costPrice,
+            },
             user: userId,
             shopOwner: shop.ownerId._id,
             quantity,
             totalPrice,
-            message: message || `Purchase request for ${quantity} ${product.name}`,
+            message: message || `Purchase request for ${quantity} ${variant.unit} of ${product.name} (${variant.variantName || 'Standard'})`,
             shippingAddress: {
                 ...shippingAddress,
                 contactPerson: shippingAddress?.contactPerson || req.finduser.name,
@@ -151,7 +167,7 @@ BuyRequestRouter.get('/shop-owner/requests', authMiddleware, async (req, res) =>
         if (status) filter.status = status;
 
         const requests = await BuyRequest.find(filter)
-            .populate('product', 'name price ProductImage category brand taxRate shipping unit')
+            .populate('product', 'name price costPrice ProductImage category brand taxRate shipping unit variants description stock')
             .populate('user', 'name email phone avatar')
             .sort({ createdAt: -1 })
             .limit(limit * 1)
@@ -220,17 +236,28 @@ BuyRequestRouter.put('/:id/accept', authMiddleware, async (req, res) => {
             return res.status(404).json({ message: 'Request not found or already processed' });
         }
 
+        // Find specific variant
+        const variant = buyRequest.product.variants.id(buyRequest.variantId);
+        if (!variant) {
+            return res.status(404).json({ message: 'Product variant associated with this request not found' });
+        }
+
         // Check stock again
-        if (buyRequest.product.stock < buyRequest.quantity) {
+        if (variant.stock < buyRequest.quantity) {
             return res.status(400).json({
-                message: 'Insufficient stock to fulfill this request'
+                message: `Insufficient stock (${variant.stock} available) to fulfill this request`
             });
         }
 
-        // Update product stock
-        await Product.findByIdAndUpdate(
-            buyRequest.product._id,
-            { $inc: { stock: -buyRequest.quantity } }
+        // Update variant stock
+        await Product.findOneAndUpdate(
+            { "_id": buyRequest.product._id, "variants._id": buyRequest.variantId },
+            {
+                $inc: {
+                    "variants.$.stock": -buyRequest.quantity,
+                    // "stock": -buyRequest.quantity // If you maintain a global stock, uncomment this
+                }
+            }
         );
 
         // Update buy request status
@@ -508,10 +535,14 @@ BuyRequestRouter.put('/:id/cancel', authMiddleware, async (req, res) => {
         }
 
         // If order was accepted, restore stock
-        if (buyRequest.status === 'accepted' && buyRequest.product) {
-            await Product.findByIdAndUpdate(
-                buyRequest.product._id,
-                { $inc: { stock: buyRequest.quantity } }
+        if (buyRequest.status === 'accepted' && buyRequest.product && buyRequest.variantId) {
+            await Product.findOneAndUpdate(
+                { "_id": buyRequest.product._id, "variants._id": buyRequest.variantId },
+                {
+                    $inc: {
+                        "variants.$.stock": buyRequest.quantity
+                    }
+                }
             );
         }
 
