@@ -47,7 +47,7 @@ const registerUser = async (req, res) => {
                 maxAge: 1200 * 1200 * 1000,
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'None',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
                 path: '/'
             };
             res.cookie('token', token, cookieOptionsReg);
@@ -112,7 +112,7 @@ const socialLogin = async (req, res) => {
             maxAge: 1200 * 1200 * 1000,
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'None',
+            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
             path: '/'
         };
 
@@ -191,7 +191,7 @@ const loginUser = async (req, res) => {
             maxAge: 1200 * 1200 * 1000,
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'None',
+            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
             path: '/'
         };
         res.cookie('token', token, cookieOptionsLogin);
