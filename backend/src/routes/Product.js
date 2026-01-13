@@ -3,6 +3,8 @@ const Product = require('../models/productSchema')
 const authMiddleware = require('../middleware/authMiddleware')
 const Shop = require('../models/shopSchema')
 const ProductRouter = express.Router()
+const NodeCache = require('node-cache');
+const filterCache = new NodeCache({ stdTTL: 300 }); // 5 minutes default
 
 
 
@@ -657,19 +659,32 @@ ProductRouter.get('/public/products', async (req, res) => {
         const totalProducts = await Product.countDocuments(filter);
         const totalPages = Math.ceil(totalProducts / limit);
 
-        // Calculate Global Min/Max Price for UI Filters
-        // We need aggregation to unwind variants and find absolute min/max
-        const priceAgg = await Product.aggregate([
-            { $match: { isActive: true } },
-            { $unwind: "$variants" },
-            {
-                $group: {
-                    _id: null,
-                    min: { $min: "$variants.price" },
-                    max: { $max: "$variants.price" }
+        // --- Caching for Filters ---
+        let filters = filterCache.get("product_filters");
+
+        if (!filters) {
+            // Calculate Global Min/Max Price and Distinct Values
+            const priceAgg = await Product.aggregate([
+                { $match: { isActive: true } },
+                { $unwind: "$variants" },
+                {
+                    $group: {
+                        _id: null,
+                        min: { $min: "$variants.price" },
+                        max: { $max: "$variants.price" }
+                    }
                 }
-            }
-        ]);
+            ]);
+
+            filters = {
+                categories: await Product.distinct('category', { isActive: true }),
+                brands: await Product.distinct('brand', { isActive: true, brand: { $ne: null } }),
+                priceRange: priceAgg.length > 0 ? { min: priceAgg[0].min, max: priceAgg[0].max } : { min: 0, max: 0 }
+            };
+
+            // Cache for 5 minutes (300 seconds)
+            filterCache.set("product_filters", filters, 300);
+        }
 
         res.status(200).json({
             message: "Products retrieved successfully",
@@ -680,11 +695,7 @@ ProductRouter.get('/public/products', async (req, res) => {
                 totalProducts,
                 limit: Number(limit)
             },
-            filters: {
-                categories: await Product.distinct('category', { isActive: true }),
-                brands: await Product.distinct('brand', { isActive: true, brand: { $ne: null } }),
-                priceRange: priceAgg.length > 0 ? { min: priceAgg[0].min, max: priceAgg[0].max } : { min: 0, max: 0 }
-            }
+            filters
         });
 
     } catch (error) {

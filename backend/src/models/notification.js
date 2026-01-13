@@ -71,6 +71,7 @@ const notificationSchema = new Schema({
 });
 
 notificationSchema.index({ user: 1, isRead: 1 });
+notificationSchema.index({ user: 1, createdAt: -1 }); // Optimized for "Get my latest notifications"
 notificationSchema.index({ createdAt: -1 });
 notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 

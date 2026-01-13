@@ -1,0 +1,877 @@
+[
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "ACC F2R Cement",
+    "description": "<h1 style=\"text-align: center\"><strong>ACC Gold Cement</strong></h1><p><strong>Product Name:</strong> ACC Gold Cement (often marketed as ACC Gold Water Shield)</p><p><strong>Manufacturer:</strong> ACC Limited (part of the Adani Group)</p><p><strong>Cement Type:</strong> Premium blended cement with water-repellent properties</p><p><strong>Packaging:</strong> 50 kg bags (standard)</p><p><strong>Standards:</strong> ISI-certified quality cement for construction use</p><p><strong>Positioning:</strong> Premium value-added cement designed for enhanced durability and moisture resistance</p><h2><strong>Key Features</strong></h2><ul><li><strong>Water-Repellent Technology:</strong> Engineered with inherent water resistance to significantly reduce capillary water absorption and seepage in concrete.</li><li><strong>High Strength Performance:</strong> Offers superior compressive strength suitable for critical structural elements.</li><li><strong>Reduced Permeability:</strong> Denser concrete with lower porosity, minimizing ingress of water, chloride, and sulfate ions.</li><li><strong>Smooth Workability:</strong> Fine and uniform particle size enhances ease of mixing, placement, and finish quality.</li><li><strong>Durability:</strong> Improved resistance to environmental stresses, contributing to long-lasting structures.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Enhanced Durability:</strong> Reduces risk of seepage, dampness, and long-term deterioration in concrete structures.</li><li><strong>Better Structural Integrity:</strong> High strength and lower permeability help maintain load-bearing performance over time.</li><li><strong>Cost-Effective Building:</strong> Fewer maintenance and repair needs due to moisture-resistant properties.</li><li><strong>Aesthetic Finish:</strong> Smooth and uniform mortar resulting in improved surface finish in plaster and masonry.</li><li><strong>Versatile Environmental Performance:</strong> Suitable for a variety of climate conditions, including monsoon and coastal environments due to improved resistance to moisture and chemical attack.</li></ul><h2><strong>Applications</strong></h2><p>ACC Gold Cement is suitable for a wide range of construction tasks, including but not limited to:</p><ul><li><strong>Foundations, Beams &amp; Columns:</strong> Core structural elements requiring strong, durable concrete.</li><li><strong>Brick Masonry &amp; Plaster Work:</strong> Interior and exterior wall plastering for improved finish and reduced dampness.</li><li><strong>Slabs and Roof Concrete:</strong> Horizontal surfaces where water resistance and strength matter.</li><li><strong>Bathrooms, Balconies &amp; Terraces:</strong> Areas prone to water exposure where seepage resistance is critical.</li><li><strong>Water Retaining Structures:</strong> Water tanks, canals, and foundations in high humidity zones benefiting from reduced permeability.</li></ul>",
+    "category": "Cement & Concrete",
+    "brand": "Adani",
+    "model": "F2R",
+    "material": "PSC",
+    "variants": [
+      {
+        "sku": "ACC-F2R-50KG",
+        "variantName": "50kg Bag",
+        "size": "50kg",
+        "weightValue": 50,
+        "unit": "bag",
+        "price": 385,
+        "costPrice": 360,
+        "stock": 500,
+        "minStockLevel": 50
+      }
+    ],
+    "taxRate": 0,
+    "supplier": "ACC Limited",
+    "hsnCode": "25232990",
+    "isActive": true,
+    "ProductImage": "",
+    "rating": {
+      "average": 4.5,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 50,
+      "estimatedDays": "3-5 days"
+    }
+  },
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "UltraTech Super Cement",
+    "description": "<h1 style=\"text-align: center\"><strong>UltraTech Super Cement</strong></h1><p><strong>Product Name:</strong> UltraTech Super Cement</p><p><strong>Manufacturer:</strong> UltraTech Cement Limited (Aditya Birla Group)</p><p><strong>Cement Type:</strong> Premium Portland Pozzolana Cement (PPC) with enhanced performance</p><p><strong>Packaging:</strong> 50 kg bags (standard)</p><p><strong>Standards:</strong> Conforms to IS 1489-1:1991 specifications</p><p><strong>Positioning:</strong> India's leading cement brand for superior strength and durability</p><h2><strong>Key Features</strong></h2><ul><li><strong>High Early Strength:</strong> Rapid strength development allows faster construction cycles and early load application.</li><li><strong>Superior Durability:</strong> Enhanced resistance to chemical attacks from sulfates and chlorides.</li><li><strong>Low Heat of Hydration:</strong> Reduced thermal cracking makes it ideal for mass concreting applications.</li><li><strong>Better Workability:</strong> Improved flow characteristics for easier placement and compaction.</li><li><strong>Eco-Friendly:</strong> Lower carbon footprint with optimized clinker factor and fly ash usage.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Faster Construction:</strong> High early strength enables quick formwork removal and reduced project timelines.</li><li><strong>Long-Term Performance:</strong> Excellent resistance to aggressive environments ensures structural longevity.</li><li><strong>Cost Efficiency:</strong> Better strength-to-cement ratio reduces overall cement consumption.</li><li><strong>Crack Resistance:</strong> Low heat generation minimizes thermal stress in large concrete pours.</li><li><strong>Sustainable Choice:</strong> Reduced CO2 emissions contribute to green building initiatives.</li></ul><h2><strong>Applications</strong></h2><p>UltraTech Super Cement is ideal for diverse construction requirements:</p><ul><li><strong>High-Rise Buildings:</strong> Multi-story residential and commercial structures requiring high strength concrete.</li><li><strong>Bridges &amp; Flyovers:</strong> Infrastructure projects demanding superior durability and load-bearing capacity.</li><li><strong>Marine Structures:</strong> Ports, jetties, and coastal constructions exposed to saline environments.</li><li><strong>Mass Concreting:</strong> Dams, raft foundations, and thick concrete sections benefiting from low heat properties.</li><li><strong>Precast Components:</strong> Manufacturing of concrete blocks, pipes, and prefabricated elements.</li></ul>",
+    "category": "Cement & Concrete",
+    "brand": "UltraTech",
+    "model": "Super",
+    "material": "PPC",
+    "variants": [
+      {
+        "sku": "ULTRA-SUPER-50KG",
+        "variantName": "50kg Bag",
+        "size": "50kg",
+        "weightValue": 50,
+        "unit": "bag",
+        "price": 395,
+        "costPrice": 370,
+        "stock": 750,
+        "minStockLevel": 100
+      }
+    ],
+    "taxRate": 0,
+    "supplier": "UltraTech Cement Ltd",
+    "hsnCode": "25232990",
+    "isActive": true,
+    "ProductImage": "",
+    "rating": {
+      "average": 4.7,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 50,
+      "estimatedDays": "3-5 days"
+    }
+  },
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "Ambuja Plus Roof Special Cement",
+    "description": "<h1 style=\"text-align: center\"><strong>Ambuja Plus Roof Special Cement</strong></h1><p><strong>Product Name:</strong> Ambuja Plus Roof Special Cement</p><p><strong>Manufacturer:</strong> Ambuja Cements Limited (Adani Group)</p><p><strong>Cement Type:</strong> Specialized Portland Slag Cement (PSC) for roofing applications</p><p><strong>Packaging:</strong> 50 kg bags (standard)</p><p><strong>Standards:</strong> Meets IS 455:1989 standards for Portland Slag Cement</p><p><strong>Positioning:</strong> Premium cement specifically formulated for roof concreting with enhanced crack resistance</p><h2><strong>Key Features</strong></h2><ul><li><strong>Superior Crack Resistance:</strong> Specially designed low-shrinkage formula minimizes thermal and drying cracks in roof slabs.</li><li><strong>Heat Reflection Properties:</strong> Lighter color reduces heat absorption, keeping interiors cooler.</li><li><strong>High Flexural Strength:</strong> Better performance under bending stresses typical in roof structures.</li><li><strong>Improved Cohesion:</strong> Enhanced particle distribution prevents segregation during placement.</li><li><strong>Weather Resistance:</strong> Excellent performance against harsh sun, rain, and temperature variations.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Crack-Free Roofs:</strong> Reduced shrinkage ensures smooth, durable roof surfaces without unsightly cracks.</li><li><strong>Thermal Comfort:</strong> Heat-reflective properties contribute to lower indoor temperatures and energy savings.</li><li><strong>Long Service Life:</strong> Superior weather resistance extends roof durability with minimal maintenance.</li><li><strong>Better Finish Quality:</strong> Smooth texture enables excellent surface finishing and easy application of waterproofing.</li><li><strong>Leak Prevention:</strong> Dense microstructure prevents water seepage and dampness issues.</li></ul><h2><strong>Applications</strong></h2><p>Ambuja Plus Roof Special Cement is specifically designed for:</p><ul><li><strong>Roof Slabs &amp; Terraces:</strong> Primary application for residential and commercial building roofs.</li><li><strong>Sunshades &amp; Chajjas:</strong> Cantilevered elements requiring crack-free performance.</li><li><strong>Balcony Slabs:</strong> Exposed horizontal surfaces subjected to weather elements.</li><li><strong>Roof Screeding:</strong> Top finishing layer for waterproofing preparation.</li><li><strong>Parapet Walls:</strong> Boundary walls on roofs exposed to direct sunlight and rain.</li></ul>",
+    "category": "Cement & Concrete",
+    "brand": "Ambuja",
+    "model": "Plus Roof Special",
+    "material": "PSC",
+    "variants": [
+      {
+        "sku": "AMBUJA-ROOF-50KG",
+        "variantName": "50kg Bag",
+        "size": "50kg",
+        "weightValue": 50,
+        "unit": "bag",
+        "price": 410,
+        "costPrice": 385,
+        "stock": 400,
+        "minStockLevel": 50
+      }
+    ],
+    "taxRate": 0,
+
+    "supplier": "Ambuja Cements Ltd",
+    "hsnCode": "25232990",
+    "isActive": true,
+    "ProductImage": "",
+    "rating": {
+      "average": 4.6,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 50,
+      "estimatedDays": "3-5 days"
+    }
+  },
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "Shree Ultra Cement",
+    "description": "<h1 style=\"text-align: center\"><strong>Shree Ultra Cement</strong></h1><p><strong>Product Name:</strong> Shree Ultra Cement</p><p><strong>Manufacturer:</strong> Shree Cement Limited</p><p><strong>Cement Type:</strong> High-performance Ordinary Portland Cement (OPC) 53 Grade</p><p><strong>Packaging:</strong> 50 kg bags (standard)</p><p><strong>Standards:</strong> Complies with IS 12269:2013 specifications for 53 Grade OPC</p><p><strong>Positioning:</strong> Premium high-strength cement for critical structural applications</p><h2><strong>Key Features</strong></h2><ul><li><strong>Exceptional Compressive Strength:</strong> Achieves 53 MPa at 28 days, suitable for high-load bearing structures.</li><li><strong>Rapid Strength Gain:</strong> Early strength development enables faster construction progress.</li><li><strong>Fine Grinding:</strong> Superior particle fineness ensures better hydration and strength development.</li><li><strong>Consistent Quality:</strong> Stringent quality control maintains uniform performance across batches.</li><li><strong>Versatile Application:</strong> Suitable for both pre-stressed and reinforced concrete work.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Superior Structural Strength:</strong> High compressive strength ideal for load-critical construction elements.</li><li><strong>Accelerated Project Timelines:</strong> Early strength allows faster formwork removal and construction speed.</li><li><strong>Excellent Finish:</strong> Fine particles produce smooth, dense concrete with superior surface quality.</li><li><strong>Reduced Cement Consumption:</strong> Higher strength efficiency translates to material savings.</li><li><strong>All-Weather Performance:</strong> Reliable setting and hardening across various climatic conditions.</li></ul><h2><strong>Applications</strong></h2><p>Shree Ultra Cement is engineered for demanding construction requirements:</p><ul><li><strong>RCC Structures:</strong> Beams, columns, and slabs in reinforced concrete construction.</li><li><strong>Prestressed Concrete:</strong> Pre-tensioned and post-tensioned structural elements.</li><li><strong>High-Rise Construction:</strong> Multi-story buildings requiring superior load-bearing capacity.</li><li><strong>Industrial Structures:</strong> Factories, warehouses, and heavy-duty flooring applications.</li><li><strong>Rapid Construction Projects:</strong> Fast-track developments benefiting from quick strength gain.</li></ul>",
+    "category": "Cement & Concrete",
+    "brand": "Shree",
+    "model": "Ultra",
+    "material": "OPC",
+    "variants": [
+      {
+        "sku": "SHREE-ULTRA-50KG",
+        "variantName": "50kg Bag",
+        "size": "50kg",
+        "weightValue": 50,
+        "unit": "bag",
+        "price": 425,
+        "costPrice": 398,
+        "stock": 600,
+        "minStockLevel": 75
+      }
+    ],
+    "taxRate": 0,
+
+    "supplier": "Shree Cement Limited",
+    "hsnCode": "25232910",
+    "isActive": true,
+    "ProductImage": "",
+    "rating": {
+      "average": 4.8,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 50,
+      "estimatedDays": "3-5 days"
+    }
+  },
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "JK Lakshmi Pro Plus Cement",
+    "description": "<h1 style=\"text-align: center\"><strong>JK Lakshmi Pro Plus Cement</strong></h1><p><strong>Product Name:</strong> JK Lakshmi Pro Plus Cement</p><p><strong>Manufacturer:</strong> JK Lakshmi Cement Limited</p><p><strong>Cement Type:</strong> Premium Composite Cement with enhanced performance additives</p><p><strong>Packaging:</strong> 50 kg bags (standard)</p><p><strong>Standards:</strong> Conforms to IS 1489 Part-1 (PPC) specifications</p><p><strong>Positioning:</strong> Advanced formula cement offering superior strength and workability for modern construction</p><h2><strong>Key Features</strong></h2><ul><li><strong>Enhanced Setting Control:</strong> Optimized setting time provides better workability window for placement.</li><li><strong>Superior Bonding:</strong> Excellent adhesion with reinforcement and aggregates for monolithic structures.</li><li><strong>Reduced Efflorescence:</strong> Lower alkali content minimizes white deposits on finished surfaces.</li><li><strong>Improved Plasticity:</strong> Better flow properties reduce water requirement and improve concrete density.</li><li><strong>Sulfate Resistance:</strong> Enhanced durability in aggressive soil and water conditions.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Workability Excellence:</strong> Extended working time allows proper placement and finishing without compromising strength.</li><li><strong>Aesthetic Appearance:</strong> Reduced efflorescence ensures clean, professional-looking finishes.</li><li><strong>Water Economy:</strong> Lower water-cement ratio requirements lead to denser, stronger concrete.</li><li><strong>Durability Assurance:</strong> Excellent resistance to chemical attacks ensures long-term structural integrity.</li><li><strong>Versatile Performance:</strong> Suitable for diverse applications from foundations to finishing work.</li></ul><h2><strong>Applications</strong></h2><p>JK Lakshmi Pro Plus Cement excels in various construction scenarios:</p><ul><li><strong>Plastering &amp; Finishing:</strong> Interior and exterior wall finishes requiring smooth, crack-free surfaces.</li><li><strong>Brick &amp; Block Masonry:</strong> Mortar work for load-bearing and partition walls.</li><li><strong>Concrete Structures:</strong> General RCC work including foundations, beams, and slabs.</li><li><strong>Floor Screeding:</strong> Level finishing of floors before tile or other floor finish installation.</li><li><strong>Architectural Features:</strong> Decorative elements, cornices, and facade work requiring fine finish.</li></ul>",
+    "category": "Cement & Concrete",
+    "brand": "JK Lakshmi",
+    "model": "Pro Plus",
+    "material": "PPC",
+    "variants": [
+      {
+        "sku": "JK-PROPLUS-50KG",
+        "variantName": "50kg Bag",
+        "size": "50kg",
+        "weightValue": 50,
+        "unit": "bag",
+        "price": 380,
+        "costPrice": 355,
+        "stock": 550,
+        "minStockLevel": 60
+      }
+    ],
+    "taxRate": 0,
+
+    "supplier": "JK Lakshmi Cement Ltd",
+    "hsnCode": "25232990",
+    "isActive": true,
+    "ProductImage": "",
+    "rating": {
+      "average": 4.4,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 50,
+      "estimatedDays": "3-5 days"
+    }
+  },
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "Dalmia Power Plus Cement",
+    "description": "<h1 style=\"text-align: center\"><strong>Dalmia Power Plus Cement</strong></h1><p><strong>Product Name:</strong> Dalmia Power Plus Cement</p><p><strong>Manufacturer:</strong> Dalmia Bharat Cement</p><p><strong>Cement Type:</strong> Premium Blended Cement with enhanced durability features</p><p><strong>Packaging:</strong> 50 kg bags (standard)</p><p><strong>Standards:</strong> Meets IS 1489 specifications with enhanced quality parameters</p><p><strong>Positioning:</strong> Eco-friendly premium cement for sustainable and durable construction</p><h2><strong>Key Features</strong></h2><ul><li><strong>Low Carbon Footprint:</strong> Produced with reduced CO2 emissions supporting green building initiatives.</li><li><strong>Enhanced Durability:</strong> Superior resistance to weathering, chemical attacks, and environmental stress.</li><li><strong>Optimized Particle Distribution:</strong> Better packing density results in stronger, more impermeable concrete.</li><li><strong>Controlled Fineness:</strong> Ideal particle size ensures excellent workability and strength development.</li><li><strong>Long-Term Strength:</strong> Continued strength gain over time for enhanced structural performance.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Sustainable Construction:</strong> Lower environmental impact aligns with green building certifications and standards.</li><li><strong>Superior Protection:</strong> Excellent resistance to chloride and sulfate ingress protects reinforcement.</li><li><strong>Cost-Effective Durability:</strong> Reduced maintenance needs translate to lower lifecycle costs.</li><li><strong>Consistent Performance:</strong> Reliable quality ensures predictable results across all applications.</li><li><strong>Better Concrete Quality:</strong> Dense microstructure improves impermeability and surface finish.</li></ul><h2><strong>Applications</strong></h2><p>Dalmia Power Plus Cement is versatile for comprehensive construction needs:</p><ul><li><strong>Residential Construction:</strong> Complete house construction from foundation to roof.</li><li><strong>Commercial Buildings:</strong> Offices, shopping complexes, and institutional structures.</li><li><strong>Infrastructure Projects:</strong> Roads, bridges, culverts, and drainage systems.</li><li><strong>Industrial Applications:</strong> Factory floors, warehouses, and heavy-duty construction.</li><li><strong>Sustainable Projects:</strong> Green buildings and eco-friendly construction initiatives.</li></ul>",
+    "category": "Cement & Concrete",
+    "brand": "Dalmia",
+    "model": "Power Plus",
+    "material": "PPC",
+    "variants": [
+      {
+        "sku": "DALMIA-POWER-50KG",
+        "variantName": "50kg Bag",
+        "size": "50kg",
+        "weightValue": 50,
+        "unit": "bag",
+        "price": 375,
+        "costPrice": 350,
+        "stock": 450,
+        "minStockLevel": 50
+      }
+    ],
+    "taxRate": 0,
+
+    "supplier": "Dalmia Bharat Ltd",
+    "hsnCode": "25232990",
+    "isActive": true,
+    "ProductImage": "",
+    "rating": {
+      "average": 4.5,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 50,
+      "estimatedDays": "3-5 days"
+    }
+  },
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "Birla A1 Premium Cement",
+    "description": "<h1 style=\"text-align: center\"><strong>Birla A1 Premium Cement</strong></h1><p><strong>Product Name:</strong> Birla A1 Premium Cement</p><p><strong>Manufacturer:</strong> UltraTech Cement (Aditya Birla Group)</p><p><strong>Cement Type:</strong> Premium Grade Portland Pozzolana Cement (PPC)</p><p><strong>Packaging:</strong> 50 kg bags (standard)</p><p><strong>Standards:</strong> Exceeds IS 1489 Part-1 specifications for PPC</p><p><strong>Positioning:</strong> Ultra-premium cement for superior finish and long-lasting construction</p><h2><strong>Key Features</strong></h2><ul><li><strong>Micro-Fine Technology:</strong> Ultra-fine particles ensure superior finish quality and enhanced strength.</li><li><strong>Advanced Water Resistance:</strong> Reduced permeability protects against water ingress and dampness.</li><li><strong>Enhanced Cohesiveness:</strong> Better particle bonding results in crack-resistant concrete and mortar.</li><li><strong>Optimized Setting Time:</strong> Balanced setting characteristics for various weather conditions.</li><li><strong>Premium Quality Assurance:</strong> Rigorous testing ensures consistent premium performance.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Luxurious Finish:</strong> Ultra-smooth surface quality ideal for high-end residential and commercial projects.</li><li><strong>Long-Term Value:</strong> Superior durability reduces repair and maintenance costs over structure lifetime.</li><li><strong>Moisture Protection:</strong> Excellent resistance to seepage keeps interiors dry and mold-free.</li><li><strong>Crack Prevention:</strong> Enhanced cohesion minimizes shrinkage cracks in plaster and concrete.</li><li><strong>Brand Reliability:</strong> Trusted quality from one of India's most respected cement manufacturers.</li></ul><h2><strong>Applications</strong></h2><p>Birla A1 Premium Cement is perfect for discerning construction requirements:</p><ul><li><strong>Luxury Homes:</strong> High-end residential construction demanding superior finish and durability.</li><li><strong>Premium Interiors:</strong> Interior plastering and finishing for upscale apartments and villas.</li><li><strong>Commercial Facades:</strong> Exterior finishes for corporate buildings and retail spaces.</li><li><strong>Decorative Elements:</strong> Architectural features, moldings, and ornamental work.</li><li><strong>Moisture-Prone Areas:</strong> Bathrooms, kitchens, basements requiring enhanced water resistance.</li></ul>",
+    "category": "Cement & Concrete",
+    "brand": "Birla",
+    "model": "A1 Premium",
+    "material": "PPC",
+    "variants": [
+      {
+        "sku": "BIRLA-A1-50KG",
+        "variantName": "50kg Bag",
+        "size": "50kg",
+        "weightValue": 50,
+        "unit": "bag",
+        "price": 420,
+        "costPrice": 395,
+        "stock": 350,
+        "minStockLevel": 40
+      }
+    ],
+    "taxRate": 0,
+
+    "supplier": "UltraTech Cement Ltd",
+    "hsnCode": "25232990",
+    "isActive": true,
+    "ProductImage": "",
+    "rating": {
+      "average": 4.7,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 50,
+      "estimatedDays": "3-5 days"
+    }
+  },
+
+  
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "TMT Steel Bars - Fe 500D",
+    "description": "<h1 style=\"text-align: center\"><strong>TMT Steel Bars - Fe 500D Grade</strong></h1><p><strong>Product Name:</strong> Thermo-Mechanically Treated (TMT) Steel Bars</p><p><strong>Manufacturer:</strong> SAIL / JSW / Tata Steel</p><p><strong>Steel Grade:</strong> Fe 500D (High strength ductile steel)</p><p><strong>Packaging:</strong> Bundle form (6m or 12m length)</p><p><strong>Standards:</strong> IS 1786:2008 certified for reinforcement steel</p><p><strong>Positioning:</strong> Premium earthquake-resistant steel for RCC structures</p><h2><strong>Key Features</strong></h2><ul><li><strong>Superior Ductility:</strong> Fe 500D grade offers excellent elongation properties for seismic zone construction.</li><li><strong>High Tensile Strength:</strong> 500 MPa yield strength provides robust load-bearing capacity.</li><li><strong>Corrosion Resistance:</strong> Advanced manufacturing process creates protective oxide layer.</li><li><strong>Bendability:</strong> Superior bending properties without cracking or loss of strength.</li><li><strong>Weldability:</strong> Excellent welding characteristics for construction joints.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Earthquake Safety:</strong> High ductility ensures structures can absorb seismic energy without catastrophic failure.</li><li><strong>Structural Integrity:</strong> Superior strength-to-weight ratio reduces steel consumption.</li><li><strong>Long Service Life:</strong> Better corrosion resistance extends structure lifespan in harsh conditions.</li><li><strong>Cost Efficiency:</strong> Reduced steel quantity requirements due to higher strength.</li><li><strong>Quality Assurance:</strong> ISI marked bars ensure consistent quality and performance.</li></ul><h2><strong>Applications</strong></h2><p>TMT Steel Bars are essential for reinforced concrete construction:</p><ul><li><strong>Building Foundations:</strong> Deep foundations, pile caps, and raft foundations.</li><li><strong>Columns & Beams:</strong> Load-bearing vertical and horizontal structural members.</li><li><strong>Slabs & Roofs:</strong> Floor slabs, roof slabs, and suspended concrete platforms.</li><li><strong>Seismic Zones:</strong> Structures in earthquake-prone areas requiring ductile reinforcement.</li><li><strong>Infrastructure Projects:</strong> Bridges, flyovers, metro stations, and industrial structures.</li></ul>",
+    "category": "Steel & Reinforcement",
+    "brand": "SAIL",
+    "model": "Fe 500D",
+    "material": "TMT Steel",
+    "variants": [
+      {
+        "sku": "TMT-8MM-SAIL",
+        "variantName": "8mm Diameter",
+        "size": "8mm",
+        "weightValue": 0.395,
+        "unit": "kg",
+        "price": 58,
+        "costPrice": 54,
+        "stock": 5000,
+        "minStockLevel": 500
+      },
+      {
+        "sku": "TMT-10MM-SAIL",
+        "variantName": "10mm Diameter",
+        "size": "10mm",
+        "weightValue": 0.617,
+        "unit": "kg",
+        "price": 58,
+        "costPrice": 54,
+        "stock": 4500,
+        "minStockLevel": 500
+      },
+      {
+        "sku": "TMT-12MM-SAIL",
+        "variantName": "12mm Diameter",
+        "size": "12mm",
+        "weightValue": 0.888,
+        "unit": "kg",
+        "price": 58,
+        "costPrice": 54,
+        "stock": 6000,
+        "minStockLevel": 600
+      },
+      {
+        "sku": "TMT-16MM-SAIL",
+        "variantName": "16mm Diameter",
+        "size": "16mm",
+        "weightValue": 1.579,
+        "unit": "kg",
+        "price": 58,
+        "costPrice": 54,
+        "stock": 5500,
+        "minStockLevel": 550
+      },
+      {
+        "sku": "TMT-20MM-SAIL",
+        "variantName": "20mm Diameter",
+        "size": "20mm",
+        "weightValue": 2.469,
+        "unit": "kg",
+        "price": 58,
+        "costPrice": 54,
+        "stock": 4000,
+        "minStockLevel": 400
+      }
+    ],
+    "taxRate": 0,
+    "supplier": "SAIL Steel Plant",
+    "hsnCode": "72142000",
+    "isActive": true,
+    "ProductImage": "https://images.unsplash.com/photo-1587293852726-70cdb56c2866",
+    "rating": {
+      "average": 4.8,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 150,
+      "estimatedDays": "2-4 days"
+    }
+  },
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "Red Clay Bricks - Class A",
+    "description": "<h1 style=\"text-align: center\"><strong>Red Clay Bricks - Class A Grade</strong></h1><p><strong>Product Name:</strong> First Class Red Clay Building Bricks</p><p><strong>Manufacturer:</strong> Local Brick Kiln / Regional Manufacturers</p><p><strong>Brick Type:</strong> Wire-cut or molded clay bricks</p><p><strong>Dimensions:</strong> 230mm x 110mm x 70mm (standard modular)</p><p><strong>Standards:</strong> IS 1077:1992 specifications for common burnt clay bricks</p><p><strong>Positioning:</strong> Premium quality bricks for load-bearing masonry construction</p><h2><strong>Key Features</strong></h2><ul><li><strong>High Compressive Strength:</strong> Class A grade offers 10+ MPa strength for structural applications.</li><li><strong>Uniform Dimensions:</strong> Precise sizing ensures minimal mortar consumption and better construction.</li><li><strong>Low Water Absorption:</strong> Less than 15% water absorption prevents dampness and efflorescence.</li><li><strong>Sharp Edges:</strong> Well-defined corners and edges enable neat masonry work.</li><li><strong>Natural Thermal Insulation:</strong> Clay properties provide excellent temperature regulation.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Load-Bearing Capacity:</strong> Suitable for multi-story construction and structural walls.</li><li><strong>Durability:</strong> Weather-resistant and long-lasting with minimal maintenance.</li><li><strong>Fire Resistance:</strong> Non-combustible material provides excellent fire protection.</li><li><strong>Sound Insulation:</strong> Dense structure offers good acoustic properties.</li><li><strong>Eco-Friendly:</strong> Natural clay material is sustainable and recyclable.</li></ul><h2><strong>Applications</strong></h2><p>Red Clay Bricks are versatile for various construction needs:</p><ul><li><strong>Load-Bearing Walls:</strong> External and internal structural walls in residential buildings.</li><li><strong>Boundary Walls:</strong> Compound walls and property demarcation structures.</li><li><strong>Partition Walls:</strong> Room dividers and non-structural internal partitions.</li><li><strong>Paving & Flooring:</strong> Decorative outdoor paving and garden pathways.</li><li><strong>Architectural Features:</strong> Exposed brick facades, arches, and decorative elements.</li></ul>",
+    "category": "Bricks & Blocks",
+    "brand": "Local Kiln",
+    "model": "Class A",
+    "material": "Burnt Clay",
+    "variants": [
+      {
+        "sku": "BRICK-RED-CLASSA",
+        "variantName": "Standard Size (230x110x70mm)",
+        "size": "230x110x70mm",
+        "weightValue": 3,
+        "unit": "pcs",
+        "price": 8.5,
+        "costPrice": 7,
+        "stock": 50000,
+        "minStockLevel": 5000
+      }
+    ],
+    "taxRate": 0,
+    "supplier": "Regional Brick Kiln",
+    "hsnCode": "69041000",
+    "isActive": true,
+    "ProductImage": "https://images.unsplash.com/photo-1600585152220-90363fe7e115",
+    "rating": {
+      "average": 4.3,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 500,
+      "estimatedDays": "3-7 days"
+    }
+  },
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "M-Sand (Manufactured Sand)",
+    "description": "<h1 style=\"text-align: center\"><strong>M-Sand (Manufactured Sand)</strong></h1><p><strong>Product Name:</strong> Crushed Stone Sand / Manufactured Sand</p><p><strong>Manufacturer:</strong> Stone Crushing Plants</p><p><strong>Material Type:</strong> Crushed granite/quarry dust processed sand</p><p><strong>Packaging:</strong> Loose supply by truck or tractor</p><p><strong>Standards:</strong> Conforms to IS 383:2016 for coarse and fine aggregates</p><p><strong>Positioning:</strong> Eco-friendly alternative to river sand with superior quality</p><h2><strong>Key Features</strong></h2><ul><li><strong>Uniform Gradation:</strong> Controlled particle size distribution ensures consistent concrete quality.</li><li><strong>Controlled Moisture:</strong> Lower moisture content compared to river sand reduces water requirement.</li><li><strong>Angular Particles:</strong> Better interlocking provides superior bonding strength in concrete.</li><li><strong>Free from Impurities:</strong> No silt, clay, or organic matter contamination.</li><li><strong>Eco-Friendly:</strong> Sustainable alternative that doesn't deplete natural river sand resources.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Better Concrete Strength:</strong> Angular shape and rough texture improve cement bonding.</li><li><strong>Consistent Quality:</strong> Manufactured process ensures uniform quality across batches.</li><li><strong>Reduced Shrinkage:</strong> Lower silt content minimizes concrete cracking and shrinkage.</li><li><strong>Cost-Effective:</strong> Generally more affordable and readily available than river sand.</li><li><strong>Sustainable Choice:</strong> Reduces environmental impact of river sand mining.</li></ul><h2><strong>Applications</strong></h2><p>M-Sand is suitable for all construction applications:</p><ul><li><strong>Concrete Production:</strong> RCC structures, beams, columns, slabs, and foundations.</li><li><strong>Masonry Mortar:</strong> Bricklaying and block work mortar preparation.</li><li><strong>Plastering:</strong> Internal and external wall plastering and finishing.</li><li><strong>Floor Screeding:</strong> Floor leveling and base preparation.</li><li><strong>Block Manufacturing:</strong> Concrete block and paver block production.</li></ul>",
+    "category": "Sand & Aggregates",
+    "brand": "Local Supplier",
+    "model": "Standard Grade",
+    "material": "Crushed Stone",
+    "variants": [
+      {
+        "sku": "MSAND-BULK",
+        "variantName": "Bulk Supply",
+        "size": "Standard",
+        "weightValue": 1,
+        "unit": "ton",
+        "price": 1200,
+        "costPrice": 1000,
+        "stock": 500,
+        "minStockLevel": 50
+      }
+    ],
+    "taxRate": 0,
+    "supplier": "Stone Crushing Unit",
+    "hsnCode": "25059000",
+    "isActive": true,
+    "ProductImage": "https://images.unsplash.com/photo-1606491956689-2ea866880c84",
+    "rating": {
+      "average": 4.5,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 800,
+      "estimatedDays": "1-3 days"
+    }
+  },
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "Asian Paints Apex Ultima Exterior Emulsion",
+    "description": "<h1 style=\"text-align: center\"><strong>Asian Paints Apex Ultima Exterior Emulsion</strong></h1><p><strong>Product Name:</strong> Apex Ultima Protek - Premium Exterior Emulsion Paint</p><p><strong>Manufacturer:</strong> Asian Paints Limited</p><p><strong>Paint Type:</strong> 100% Acrylic Exterior Emulsion with weather protection</p><p><strong>Packaging:</strong> 20 Liter, 10 Liter, 4 Liter, and 1 Liter packs</p><p><strong>Coverage:</strong> Approximately 140-160 sq.ft per liter (2 coats)</p><p><strong>Positioning:</strong> Premium exterior paint with 7-year warranty against flaking and peeling</p><h2><strong>Key Features</strong></h2><ul><li><strong>Advanced Rain Guard Technology:</strong> Forms protective shield against heavy monsoon rains.</li><li><strong>Dirt Resistant Formula:</strong> Self-cleaning properties keep walls looking fresh longer.</li><li><strong>UV Protection:</strong> Superior fade resistance maintains color vibrancy for years.</li><li><strong>Crack Bridging:</strong> Flexible film bridges hairline cracks preventing water seepage.</li><li><strong>Anti-Algae & Anti-Fungal:</strong> Prevents growth of algae and fungus on walls.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Long-Lasting Protection:</strong> 7-year warranty ensures lasting beauty and protection.</li><li><strong>Low Maintenance:</strong> Dirt-resistant properties reduce frequency of repainting.</li><li><strong>Weather Durability:</strong> Excellent performance across all Indian climatic conditions.</li><li><strong>Premium Finish:</strong> Smooth, luxurious matte finish enhances property aesthetics.</li><li><strong>Cost Efficiency:</strong> Extended durability reduces long-term maintenance costs.</li></ul><h2><strong>Applications</strong></h2><p>Apex Ultima is ideal for exterior surfaces:</p><ul><li><strong>Building Exteriors:</strong> Complete external wall painting for residential and commercial buildings.</li><li><strong>Boundary Walls:</strong> Compound walls exposed to harsh weather conditions.</li><li><strong>Balconies & Terraces:</strong> Semi-covered areas prone to rain and UV exposure.</li><li><strong>Heritage Structures:</strong> Renovation and preservation of old buildings.</li><li><strong>Coastal Areas:</strong> Properties near sea requiring extra weather protection.</li></ul>",
+    "category": "Paints & Finishes",
+    "brand": "Asian Paints",
+    "model": "Apex Ultima",
+    "material": "Acrylic Emulsion",
+    "variants": [
+      {
+        "sku": "AP-APEX-20L-WHITE",
+        "variantName": "20 Liter - White",
+        "size": "20L",
+        "color": "White",
+        "weightValue": 20,
+        "unit": "l",
+        "price": 6800,
+        "costPrice": 6200,
+        "stock": 150,
+        "minStockLevel": 20
+      },
+      {
+        "sku": "AP-APEX-10L-WHITE",
+        "variantName": "10 Liter - White",
+        "size": "10L",
+        "color": "White",
+        "weightValue": 10,
+        "unit": "l",
+        "price": 3500,
+        "costPrice": 3200,
+        "stock": 200,
+        "minStockLevel": 30
+      },
+      {
+        "sku": "AP-APEX-4L-WHITE",
+        "variantName": "4 Liter - White",
+        "size": "4L",
+        "color": "White",
+        "weightValue": 4,
+        "unit": "l",
+        "price": 1450,
+        "costPrice": 1320,
+        "stock": 300,
+        "minStockLevel": 40
+      }
+    ],
+    "taxRate": 0,
+    "supplier": "Asian Paints Depot",
+    "hsnCode": "32091000",
+    "isActive": true,
+    "ProductImage": "https://images.unsplash.com/photo-1589939705384-5185137a7f0f",
+    "rating": {
+      "average": 4.7,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 100,
+      "estimatedDays": "2-4 days"
+    }
+  },
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "20mm Coarse Aggregates (Stone Chips)",
+    "description": "<h1 style=\"text-align: center\"><strong>20mm Coarse Aggregates (Stone Chips)</strong></h1><p><strong>Product Name:</strong> 20mm Crushed Stone Aggregates</p><p><strong>Manufacturer:</strong> Stone Crushing Plants / Quarries</p><p><strong>Aggregate Type:</strong> Angular crushed stone chips</p><p><strong>Size:</strong> 20mm nominal size (passing through 20mm sieve)</p><p><strong>Standards:</strong> Conforms to IS 383:2016 for coarse aggregates</p><p><strong>Positioning:</strong> High-quality aggregates for structural concrete applications</p><h2><strong>Key Features</strong></h2><ul><li><strong>Uniform Gradation:</strong> Consistent particle size distribution for optimal concrete mix design.</li><li><strong>Angular Shape:</strong> Crushed edges provide excellent interlocking and bonding.</li><li><strong>High Crushing Strength:</strong> Superior compressive strength suitable for structural concrete.</li><li><strong>Low Elongation Index:</strong> Well-proportioned particles ensure good workability.</li><li><strong>Clean & Washed:</strong> Free from dust, silt, and organic impurities.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Superior Concrete Strength:</strong> Angular shape and high strength contribute to robust concrete.</li><li><strong>Better Workability:</strong> Proper gradation ensures easy mixing and placement.</li><li><strong>Reduced Voids:</strong> Good packing density minimizes cement requirement.</li><li><strong>Durability:</strong> Hard stone aggregates resist weathering and abrasion.</li><li><strong>Versatile Application:</strong> Suitable for various concrete grades and applications.</li></ul><h2><strong>Applications</strong></h2><p>20mm aggregates are essential for concrete production:</p><ul><li><strong>Structural Concrete:</strong> RCC beams, columns, slabs, and foundations.</li><li><strong>Ready-Mix Concrete:</strong> Commercial RMC production for various grades.</li><li><strong>Road Construction:</strong> Concrete pavement and road base layers.</li><li><strong>Precast Elements:</strong> Concrete blocks, pipes, and prefabricated components.</li><li><strong>Mass Concreting:</strong> Large concrete pours for dams and industrial floors.</li></ul>",
+    "category": "Sand & Aggregates",
+    "brand": "Local Supplier",
+    "model": "20mm Grade",
+    "material": "Crushed Stone",
+    "variants": [
+      {
+        "sku": "AGG-20MM-BULK",
+        "variantName": "Bulk Supply",
+        "size": "20mm",
+        "weightValue": 1,
+        "unit": "ton",
+        "price": 1500,
+        "costPrice": 1250,
+        "stock": 800,
+        "minStockLevel": 100
+      }
+    ],
+    "taxRate": 0,
+    "supplier": "Stone Quarry",
+    "hsnCode": "25171000",
+    "isActive": true,
+    "ProductImage": "https://images.unsplash.com/photo-1611348524140-53c9a25263d6",
+    "rating": {
+      "average": 4.4,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 900,
+      "estimatedDays": "1-3 days"
+    }
+  },
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "Bosch GSB 550 RE Power Drill",
+    "description": "<h1 style=\"text-align: center\"><strong>Bosch GSB 550 RE Power Drill</strong></h1><p><strong>Product Name:</strong> Bosch GSB 550 RE Impact Drill Machine</p><p><strong>Manufacturer:</strong> Bosch Power Tools</p><p><strong>Tool Type:</strong> 13mm Corded Impact Drill with Variable Speed</p><p><strong>Power Rating:</strong> 550W motor with 3000 RPM no-load speed</p><p><strong>Warranty:</strong> 1 year manufacturer warranty</p><p><strong>Positioning:</strong> Professional-grade power drill for heavy-duty construction applications</p><h2><strong>Key Features</strong></h2><ul><li><strong>Powerful 550W Motor:</strong> High torque output for drilling in concrete, wood, and metal.</li><li><strong>Variable Speed Control:</strong> Electronic speed regulation from 0-3000 RPM for precise control.</li><li><strong>Impact Function:</strong> Hammer drill mode delivers 48,000 BPM for concrete drilling.</li><li><strong>13mm Keyless Chuck:</strong> Quick bit changes without additional tools.</li><li><strong>Ergonomic Design:</strong> Soft-grip handle reduces fatigue during extended use.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Versatile Performance:</strong> Suitable for drilling wood, metal, plastic, and concrete.</li><li><strong>Professional Quality:</strong> Bosch reliability ensures consistent performance on job sites.</li><li><strong>User Comfort:</strong> Well-balanced design with vibration reduction for comfortable operation.</li><li><strong>Time Efficiency:</strong> Quick bit changes and variable speed improve productivity.</li><li><strong>Durable Construction:</strong> Robust housing withstands demanding construction environments.</li></ul><h2><strong>Applications</strong></h2><p>Bosch GSB 550 RE is essential for various construction tasks:</p><ul><li><strong>Masonry Drilling:</strong> Installing fixtures, electrical boxes, and conduits in concrete walls.</li><li><strong>Carpentry Work:</strong> Drilling holes in wood for furniture and structural framing.</li><li><strong>Metal Fabrication:</strong> Creating holes in steel structures and metal sheets.</li><li><strong>Home Improvement:</strong> DIY projects, renovations, and repair work.</li><li><strong>Professional Construction:</strong> Commercial and residential building projects.</li></ul>",
+    "category": "Tools & Equipment",
+    "brand": "Bosch",
+    "model": "GSB 550 RE",
+    "material": "Metal/Plastic",
+    "variants": [
+      {
+        "sku": "BOSCH-GSB550-DRILL",
+        "variantName": "Complete Kit with Case",
+        "size": "Standard",
+        "weightValue": 1.8,
+        "unit": "pcs",
+        "price": 3850,
+        "costPrice": 3500,
+        "stock": 75,
+        "minStockLevel": 10
+      }
+    ],
+    "taxRate": 0,
+    "supplier": "Bosch India",
+    "hsnCode": "84672100",
+    "isActive": true,
+    "ProductImage": "https://images.unsplash.com/photo-1572981779307-38b8cabb2407",
+    "rating": {
+      "average": 4.6,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 80,
+      "estimatedDays": "3-5 days"
+    }
+  },
+  {
+    "shopId": "68d2beba59dd39c289597763",
+    "name": "CPVC Pipes - Ashirvad",
+    "description": "<h1 style=\"text-align: center\"><strong>Ashirvad CPVC Pipes for Hot & Cold Water</strong></h1><p><strong>Product Name:</strong> Ashirvad Pro CPVC Plumbing Pipes</p><p><strong>Manufacturer:</strong> Ashirvad Pipes (Aliaxis Group)</p><p><strong>Pipe Type:</strong> Chlorinated Polyvinyl Chloride (CPVC) pressure pipes</p><p><strong>Pressure Rating:</strong> SDR 11 (PN 15) for hot and cold water systems</p><p><strong>Standards:</strong> Conforms to ASTM D2846 and IS 15778 standards</p><p><strong>Positioning:</strong> Premium plumbing solution with lifetime warranty</p><h2><strong>Key Features</strong></h2><ul><li><strong>Hot Water Resistant:</strong> Withstands temperatures up to 93°C without degradation.</li><li><strong>Corrosion Proof:</strong> Non-metallic composition eliminates rust and scale formation.</li><li><strong>Chemical Resistant:</strong> Unaffected by acids, alkalis, and aggressive water.</li><li><strong>Easy Installation:</strong> Solvent welding technique enables quick, leak-proof joints.</li><li><strong>Long Service Life:</strong> Expected lifespan of 50+ years with proper installation.</li></ul><h2><strong>Benefits</strong></h2><ul><li><strong>Safe for Drinking Water:</strong> Non-toxic material ensures water quality and taste.</li><li><strong>Energy Efficient:</strong> Low thermal conductivity reduces heat loss in hot water lines.</li><li><strong>Maintenance Free:</strong> No painting, rusting, or periodic replacement required.</li><li><strong>Cost Effective:</strong> Lower installation and lifecycle costs compared to metal pipes.</li><li><strong>Smooth Interior:</strong> Prevents bacterial growth and maintains consistent flow rates.</li></ul><h2><strong>Applications</strong></h2><p>Ashirvad CPVC pipes are ideal for comprehensive plumbing:</p><ul><li><strong>Hot Water Supply:</strong> Solar heaters, geysers, and centralized hot water systems.</li><li><strong>Cold Water Distribution:</strong> Domestic and commercial potable water supply.</li><li><strong>Building Plumbing:</strong> Internal plumbing for residential and commercial buildings.</li><li><strong>Industrial Applications:</strong> Chemical plants, food processing, and pharmaceutical facilities.</li><li><strong>Fire Sprinkler Systems:</strong> Residential fire protection installations.</li></ul>",
+    "category": "Plumbing",
+    "brand": "Ashirvad",
+    "model": "Pro CPVC",
+    "material": "CPVC",
+    "variants": [
+      {
+        "sku": "CPVC-15MM-3M",
+        "variantName": "15mm x 3m Length",
+        "size": "15mm",
+        "weightValue": 0.5,
+        "unit": "pcs",
+        "price": 145,
+        "costPrice": 125,
+        "stock": 500,
+        "minStockLevel": 50
+      },
+      {
+        "sku": "CPVC-20MM-3M",
+        "variantName": "20mm x 3m Length",
+        "size": "20mm",
+        "weightValue": 0.7,
+        "unit": "pcs",
+        "price": 195,
+        "costPrice": 170,
+        "stock": 450,
+        "minStockLevel": 50
+      },
+      {
+        "sku": "CPVC-25MM-3M",
+        "variantName": "25mm x 3m Length",
+        "size": "25mm",
+        "weightValue": 0.9,
+        "unit": "pcs",
+        "price": 285,
+        "costPrice": 250,
+        "stock": 400,
+        "minStockLevel": 40
+      }
+    ],
+    "taxRate": 0,
+    "supplier": "Ashirvad Distributor",
+    "hsnCode": "39172900",
+    "isActive": true,
+    "ProductImage": "https://images.unsplash.com/photo-1607400201889-565b1ee75f8e",
+    "rating": {
+      "average": 4.7,
+      "count": 0,
+      "reviews": []
+    },
+    "shipping": {
+      "isFree": false,
+      "cost": 120,
+      "estimatedDays": "2-4 days"
+    }
+  },
+  {
+    shopId: "68d2beba59dd39c289597763",
+    name: "Sintex Pure Antimicrobial Water Tank",
+    description: "<h1 style=\"text-align: center\"><strong>Sintex Pure Antimicrobial Water Tank</strong></h1><p><strong>Product Name:</strong> Sintex Pure 4P</p><p><strong>Material:</strong> 100% Virgin Food Grade Plastic</p><p><strong>Layers:</strong> Triple Layer with Active Silver Technology</p><h2><strong>Key Features</strong></h2><ul><li><strong>4P Protection:</strong> Anti-Viral, Anti-Bacterial, Anti-Fungal, and Anti-Algae.</li><li><strong>UV Stabilized:</strong> Protects against sun damage and keeps water cool.</li><li><strong>Virgin Plastic:</strong> Safe for drinking water storage.</li><li><strong>Strong Lids:</strong> Threaded lid design to prevent dust and insects.</li></ul>",
+    category: "Plumbing",
+    brand: "Sintex",
+    model: "Pure 4P",
+    material: "Virgin Plastic",
+    variants: [
+      {
+        sku: "SINTEX-PURE-500L",
+        variantName: "500 Liters",
+        size: "500L",
+        color: "White",
+        unit: "pcs",
+        weightValue: 15,
+        price: 4200,
+        costPrice: 3800,
+        stock: 20,
+        minStockLevel: 5
+      },
+      {
+        sku: "SINTEX-PURE-1000L",
+        variantName: "1000 Liters",
+        size: "1000L",
+        color: "White",
+        unit: "pcs",
+        weightValue: 28,
+        price: 7800,
+        costPrice: 7100,
+        stock: 15,
+        minStockLevel: 3
+      }
+    ],
+    supplier: "Sintex Distributors",
+    hsnCode: "39251000",
+    isActive: true,
+    rating: { average: 4.8, count: 0, reviews: [] },
+    shipping: { isFree: false, cost: 500, estimatedDays: "2-3 days" }
+  },
+
+  {
+    shopId: "68d2beba59dd39c289597763",
+    name: "Dr. Fixit 301 Pidicrete URP",
+    description: "<h1 style=\"text-align: center\"><strong>Dr. Fixit 301 Pidicrete URP</strong></h1><p><strong>Type:</strong> SBR Latex for Waterproofing & Repairs</p><p><strong>Application:</strong> Bathrooms, Roofs, and Concrete Repairs</p><h2><strong>Benefits</strong></h2><ul><li><strong>Bonding:</strong> Excellent bonding for old-to-new concrete.</li><li><strong>Waterproofing:</strong> Prevents leakage and dampness in walls.</li><li><strong>Durability:</strong> Improves strength of cement mix.</li></ul>",
+    category: "Paints & Finishes",
+    brand: "Dr. Fixit",
+    model: "301 URP",
+    material: "SBR Latex",
+    variants: [
+      {
+        sku: "FIXIT-301-1KG",
+        variantName: "1kg Bottle",
+        size: "1kg",
+        unit: "pack",
+        weightValue: 1,
+        price: 380,
+        costPrice: 320,
+        stock: 100,
+        minStockLevel: 20
+      },
+      {
+        sku: "FIXIT-301-5KG",
+        variantName: "5kg Jerry Can",
+        size: "5kg",
+        unit: "pack",
+        weightValue: 5,
+        price: 1750,
+        costPrice: 1500,
+        stock: 50,
+        minStockLevel: 10
+      }
+    ],
+    supplier: "Pidilite Industries",
+    hsnCode: "382440",
+    isActive: true,
+    rating: { average: 4.7, count: 0, reviews: [] },
+    shipping: { isFree: false, cost: 80, estimatedDays: "2-4 days" }
+  },
+
+  {
+    shopId: "68d2beba59dd39c289597763",
+    name: "Greenply Green Club Plywood (BWP Grade)",
+    description: "<h1 style=\"text-align: center\"><strong>Greenply Green Club Plywood</strong></h1><p><strong>Grade:</strong> BWP (Boiling Water Proof) - Marine Grade</p><p><strong>Warranty:</strong> 300% Lifetime Warranty</p><p><strong>Usage:</strong> Furniture, Kitchen Cabinets, Wardrobes</p><h2><strong>Features</strong></h2><ul><li><strong>Termite Proof:</strong> Chemically treated against borers and termites.</li><li><strong>Emission Free:</strong> E0 Grade (Zero Formaldehyde Emission).</li><li><strong>Structural Strength:</strong> Made from high-quality Gurjan timber.</li></ul>",
+    category: "Hardware & Fittings", 
+    brand: "Greenply",
+    model: "Green Club",
+    material: "Wood",
+    variants: [
+      {
+        sku: "PLY-GREEN-19MM",
+        variantName: "19mm (8x4 ft Sheet)",
+        size: "8x4 ft",
+        unit: "pcs",
+        weightValue: 35,
+        price: 4800,
+        costPrice: 4200,
+        stock: 100,
+        minStockLevel: 10
+      },
+      {
+        sku: "PLY-GREEN-12MM",
+        variantName: "12mm (8x4 ft Sheet)",
+        size: "8x4 ft",
+        unit: "pcs",
+        weightValue: 22,
+        price: 3200,
+        costPrice: 2800,
+        stock: 80,
+        minStockLevel: 10
+      }
+    ],
+    supplier: "Greenply Industries",
+    hsnCode: "4412",
+    isActive: true,
+    rating: { average: 4.9, count: 0, reviews: [] },
+    shipping: { isFree: false, cost: 300, estimatedDays: "1-3 days" }
+  },
+
+  {
+    shopId: "68d2beba59dd39c289597763",
+    name: "Havells Life Line Plus HRFR Wire",
+    description: "<h1 style=\"text-align: center\"><strong>Havells Life Line Plus HRFR Wire</strong></h1><p><strong>Type:</strong> Heat Resistant Flame Retardant (HRFR) PVC Cable</p><p><strong>Voltage:</strong> 1100V</p><h2><strong>Safety Features</strong></h2><ul><li><strong>Fire Retardant:</strong> Self-extinguishing in case of fire.</li><li><strong>Pure Copper:</strong> 99.95% Electrolytic Grade Copper.</li><li><strong>Anti-Termite:</strong> Insulation is resistant to rodent/termite attacks.</li></ul>",
+    category: "Electrical",
+    brand: "Havells",
+    model: "Life Line Plus",
+    material: "Copper",
+    variants: [
+      {
+        sku: "HAV-1.5SQMM-RED",
+        variantName: "1.5 sq mm (Red Coil)",
+        size: "90m Coil",
+        color: "Red",
+        unit: "pack",
+        weightValue: 2.5,
+        price: 1950,
+        costPrice: 1650,
+        stock: 150,
+        minStockLevel: 30
+      },
+      {
+        sku: "HAV-2.5SQMM-YEL",
+        variantName: "2.5 sq mm (Yellow Coil)",
+        size: "90m Coil",
+        color: "Yellow",
+        unit: "pack",
+        weightValue: 3.8,
+        price: 3100,
+        costPrice: 2750,
+        stock: 120,
+        minStockLevel: 25
+      }
+    ],
+    supplier: "Havells India",
+    hsnCode: "8544",
+    isActive: true,
+    rating: { average: 4.8, count: 0, reviews: [] },
+    shipping: { isFree: true, cost: 0, estimatedDays: "2-3 days" }
+  },
+
+  {
+    shopId: "68d2beba59dd39c289597763",
+    name: "Parryware Standard Western Commode",
+    description: "<h1 style=\"text-align: center\"><strong>Parryware Western Toilet (EWC)</strong></h1><p><strong>Type:</strong> Floor Mounted European Water Closet</p><p><strong>Finish:</strong> Glossy White Ceramic</p><h2><strong>Features</strong></h2><ul><li><strong>S-Trap:</strong> Standard S-Trap outlet for Indian plumbing.</li><li><strong>Stain Resistant:</strong> Glazed surface prevents yellowing.</li><li><strong>Durable:</strong> High-load bearing ceramic body.</li><li><strong>Includes:</strong> Seat cover and cistern tank.</li></ul>",
+    category: "Tiles & Sanitary",
+    brand: "Parryware",
+    model: "Standard EWC",
+    material: "Ceramic",
+    variants: [
+      {
+        sku: "PARRY-WC-FLR",
+        variantName: "Floor Mount Set (White)",
+        size: "Standard",
+        color: "White",
+        unit: "pcs",
+        weightValue: 25,
+        price: 3500,
+        costPrice: 2900,
+        stock: 40,
+        minStockLevel: 5
+      }
+    ],
+    supplier: "Roca Bathrooms",
+    hsnCode: "6910",
+    isActive: true,
+    rating: { average: 4.5, count: 0, reviews: [] },
+    shipping: { isFree: false, cost: 250, estimatedDays: "3-5 days" }
+  },
+
+  {
+    shopId: "68d2beba59dd39c289597763",
+    name: "Tata Shaktee GC Roofing Sheets",
+    description: "<h1 style=\"text-align: center\"><strong>Tata Shaktee GC Sheets</strong></h1><p><strong>Product:</strong> Galvanized Corrugated (GC) Steel Sheets</p><p><strong>Thickness:</strong> 0.45mm (Standard for roofing)</p><h2><strong>Why Tata Shaktee?</strong></h2><ul><li><strong>Rust Proof:</strong> High zinc coating (120 gsm) prevents rust.</li><li><strong>Strength:</strong> Hard steel resists bending and dents.</li><li><strong>Cooler Homes:</strong> Reflects sunlight to keep interiors cooler.</li></ul>",
+    category: "Steel & Reinforcement", 
+    brand: "Tata Steel",
+    model: "Shaktee GC",
+    material: "Galvanized Steel",
+    variants: [
+      {
+        sku: "TATA-GC-10FT",
+        variantName: "10 Feet Sheet",
+        size: "10 ft x 3 ft",
+        unit: "pcs",
+        weightValue: 8,
+        price: 950,
+        costPrice: 820,
+        stock: 500,
+        minStockLevel: 50
+      },
+      {
+        sku: "TATA-GC-12FT",
+        variantName: "12 Feet Sheet",
+        size: "12 ft x 3 ft",
+        unit: "pcs",
+        weightValue: 10,
+        price: 1150,
+        costPrice: 990,
+        stock: 300,
+        minStockLevel: 50
+      }
+    ],
+    supplier: "Tata Steel Dealers",
+    hsnCode: "7210",
+    isActive: true,
+    rating: { average: 4.6, count: 0, reviews: [] },
+    shipping: { isFree: false, cost: 400, estimatedDays: "1-2 days" }
+  },
+
+  {
+    shopId: "68d2beba59dd39c289597763",
+    name: "Philips 9W LED Bulb (Pack of 10)",
+    description: "<h1 style=\"text-align: center\"><strong>Philips 9W LED Bulb (B22)</strong></h1><p><strong>Color:</strong> Cool Day Light (White)</p><p><strong>Warranty:</strong> 1 Year Manufacturer Warranty</p><h2><strong>Features</strong></h2><ul><li><strong>Energy Saving:</strong> Saves up to 85% energy compared to old bulbs.</li><li><strong>Eye Comfort:</strong> No flicker, no glare technology.</li><li><strong>Long Life:</strong> Lasts up to 15,000 hours.</li></ul>",
+    category: "Electrical",
+    brand: "Philips",
+    model: "Ace Saver 9W",
+    material: "Polycarbonate",
+    variants: [
+      {
+        sku: "PHILIPS-LED-9W-10PK",
+        variantName: "10 Bulbs Pack",
+        size: "9 Watt",
+        color: "White",
+        unit: "pack",
+        weightValue: 0.5,
+        price: 900, 
+        costPrice: 750, 
+        stock: 200,
+        minStockLevel: 20
+      }
+    ],
+    supplier: "Signify India",
+    hsnCode: "8539",
+    isActive: true,
+    rating: { average: 4.9, count: 0, reviews: [] },
+    shipping: { isFree: true, cost: 0, estimatedDays: "2-3 days" }
+  },
+  
+
+  
+]

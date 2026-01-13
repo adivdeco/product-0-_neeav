@@ -27,25 +27,8 @@ const app = express();
 global.users = new Map();
 global.io = null; // Will be initialized after server creation
 
+
 const compression = require('compression');
-
-// -------- CORS --------
-app.use(compression());
-app.use(
-    cors({
-        origin: ["http://localhost:5173", "https://product-2-neeav.vercel.app"],
-        credentials: true,
-    })
-);
-
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cookieParser());
-
-// -------- Routes --------
-app.get('/', (req, res) => {
-    res.send('✅ JWT Server is running or server is live');
-});
 
 app.get('/health', (req, res) => {
     res.json({
@@ -55,10 +38,39 @@ app.get('/health', (req, res) => {
     });
 });
 
+// -------- CORS --------
+
+app.use(
+    cors({
+        origin: ["http://localhost:5173", "http://127.0.0.1:5173", "https://product-2-neeav.vercel.app"],
+        credentials: true,
+    })
+);
+
+app.use( 
+    compression({
+    threshold: 1024, // compress only responses > 1KB
+    filter: (req, res) => {
+      if (req.path === '/health') return false;
+      return compression.filter(req, res);
+    }
+  }));
+
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(cookieParser());
+
+// -------- Routes --------
+app.get('/', (req, res) => {
+    res.send('✅ JWT Server is running or server is live');
+});
+
+
+
 app.use('/auth', authRouter);
 app.use('/khata', billsRouter);
 app.use('/useas', ownRouter);
-app.use('/upload', uploadData);
+app.use('/upload', express.json({ limit: '10mb' }), uploadData );
 app.use('/api/work-requests', WorkRoute);
 app.use('/api/notifications', NotificationRouter);
 app.use('/api/employee', employeeRouter);
@@ -80,7 +92,7 @@ const io = new Server(server, {
     pingTimeout: 60000,
     pingInterval: 25000,
     connectTimeout: 45000,
-    maxHttpBufferSize: 1e8 // 100MB
+    maxHttpBufferSize: 5e6 // 5MB for 100mb- 1e8
 });
 
 // Set global io instance
@@ -89,82 +101,9 @@ global.io = io;
 // JWT middleware for socket.io with enhanced error handling
 const jwt = require('jsonwebtoken');
 
-// io.use((socket, next) => {
-//     try {
-//         console.log('🔐 Socket connection attempt from:', socket.handshake.address);
-
-//         // Try multiple ways to get token
-//         let token = socket.handshake.auth?.token;
-
-//         // If not in auth, check cookies
-//         if (!token && socket.handshake.headers.cookie) {
-//             const cookies = socket.handshake.headers.cookie.split(';');
-//             const tokenCookie = cookies.find(cookie =>
-//                 cookie.trim().startsWith('token=')
-//             );
-//             if (tokenCookie) {
-//                 token = tokenCookie.split('=')[1]?.trim();
-//             }
-//         }
-
-//         // If still no token, check authorization header
-//         if (!token && socket.handshake.headers.authorization) {
-//             const authHeader = socket.handshake.headers.authorization;
-//             if (authHeader.startsWith('Bearer ')) {
-//                 token = authHeader.substring(7);
-//             }
-//         }
-
-//         if (!token) {
-//             console.log('❌ No token provided for socket connection');
-//             return next(new Error('Authentication required. Please log in again.'));
-//         }
-
-//         // Verify token
-//         const decoded = jwt.verify(token, "secretkey");
-
-//         if (!decoded.userId) {
-//             console.log('❌ Invalid token payload: missing userId');
-//             return next(new Error('Invalid token format'));
-//         }
-
-//         socket.userId = decoded.userId;
-//         socket.userRole = decoded.role;
-//         socket.userEmail = decoded.email;
-
-//         console.log('✅ Socket authenticated for user:', {
-//             userId: socket.userId,
-//             role: socket.userRole,
-//             email: socket.userEmail
-//         });
-
-//         next();
-//     } catch (error) {
-//         console.error('🔐 Socket authentication error:', {
-//             name: error.name,
-//             message: error.message,
-//             expiredAt: error.expiredAt
-//         });
-
-//         let errorMessage = 'Authentication failed';
-
-//         if (error.name === 'TokenExpiredError') {
-//             errorMessage = 'Token expired. Please log in again.';
-//         } else if (error.name === 'JsonWebTokenError') {
-//             errorMessage = 'Invalid token. Please log in again.';
-//         }
-
-//         next(new Error(errorMessage));
-//     }
-// });
-
-// Socket connection handler
 
 io.use((socket, next) => {
     try {
-        // console.log('🔐 Socket connection attempt from:', socket.handshake.address);
-        // console.log('📋 Headers:', socket.handshake.headers);
-        // console.log('🔑 Auth:', socket.handshake.auth);
 
         let token = socket.handshake.auth?.token;
 
@@ -207,11 +146,15 @@ io.use((socket, next) => {
         socket.userRole = decoded.role;
         socket.userEmail = decoded.email;
 
-        console.log('✅ Socket authenticated for user:', {
+        if (process.env.NODE_ENV !== 'production') {
+
+            console.log('✅ Socket authenticated for user:', {
             userId: socket.userId,
             role: socket.userRole,
             email: socket.userEmail
         });
+        }
+
 
         next();
     } catch (error) {
@@ -262,7 +205,9 @@ io.on('connection', (socket) => {
             role: socket.userRole
         });
 
-        console.log('📊 Current connected users:', global.users.size);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('📊 Current connected users:', global.users.size);
+        }
     }
 
     // Handle custom room joining
@@ -299,11 +244,14 @@ io.on('connection', (socket) => {
 
     // Disconnection handler
     socket.on('disconnect', (reason) => {
-        console.log('❌ Socket disconnected:', {
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('❌ Socket disconnected:', {
             socketId: socket.id,
             userId: socket.userId,
             reason: reason
         });
+        }
+
 
         if (socket.userId) {
             global.users.delete(socket.userId.toString());

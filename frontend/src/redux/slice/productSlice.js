@@ -30,7 +30,7 @@ export const fetchTopRatedProducts = createAsyncThunk(
         try {
             const response = await axiosClient.get('/products/public/products', {
                 params: {
-                    // limit: 8,
+                    limit: 8,
                     sortBy: 'rating',
                     sortOrder: 'desc'
                 }

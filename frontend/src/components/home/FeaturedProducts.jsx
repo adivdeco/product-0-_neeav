@@ -172,6 +172,8 @@ import {
 } from './../../redux/slice/productSlice';
 import { useNavigate } from 'react-router';
 
+import { optimizeImage } from "../../utils/imageOptimizer";
+
 const FeaturedProducts = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -262,8 +264,9 @@ const FeaturedProducts = () => {
                     </div>
 
                     <img
-                        src={product.ProductImage}
+                        src={optimizeImage(product.ProductImage, 400)}
                         alt={product.name}
+                        loading="lazy"
                         className="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
                     />
 
