@@ -42,19 +42,19 @@ app.get('/health', (req, res) => {
 
 app.use(
     cors({
-        origin: ["http://localhost:5173", "http://127.0.0.1:5173", "https://product-2-neeav.vercel.app"],
+        origin: ["http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173", "https://product-2-neeav.vercel.app"],
         credentials: true,
     })
 );
 
-app.use( 
+app.use(
     compression({
-    threshold: 1024, // compress only responses > 1KB
-    filter: (req, res) => {
-      if (req.path === '/health') return false;
-      return compression.filter(req, res);
-    }
-  }));
+        threshold: 1024, // compress only responses > 1KB
+        filter: (req, res) => {
+            if (req.path === '/health') return false;
+            return compression.filter(req, res);
+        }
+    }));
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
@@ -70,7 +70,7 @@ app.get('/', (req, res) => {
 app.use('/auth', authRouter);
 app.use('/khata', billsRouter);
 app.use('/useas', ownRouter);
-app.use('/upload', express.json({ limit: '10mb' }), uploadData );
+app.use('/upload', express.json({ limit: '10mb' }), uploadData);
 app.use('/api/work-requests', WorkRoute);
 app.use('/api/notifications', NotificationRouter);
 app.use('/api/employee', employeeRouter);
@@ -149,10 +149,10 @@ io.use((socket, next) => {
         if (process.env.NODE_ENV !== 'production') {
 
             console.log('✅ Socket authenticated for user:', {
-            userId: socket.userId,
-            role: socket.userRole,
-            email: socket.userEmail
-        });
+                userId: socket.userId,
+                role: socket.userRole,
+                email: socket.userEmail
+            });
         }
 
 
@@ -206,7 +206,7 @@ io.on('connection', (socket) => {
         });
 
         if (process.env.NODE_ENV !== 'production') {
-          console.log('📊 Current connected users:', global.users.size);
+            console.log('📊 Current connected users:', global.users.size);
         }
     }
 
@@ -246,10 +246,10 @@ io.on('connection', (socket) => {
     socket.on('disconnect', (reason) => {
         if (process.env.NODE_ENV !== 'production') {
             console.log('❌ Socket disconnected:', {
-            socketId: socket.id,
-            userId: socket.userId,
-            reason: reason
-        });
+                socketId: socket.id,
+                userId: socket.userId,
+                reason: reason
+            });
         }
 
 
