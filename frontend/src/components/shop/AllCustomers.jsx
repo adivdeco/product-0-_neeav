@@ -6,9 +6,10 @@ import {
     ChevronDown, ChevronUp, ArrowLeft, Calendar,
     IndianRupee, Receipt, CreditCard, Clock, CheckCircle2,
     AlertCircle, Filter, Package, Hash, TrendingUp, TrendingDown,
-    Wallet, Users, Eye
+    Wallet, Users, Eye, FileDown
 } from 'lucide-react';
 import axiosClient from '../../api/auth';
+import CustomerStatementPDF from './CustomerStatementPDF';
 
 // ─── Utilities ──────────────────────────────────────────────
 const formatCurrency = (amount) =>
@@ -280,8 +281,10 @@ const CustomerListItem = ({ customer, isActive, onClick }) => {
 const CustomerDetailPanel = ({ customer, onBack }) => {
     const [bills, setBills] = useState([]);
     const [summary, setSummary] = useState(null);
+    const [shop, setShop] = useState(null);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('all');
+    const [showStatement, setShowStatement] = useState(false);
 
     useEffect(() => {
         if (!customer?._id) return;
@@ -291,6 +294,7 @@ const CustomerDetailPanel = ({ customer, onBack }) => {
             .then(res => {
                 setBills(res.data.bills || []);
                 setSummary(res.data.summary || null);
+                setShop(res.data.shop || null);
             })
             .catch(err => {
                 console.error('Error fetching customer bills:', err);
@@ -380,6 +384,18 @@ const CustomerDetailPanel = ({ customer, onBack }) => {
                         <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
                             <span className="font-medium">GST:</span> {customer.gstNumber}
                         </div>
+                    )}
+
+                    {/* Export Statement Button */}
+                    {!loading && bills.length > 0 && (
+                        <button
+                            onClick={() => setShowStatement(true)}
+                            className="mt-3 w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-medium rounded-xl shadow-md shadow-indigo-500/20 transition-all active:scale-[0.97]"
+                            id="export-statement-btn"
+                        >
+                            <FileDown size={16} />
+                            Export Statement
+                        </button>
                     )}
                 </motion.div>
 
@@ -513,6 +529,16 @@ const CustomerDetailPanel = ({ customer, onBack }) => {
                     )}
                 </div>
             </div>
+
+            {/* Statement PDF Modal */}
+            <CustomerStatementPDF
+                isOpen={showStatement}
+                onClose={() => setShowStatement(false)}
+                customer={customer}
+                bills={bills}
+                summary={summary}
+                shop={shop}
+            />
         </div>
     );
 };
