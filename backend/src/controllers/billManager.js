@@ -69,20 +69,48 @@ const addNewBills = async (req, res) => {
 
         // Find or create customer
         if (phone || customerName) {
-            let customer = await Customer.findOne({ phone, shopId }).session(session);
+            let customer = null;
+
+            // Primary lookup: by phone (if provided and non-empty)
+            if (phone && phone.trim() !== '') {
+                customer = await Customer.findOne({ phone: phone.trim(), shopId }).session(session);
+            }
+
+            // Fallback lookup: by name + shopId (if phone didn't match or wasn't provided)
+            if (!customer && customerName) {
+                customer = await Customer.findOne({ name: customerName.trim(), shopId }).session(session);
+            }
 
             if (!customer) {
                 // Create new customer WITH shopId
                 customer = new Customer({
                     shopId,
                     name: customerName,
-                    phone: phone,
+                    phone: phone || '',
                     email: email || '',
-                    address: address || {},
+                    address: address || '',
                     createdBy: userId
                 });
 
                 await customer.save({ session });
+            } else {
+                // Update existing customer details if currently empty
+                let needsUpdate = false;
+                if (email && !customer.email) {
+                    customer.email = email;
+                    needsUpdate = true;
+                }
+                if (address && !customer.address) {
+                    customer.address = address;
+                    needsUpdate = true;
+                }
+                if (phone && !customer.phone) {
+                    customer.phone = phone;
+                    needsUpdate = true;
+                }
+                if (needsUpdate) {
+                    await customer.save({ session });
+                }
             }
 
             customerId = customer._id;
