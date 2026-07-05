@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const Bills = require('../models/billsSchema');
 const Customer = require('../models/customerSchema');
-const Shop = require('../models/shopSchema'); // Assuming you have a Shop model
+const Shop = require('../models/shopSchema');
+const PaymentRecord = require('../models/paymentRecordSchema');
 
 
 const addNewBills = async (req, res) => {
@@ -117,7 +118,20 @@ const addNewBills = async (req, res) => {
 
             // Update customer balance if it's a credit bill
             if (req.body.isCredit) {
-                customer.currentBalance += (grandTotal) - (amountPaid);
+                const billDue = grandTotal - amountPaid;
+
+                // Auto-apply advance credit if customer has advance (negative balance)
+                if (customer.currentBalance < 0 && billDue > 0) {
+                    const availableAdvance = Math.abs(customer.currentBalance);
+                    const advanceToApply = Math.min(availableAdvance, billDue);
+
+                    // This will be added to amountPaid when creating the bill below
+                    req.body._advanceApplied = advanceToApply;
+                }
+
+                const advanceApplied = req.body._advanceApplied || 0;
+                // Net effect on balance: billDue minus advance applied
+                customer.currentBalance += (billDue - advanceApplied);
                 await customer.save({ session });
             }
         }
@@ -130,10 +144,14 @@ const addNewBills = async (req, res) => {
         const taxAmount = req.body.taxAmount || 0;
 
         // Validate payment status logic
+        // Apply advance credit to amountPaid if applicable
+        const advanceApplied = req.body._advanceApplied || 0;
+        const effectiveAmountPaid = amountPaid + advanceApplied;
+
         let paymentStatus = req.body.paymentStatus || 'pending';
-        if (amountPaid >= grandTotal) {
+        if (effectiveAmountPaid >= grandTotal) {
             paymentStatus = 'paid';
-        } else if (amountPaid > 0) {
+        } else if (effectiveAmountPaid > 0) {
             paymentStatus = 'partial';
         }
 
@@ -162,7 +180,7 @@ const addNewBills = async (req, res) => {
             discount,
             taxAmount,
             grandTotal,
-            amountPaid,
+            amountPaid: effectiveAmountPaid,
             paymentStatus,
             paymentMethod: req.body.paymentMethod || 'cash',
             isCredit: req.body.isCredit ?? true,
@@ -621,5 +639,143 @@ const generateBillNumber = () => {
 };
 
 
+// ─── Record Payment (customer-level, creates payment record, auto-distributes to bills) ───
+const recordPayment = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-module.exports = { addNewBills, updateBill, deleateBill, getBill, getAllBills }
+    try {
+        const userId = req.finduser._id;
+        const role = req.finduser.role;
+
+        if (role !== 'store_owner' && role !== 'admin') {
+            await session.abortTransaction();
+            return res.status(403).json({
+                message: "Forbidden: You do not have access to record payments"
+            });
+        }
+
+        const { customerId } = req.params;
+        const { paymentAmount, paymentMethod, notes } = req.body;
+
+        // Validate customerId
+        if (!mongoose.Types.ObjectId.isValid(customerId)) {
+            await session.abortTransaction();
+            return res.status(400).json({ message: "Invalid customer ID" });
+        }
+
+        // Validate payment amount
+        const amount = parseFloat(paymentAmount);
+        if (!amount || amount <= 0) {
+            await session.abortTransaction();
+            return res.status(400).json({ message: "Payment amount must be greater than 0" });
+        }
+
+        // Find customer
+        const customer = await Customer.findById(customerId).session(session);
+        if (!customer) {
+            await session.abortTransaction();
+            return res.status(404).json({ message: "Customer not found" });
+        }
+
+        // Verify shop ownership
+        const shop = await Shop.findOne({ ownerId: userId }).session(session);
+        if (!shop || !customer.shopId.equals(shop._id)) {
+            await session.abortTransaction();
+            return res.status(403).json({
+                message: "Forbidden: You don't have access to this customer"
+            });
+        }
+
+        // Auto-distribute payment to oldest unpaid bills
+        let remainingPayment = amount;
+        const updatedBills = [];
+
+        if (remainingPayment > 0) {
+            // Get unpaid bills sorted by oldest first
+            const unpaidBills = await Bills.find({
+                customerId: new mongoose.Types.ObjectId(customerId),
+                shopId: shop._id,
+                paymentStatus: { $in: ['pending', 'partial'] }
+            }).sort({ billDate: 1, createdAt: 1 }).session(session);
+
+            for (const bill of unpaidBills) {
+                if (remainingPayment <= 0) break;
+
+                const billDue = bill.grandTotal - bill.amountPaid;
+                if (billDue <= 0) continue;
+
+                const applyToBill = Math.min(remainingPayment, billDue);
+                bill.amountPaid += applyToBill;
+                remainingPayment -= applyToBill;
+
+                if (bill.amountPaid >= bill.grandTotal) {
+                    bill.paymentStatus = 'paid';
+                } else {
+                    bill.paymentStatus = 'partial';
+                }
+
+                bill.updatedBy = userId;
+                bill.updatedAt = new Date();
+                await bill.save({ session });
+                updatedBills.push({
+                    billId: bill._id,
+                    billNumber: bill.billNumber,
+                    applied: applyToBill,
+                    newStatus: bill.paymentStatus
+                });
+            }
+        }
+
+        // Update customer balance
+        const oldBalance = customer.currentBalance;
+        customer.currentBalance -= amount;
+        await customer.save({ session });
+
+        // Create payment record
+        const paymentRecord = new PaymentRecord({
+            shopId: shop._id,
+            customerId: customer._id,
+            amount,
+            paymentMethod: paymentMethod || 'cash',
+            notes: notes || '',
+            balanceAfter: customer.currentBalance,
+            date: new Date(),
+            createdBy: userId
+        });
+        await paymentRecord.save({ session });
+
+        await session.commitTransaction();
+
+        // Build response message
+        let message = `Payment of \u20b9${amount} recorded successfully.`;
+        if (customer.currentBalance < 0) {
+            message += ` Customer has \u20b9${Math.abs(customer.currentBalance)} advance credit.`;
+        } else if (customer.currentBalance > 0) {
+            message += ` Remaining due: \u20b9${customer.currentBalance}.`;
+        } else {
+            message += ' All dues cleared!';
+        }
+
+        res.json({
+            message,
+            payment: paymentRecord,
+            previousBalance: oldBalance,
+            currentBalance: customer.currentBalance,
+            updatedBills
+        });
+
+    } catch (error) {
+        await session.abortTransaction();
+        console.error('Error recording payment:', error);
+        res.status(500).json({
+            message: 'Internal server error',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    } finally {
+        session.endSession();
+    }
+};
+
+
+module.exports = { addNewBills, updateBill, deleateBill, getBill, getAllBills, recordPayment }

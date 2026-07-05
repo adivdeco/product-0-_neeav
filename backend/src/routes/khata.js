@@ -1,9 +1,10 @@
 const express = require('express')
 const mongoose = require('mongoose');
-const { addNewBills, updateBill, deleateBill, getBill, getAllBills } = require('../controllers/billManager');
+const { addNewBills, updateBill, deleateBill, getBill, getAllBills, recordPayment } = require('../controllers/billManager');
 const Shop = require('../models/shopSchema');
 const Customer = require('../models/customerSchema');
 const Bills = require('../models/billsSchema');
+const PaymentRecord = require('../models/paymentRecordSchema');
 const billsRouter = express.Router()
 const authMiddleware = require('../middleware/authMiddleware')
 const adminMiddleware = require('../middleware/adminMiddleware')
@@ -12,6 +13,7 @@ const adminMiddleware = require('../middleware/adminMiddleware')
 billsRouter.post('/add_bill', authMiddleware, addNewBills)
 billsRouter.put('/update_bill/:billId', authMiddleware, updateBill);
 billsRouter.delete('/delete_bill/:billId', authMiddleware, deleateBill)
+billsRouter.post('/record-payment/:customerId', authMiddleware, recordPayment)
 
 
 
@@ -120,12 +122,23 @@ billsRouter.get('/customer/:id/bills', authMiddleware, async (req, res) => {
         .sort({ billDate: -1, createdAt: -1 })
         .lean();
 
+        // Get payment history for this customer
+        const payments = await PaymentRecord.find({
+            customerId: new mongoose.Types.ObjectId(id),
+            shopId: customer.shopId
+        })
+        .sort({ date: -1, createdAt: -1 })
+        .lean();
+
         // Calculate summary
+        const totalPaymentsReceived = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
         const summary = {
             totalBills: bills.length,
             totalBilled: bills.reduce((sum, b) => sum + (b.grandTotal || 0), 0),
             totalPaid: bills.reduce((sum, b) => sum + (b.amountPaid || 0), 0),
             totalOutstanding: 0,
+            totalPaymentsReceived,
+            paymentCount: payments.length,
             paidCount: bills.filter(b => b.paymentStatus === 'paid').length,
             pendingCount: bills.filter(b => b.paymentStatus === 'pending').length,
             partialCount: bills.filter(b => b.paymentStatus === 'partial').length,
@@ -135,6 +148,7 @@ billsRouter.get('/customer/:id/bills', authMiddleware, async (req, res) => {
         res.status(200).json({
             message: "Customer bills fetched successfully",
             bills,
+            payments,
             summary,
             customer,
             shop: {

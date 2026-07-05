@@ -6,7 +6,7 @@ import {
     ChevronDown, ChevronUp, ArrowLeft, Calendar,
     IndianRupee, Receipt, CreditCard, Clock, CheckCircle2,
     AlertCircle, Filter, Package, Hash, TrendingUp, TrendingDown,
-    Wallet, Users, Eye, FileDown
+    Wallet, Users, Eye, FileDown, X, Banknote,
 } from 'lucide-react';
 import axiosClient from '../../api/auth';
 import CustomerStatementPDF from './CustomerStatementPDF';
@@ -92,8 +92,391 @@ const BillItemRow = ({ item, index }) => {
     );
 };
 
+// ─── Record Payment Modal ───────────────────────────────────
+const RecordPaymentModal = ({ isOpen, onClose, bill, onSuccess }) => {
+    const [amount, setAmount] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('cash');
+    const [notes, setNotes] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    const remaining = (bill?.grandTotal || 0) - (bill?.amountPaid || 0);
+    const numAmount = parseFloat(amount) || 0;
+    const excess = numAmount > remaining ? numAmount - remaining : 0;
+
+    useEffect(() => {
+        if (isOpen) {
+            setAmount('');
+            setPaymentMethod('cash');
+            setNotes('');
+        }
+    }, [isOpen]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (numAmount <= 0) return toast.error('Enter a valid amount');
+        setSubmitting(true);
+        try {
+            const res = await axiosClient.post(`/khata/record-payment/${bill._id}`, {
+                paymentAmount: numAmount,
+                paymentMethod,
+                notes: notes.trim() || undefined
+            });
+            toast.success(res.data.message || 'Payment recorded!');
+            onSuccess?.();
+            onClose();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to record payment');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    if (!isOpen || !bill) return null;
+
+    return (
+        <AnimatePresence>
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+                onClick={onClose}
+            >
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    transition={{ type: 'spring', duration: 0.35 }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+                >
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 text-white relative">
+                        <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-xl hover:bg-white/20 transition" id="close-payment-modal">
+                            <X size={18} />
+                        </button>
+                        <div className="flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <IndianRupee size={22} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold">Record Payment</h3>
+                                <p className="text-emerald-100 text-xs mt-0.5">Bill #{bill.billNumber?.slice(-10)}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bill Summary */}
+                    <div className="px-6 pt-5 pb-3">
+                        <div className="grid grid-cols-3 gap-2 mb-4">
+                            <div className="bg-gray-50 rounded-xl p-3 text-center">
+                                <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Total</p>
+                                <p className="text-sm font-bold text-gray-900 mt-0.5">{formatCurrency(bill.grandTotal)}</p>
+                            </div>
+                            <div className="bg-emerald-50 rounded-xl p-3 text-center">
+                                <p className="text-[10px] uppercase tracking-wider text-emerald-600 font-medium">Paid</p>
+                                <p className="text-sm font-bold text-emerald-700 mt-0.5">{formatCurrency(bill.amountPaid)}</p>
+                            </div>
+                            <div className="bg-rose-50 rounded-xl p-3 text-center">
+                                <p className="text-[10px] uppercase tracking-wider text-rose-600 font-medium">Due</p>
+                                <p className="text-sm font-bold text-rose-700 mt-0.5">{formatCurrency(remaining)}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-4">
+                        {/* Amount */}
+                        <div>
+                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 block">Payment Amount</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg font-medium">₹</span>
+                                <input
+                                    type="number"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    placeholder="0"
+                                    className="w-full pl-8 pr-24 py-3 bg-gray-50 border border-gray-200 rounded-xl text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition"
+                                    min="1"
+                                    step="any"
+                                    autoFocus
+                                    id="payment-amount-input"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setAmount(String(remaining))}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-semibold bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition"
+                                    id="pay-full-btn"
+                                >
+                                    Pay Full
+                                </button>
+                            </div>
+                            {excess > 0 && (
+                                <p className="text-xs text-blue-600 mt-1.5 flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-lg">
+                                    <AlertCircle size={12} />
+                                    ₹{excess.toLocaleString('en-IN')} extra will be saved as advance credit.
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Payment Method */}
+                        <div>
+                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 block">Payment Method</label>
+                            <div className="grid grid-cols-4 gap-2">
+                                {[
+                                    { key: 'cash', label: 'Cash', icon: '💵' },
+                                    { key: 'upi', label: 'UPI', icon: '📱' },
+                                    { key: 'card', label: 'Card', icon: '💳' },
+                                    { key: 'bank_transfer', label: 'Bank', icon: '🏦' },
+                                ].map(m => (
+                                    <button
+                                        key={m.key}
+                                        type="button"
+                                        onClick={() => setPaymentMethod(m.key)}
+                                        className={`py-2.5 rounded-xl text-xs font-medium transition-all border ${
+                                            paymentMethod === m.key
+                                                ? 'bg-emerald-50 border-emerald-400 text-emerald-700 shadow-sm'
+                                                : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-emerald-300'
+                                        }`}
+                                        id={`payment-method-${m.key}`}
+                                    >
+                                        <span className="text-base block mb-0.5">{m.icon}</span>
+                                        {m.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Notes */}
+                        <div>
+                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 block">Notes (optional)</label>
+                            <input
+                                type="text"
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                placeholder="e.g. GPay ref #1234"
+                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition"
+                                id="payment-notes-input"
+                            />
+                        </div>
+
+                        {/* Submit */}
+                        <button
+                            type="submit"
+                            disabled={submitting || numAmount <= 0}
+                            className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+                            id="submit-payment-btn"
+                        >
+                            {submitting ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                    Recording...
+                                </span>
+                            ) : (
+                                `Record ₹${numAmount > 0 ? numAmount.toLocaleString('en-IN') : '0'} Payment`
+                            )}
+                        </button>
+                    </form>
+                </motion.div>
+            </motion.div>
+        </AnimatePresence>
+    );
+};
+
+// ─── Record Advance Modal ───────────────────────────────────
+const RecordAdvanceModal = ({ isOpen, onClose, customer, onSuccess }) => {
+    const [amount, setAmount] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('cash');
+    const [notes, setNotes] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    const numAmount = parseFloat(amount) || 0;
+    const currentBalance = customer?.currentBalance || 0;
+    const projectedBalance = currentBalance - numAmount;
+
+    useEffect(() => {
+        if (isOpen) {
+            setAmount('');
+            setPaymentMethod('cash');
+            setNotes('');
+        }
+    }, [isOpen]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (numAmount <= 0) return toast.error('Enter a valid amount');
+        setSubmitting(true);
+        try {
+            const res = await axiosClient.post(`/khata/record-advance/${customer._id}`, {
+                paymentAmount: numAmount,
+                paymentMethod,
+                notes: notes.trim() || undefined
+            });
+            toast.success(res.data.message || 'Advance recorded!');
+            onSuccess?.();
+            onClose();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to record advance');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    if (!isOpen || !customer) return null;
+
+    return (
+        <AnimatePresence>
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+                onClick={onClose}
+            >
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    transition={{ type: 'spring', duration: 0.35 }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+                >
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 text-white relative">
+                        <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-xl hover:bg-white/20 transition" id="close-advance-modal">
+                            <X size={18} />
+                        </button>
+                        <div className="flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <Banknote size={22} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold">Record Advance</h3>
+                                <p className="text-blue-100 text-xs mt-0.5">{customer.name}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Current Balance */}
+                    <div className="px-6 pt-5 pb-3">
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                            <div className={`rounded-xl p-3 text-center ${currentBalance > 0 ? 'bg-rose-50' : currentBalance < 0 ? 'bg-emerald-50' : 'bg-gray-50'}`}>
+                                <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Current Balance</p>
+                                <p className={`text-sm font-bold mt-0.5 ${currentBalance > 0 ? 'text-rose-700' : currentBalance < 0 ? 'text-emerald-700' : 'text-gray-700'}`}>
+                                    {currentBalance > 0 ? `${formatCurrency(currentBalance)} Due` : currentBalance < 0 ? `${formatCurrency(Math.abs(currentBalance))} Advance` : 'Clear'}
+                                </p>
+                            </div>
+                            <div className={`rounded-xl p-3 text-center ${projectedBalance > 0 ? 'bg-amber-50' : 'bg-blue-50'}`}>
+                                <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">After Payment</p>
+                                <p className={`text-sm font-bold mt-0.5 ${projectedBalance > 0 ? 'text-amber-700' : 'text-blue-700'}`}>
+                                    {numAmount > 0
+                                        ? (projectedBalance > 0 ? `${formatCurrency(projectedBalance)} Due` : projectedBalance < 0 ? `${formatCurrency(Math.abs(projectedBalance))} Advance` : 'Clear')
+                                        : '—'
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-4">
+                        {/* Amount */}
+                        <div>
+                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 block">Payment Amount</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg font-medium">₹</span>
+                                <input
+                                    type="number"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    placeholder="0"
+                                    className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition"
+                                    min="1"
+                                    step="any"
+                                    autoFocus
+                                    id="advance-amount-input"
+                                />
+                            </div>
+                            {currentBalance > 0 && numAmount > 0 && numAmount <= currentBalance && (
+                                <p className="text-xs text-amber-600 mt-1.5 flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-lg">
+                                    <AlertCircle size={12} />
+                                    This will reduce outstanding due to {formatCurrency(currentBalance - numAmount)}.
+                                </p>
+                            )}
+                            {currentBalance > 0 && numAmount > currentBalance && (
+                                <p className="text-xs text-blue-600 mt-1.5 flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-lg">
+                                    <AlertCircle size={12} />
+                                    Due cleared + ₹{(numAmount - currentBalance).toLocaleString('en-IN')} will be advance credit.
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Payment Method */}
+                        <div>
+                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 block">Payment Method</label>
+                            <div className="grid grid-cols-4 gap-2">
+                                {[
+                                    { key: 'cash', label: 'Cash', icon: '💵' },
+                                    { key: 'upi', label: 'UPI', icon: '📱' },
+                                    { key: 'card', label: 'Card', icon: '💳' },
+                                    { key: 'bank_transfer', label: 'Bank', icon: '🏦' },
+                                ].map(m => (
+                                    <button
+                                        key={m.key}
+                                        type="button"
+                                        onClick={() => setPaymentMethod(m.key)}
+                                        className={`py-2.5 rounded-xl text-xs font-medium transition-all border ${
+                                            paymentMethod === m.key
+                                                ? 'bg-blue-50 border-blue-400 text-blue-700 shadow-sm'
+                                                : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-blue-300'
+                                        }`}
+                                        id={`advance-method-${m.key}`}
+                                    >
+                                        <span className="text-base block mb-0.5">{m.icon}</span>
+                                        {m.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Notes */}
+                        <div>
+                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 block">Notes (optional)</label>
+                            <input
+                                type="text"
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                placeholder="e.g. Advance for next month order"
+                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition"
+                                id="advance-notes-input"
+                            />
+                        </div>
+
+                        {/* Submit */}
+                        <button
+                            type="submit"
+                            disabled={submitting || numAmount <= 0}
+                            className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+                            id="submit-advance-btn"
+                        >
+                            {submitting ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                    Recording...
+                                </span>
+                            ) : (
+                                `Record ₹${numAmount > 0 ? numAmount.toLocaleString('en-IN') : '0'} Advance`
+                            )}
+                        </button>
+                    </form>
+                </motion.div>
+            </motion.div>
+        </AnimatePresence>
+    );
+};
+
 // ─── Expandable Bill Card ───────────────────────────────────
-const BillCard = ({ bill }) => {
+const BillCard = ({ bill, onRecordPayment }) => {
     const [expanded, setExpanded] = useState(false);
     const status = statusConfig[bill.paymentStatus] || statusConfig.pending;
     const StatusIcon = status.icon;
@@ -211,6 +594,18 @@ const BillCard = ({ bill }) => {
                                 </div>
                             )}
 
+                            {/* Record Payment Button */}
+                            {remaining > 0 && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onRecordPayment?.(bill); }}
+                                    className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-semibold rounded-xl shadow-md shadow-emerald-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                                    id={`record-payment-${bill._id}`}
+                                >
+                                    <IndianRupee size={15} />
+                                    Record Payment
+                                </button>
+                            )}
+
                             {/* Notes */}
                             {bill.notes && (
                                 <div className="bg-amber-50 rounded-xl p-3 text-xs text-amber-800">
@@ -266,6 +661,10 @@ const CustomerListItem = ({ customer, isActive, onClick }) => {
                     <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-lg border border-rose-100">
                         ₹{balance.toLocaleString('en-IN')}
                     </span>
+                ) : balance < 0 ? (
+                    <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">
+                        ₹{Math.abs(balance).toLocaleString('en-IN')} Adv
+                    </span>
                 ) : (
                     <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">
                         Clear
@@ -278,15 +677,18 @@ const CustomerListItem = ({ customer, isActive, onClick }) => {
 };
 
 // ─── Customer Detail Panel ──────────────────────────────────
-const CustomerDetailPanel = ({ customer, onBack }) => {
+const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
     const [bills, setBills] = useState([]);
     const [summary, setSummary] = useState(null);
     const [shop, setShop] = useState(null);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('all');
     const [showStatement, setShowStatement] = useState(false);
+    const [paymentBill, setPaymentBill] = useState(null); // bill to record payment for
+    const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
-    useEffect(() => {
+    const fetchBills = useCallback(() => {
         if (!customer?._id) return;
         setLoading(true);
         setStatusFilter('all');
@@ -304,6 +706,20 @@ const CustomerDetailPanel = ({ customer, onBack }) => {
             })
             .finally(() => setLoading(false));
     }, [customer?._id]);
+
+    useEffect(() => {
+        fetchBills();
+    }, [fetchBills, refreshKey]);
+
+    const handlePaymentSuccess = () => {
+        setRefreshKey(k => k + 1); // refresh bills
+        onCustomerUpdated?.(); // refresh customer list (balance changed)
+    };
+
+    const handleAdvanceSuccess = () => {
+        setRefreshKey(k => k + 1);
+        onCustomerUpdated?.();
+    };
 
     const filteredBills = useMemo(() => {
         if (statusFilter === 'all') return bills;
@@ -373,10 +789,10 @@ const CustomerDetailPanel = ({ customer, onBack }) => {
                             </div>
                         </div>
                         {/* Balance badge */}
-                        <div className={`px-3 py-2 rounded-xl text-right flex-shrink-0 ${balance > 0 ? 'bg-rose-50 border border-rose-100' : 'bg-emerald-50 border border-emerald-100'}`}>
+                        <div className={`px-3 py-2 rounded-xl text-right flex-shrink-0 ${balance > 0 ? 'bg-rose-50 border border-rose-100' : balance < 0 ? 'bg-emerald-50 border border-emerald-100' : 'bg-gray-50 border border-gray-100'}`}>
                             <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Balance</p>
-                            <p className={`text-lg font-bold ${balance > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                {formatCurrency(balance)}
+                            <p className={`text-lg font-bold ${balance > 0 ? 'text-rose-600' : balance < 0 ? 'text-emerald-600' : 'text-gray-600'}`}>
+                                {balance > 0 ? formatCurrency(balance) : balance < 0 ? `${formatCurrency(Math.abs(balance))} Adv` : 'Clear'}
                             </p>
                         </div>
                     </div>
@@ -386,17 +802,30 @@ const CustomerDetailPanel = ({ customer, onBack }) => {
                         </div>
                     )}
 
-                    {/* Export Statement Button */}
-                    {!loading && bills.length > 0 && (
+                    {/* Action Buttons */}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                        {/* Record Advance Button */}
                         <button
-                            onClick={() => setShowStatement(true)}
-                            className="mt-3 w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-medium rounded-xl shadow-md shadow-indigo-500/20 transition-all active:scale-[0.97]"
-                            id="export-statement-btn"
+                            onClick={() => setShowAdvanceModal(true)}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-medium rounded-xl shadow-md shadow-blue-500/20 transition-all active:scale-[0.97]"
+                            id="record-advance-btn"
                         >
-                            <FileDown size={16} />
-                            Export Statement
+                            <Banknote size={16} />
+                            Record Advance
                         </button>
-                    )}
+
+                        {/* Export Statement Button */}
+                        {!loading && bills.length > 0 && (
+                            <button
+                                onClick={() => setShowStatement(true)}
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-medium rounded-xl shadow-md shadow-indigo-500/20 transition-all active:scale-[0.97]"
+                                id="export-statement-btn"
+                            >
+                                <FileDown size={16} />
+                                Export Statement
+                            </button>
+                        )}
+                    </div>
                 </motion.div>
 
                 {/* ─ Financial Summary Cards ─ */}
@@ -515,7 +944,7 @@ const CustomerDetailPanel = ({ customer, onBack }) => {
                     ) : filteredBills.length > 0 ? (
                         <div className="space-y-3">
                             {filteredBills.map(bill => (
-                                <BillCard key={bill._id} bill={bill} />
+                                <BillCard key={bill._id} bill={bill} onRecordPayment={(b) => setPaymentBill(b)} />
                             ))}
                         </div>
                     ) : (
@@ -538,6 +967,22 @@ const CustomerDetailPanel = ({ customer, onBack }) => {
                 bills={bills}
                 summary={summary}
                 shop={shop}
+            />
+
+            {/* Record Payment Modal */}
+            <RecordPaymentModal
+                isOpen={!!paymentBill}
+                onClose={() => setPaymentBill(null)}
+                bill={paymentBill}
+                onSuccess={handlePaymentSuccess}
+            />
+
+            {/* Record Advance Modal */}
+            <RecordAdvanceModal
+                isOpen={showAdvanceModal}
+                onClose={() => setShowAdvanceModal(false)}
+                customer={customer}
+                onSuccess={handleAdvanceSuccess}
             />
         </div>
     );
@@ -683,6 +1128,7 @@ const CustomersPage = () => {
                     <CustomerDetailPanel
                         customer={selectedCustomer}
                         onBack={handleBack}
+                        onCustomerUpdated={fetchCustomers}
                     />
                 ) : (
                     /* Empty state — desktop only */
