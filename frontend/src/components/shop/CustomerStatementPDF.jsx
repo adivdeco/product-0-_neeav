@@ -36,45 +36,60 @@ const COLORS = {
 };
 
 // ─── Canvas PDF Renderer ────────────────────────────────────
-const renderStatement = (canvas, { customer, bills, summary, shop, dateRange }) => {
+const renderStatement = (canvas, { customer, bills, payments, summary, shop, dateRange }) => {
     const ctx = canvas.getContext('2d');
     const W = 794;  // A4 width at 96dpi
     const margin = 45;
     const contentW = W - margin * 2;
     let y = 0;
 
-    // Group bills by date for the statement
-    const allItems = [];
-    bills.forEach(bill => {
-        const billDate = formatShortDate(bill.billDate || bill.createdAt);
-        (bill.items || []).forEach(item => {
-            allItems.push({
-                date: billDate,
-                billNumber: bill.billNumber || '',
-                productName: item.productName || 'Unknown',
-                quantity: item.quantity || 0,
-                unit: item.unit || 'pcs',
-                price: item.price || 0,
-                discount: item.discount || 0,
-                taxRate: item.taxRate || 0,
-                total: 0,
-                paymentStatus: bill.paymentStatus,
-            });
-            // calc total
-            const base = (item.quantity || 0) * (item.price || 0);
-            const disc = base * ((item.discount || 0) / 100);
-            const afterDisc = base - disc;
-            const tax = afterDisc * ((item.taxRate || 0) / 100);
-            allItems[allItems.length - 1].total = afterDisc + tax;
+    // Group bills and payments chronologically
+    const transactions = [];
+    (bills || []).forEach(bill => {
+        const dateStr = formatDate(bill.billDate || bill.createdAt);
+        const itemNames = (bill.items || []).map(i => `${i.productName} (x${i.quantity})`).join(', ');
+        transactions.push({
+            date: dateStr,
+            rawDate: new Date(bill.billDate || bill.createdAt),
+            type: 'Bill',
+            reference: bill.billNumber ? `Bill #${bill.billNumber.slice(-8)}` : 'Bill',
+            particulars: 'Sales Invoice',
+            subText: itemNames.length > 45 ? itemNames.slice(0, 42) + '...' : itemNames || 'Goods purchased',
+            debit: bill.grandTotal || 0,
+            credit: 0
         });
+    });
+
+    (payments || []).forEach(pay => {
+        const dateStr = formatDate(pay.date || pay.createdAt);
+        transactions.push({
+            date: dateStr,
+            rawDate: new Date(pay.date || pay.createdAt),
+            type: 'Payment',
+            reference: `Payment (${pay.paymentMethod ? pay.paymentMethod.toUpperCase().replace('_', ' ') : 'CASH'})`,
+            particulars: pay.notes || 'Received Payment',
+            subText: `Receipt ref #${pay._id.toString().slice(-6).toUpperCase()}`,
+            debit: 0,
+            credit: pay.amount || 0
+        });
+    });
+
+    // Sort chronologically (oldest first)
+    transactions.sort((a, b) => a.rawDate - b.rawDate);
+
+    // Compute running balance
+    let runningBal = 0;
+    transactions.forEach(t => {
+        runningBal += t.debit - t.credit;
+        t.balance = runningBal;
     });
 
     // Estimate height dynamically based on items list
     const headerH = 220;
     const tableHeaderH = 32;
-    const rowH = 28;
+    const rowH = 34; // increased to fit two lines
     const footerH = 220;
-    const estimatedH = headerH + tableHeaderH + (allItems.length * rowH) + footerH + 120;
+    const estimatedH = headerH + tableHeaderH + (transactions.length * rowH) + footerH + 120;
     const H = Math.max(1123, estimatedH); // Min A4 height
 
     canvas.width = W * 2;   // 2x for retina
@@ -234,11 +249,11 @@ const renderStatement = (canvas, { customer, bills, summary, shop, dateRange }) 
     // ═══ TABLE ═══
     const cols = [
         { label: 'DATE', w: 85, align: 'left' },
-        { label: 'BILL NO.', w: 95, align: 'left' },
-        { label: 'PRODUCT / DESCRIPTION', w: 230, align: 'left' },
-        { label: 'QTY', w: 65, align: 'center' },
-        { label: 'PRICE', w: 90, align: 'right' },
-        { label: 'TOTAL', w: contentW - 85 - 95 - 230 - 65 - 90, align: 'right' },
+        { label: 'TRANSACTION', w: 110, align: 'left' },
+        { label: 'PARTICULARS', w: 220, align: 'left' },
+        { label: 'DEBIT (+)', w: 95, align: 'right' },
+        { label: 'CREDIT (-)', w: 95, align: 'right' },
+        { label: 'BALANCE', w: contentW - 85 - 110 - 220 - 95 - 95, align: 'right' },
     ];
 
     // Table header
@@ -260,8 +275,7 @@ const renderStatement = (canvas, { customer, bills, summary, shop, dateRange }) 
     y += tableHeaderH;
 
     // Table rows
-    let prevDate = '';
-    allItems.forEach((item, idx) => {
+    transactions.forEach((tx, idx) => {
         const isEven = idx % 2 === 0;
         ctx.fillStyle = isEven ? '#F8FAFC' : '#FFFFFF';
         ctx.fillRect(margin, y, contentW, rowH);
@@ -279,48 +293,42 @@ const renderStatement = (canvas, { customer, bills, summary, shop, dateRange }) 
 
         // Date
         ctx.fillStyle = COLORS.textDark;
-        const showDate = item.date !== prevDate ? item.date : '';
-        prevDate = item.date;
-        if (showDate) {
-            ctx.font = 'bold 10px Inter, system-ui, sans-serif';
-            ctx.fillText(showDate, cx + 8, y + 17);
-        } else {
-            ctx.fillStyle = COLORS.textLight;
-            ctx.font = '9px Inter, system-ui, sans-serif';
-            ctx.fillText('"', cx + 24, y + 15);
-        }
+        ctx.fillText(tx.date, cx + 8, y + 21);
         cx += cols[0].w;
 
-        // Bill #
-        ctx.font = '10px Inter, system-ui, sans-serif';
-        ctx.fillStyle = COLORS.textMuted;
-        const billNum = item.billNumber ? item.billNumber.slice(-8) : '';
-        ctx.fillText(billNum, cx + 8, y + 17);
+        // Transaction Type / Reference
+        ctx.font = 'bold 10px Inter, system-ui, sans-serif';
+        ctx.fillStyle = tx.type === 'Bill' ? COLORS.primary : COLORS.success;
+        ctx.fillText(tx.reference, cx + 8, y + 21);
         cx += cols[1].w;
 
-        // Item name
-        ctx.fillStyle = COLORS.primary;
-        ctx.font = '10px Inter, system-ui, sans-serif';
-        const name = item.productName.length > 35 ? item.productName.slice(0, 32) + '...' : item.productName;
-        ctx.fillText(name, cx + 8, y + 17);
+        // Particulars (Two-line cell: Title & Subtitle)
+        ctx.fillStyle = COLORS.textDark;
+        ctx.font = 'bold 10px Inter, system-ui, sans-serif';
+        ctx.fillText(tx.particulars, cx + 8, y + 15);
+        
+        ctx.fillStyle = COLORS.textMuted;
+        ctx.font = '8.5px Inter, system-ui, sans-serif';
+        ctx.fillText(tx.subText, cx + 8, y + 26);
         cx += cols[2].w;
 
-        // Qty
+        // Debit (+)
+        ctx.textAlign = 'right';
+        ctx.font = '10px Inter, system-ui, sans-serif';
         ctx.fillStyle = COLORS.textDark;
-        ctx.textAlign = 'center';
-        ctx.fillText(`${item.quantity} ${item.unit}`, cx + cols[3].w / 2, y + 17);
+        ctx.fillText(tx.debit > 0 ? formatINR(tx.debit) : '—', cx + cols[3].w - 8, y + 21);
         cx += cols[3].w;
 
-        // Price
-        ctx.textAlign = 'right';
-        ctx.fillStyle = COLORS.textMuted;
-        ctx.fillText(formatINR(item.price), cx + cols[4].w - 8, y + 17);
+        // Credit (-)
+        ctx.fillStyle = COLORS.success;
+        ctx.fillText(tx.credit > 0 ? formatINR(tx.credit) : '—', cx + cols[4].w - 8, y + 21);
         cx += cols[4].w;
 
-        // Total
-        ctx.fillStyle = COLORS.primary;
+        // Balance
+        ctx.fillStyle = tx.balance > 0 ? '#B91C1C' : tx.balance < 0 ? COLORS.success : COLORS.textDark;
         ctx.font = 'bold 10px Inter, system-ui, sans-serif';
-        ctx.fillText(formatINR(item.total), cx + cols[5].w - 8, y + 17);
+        const balanceVal = tx.balance > 0 ? `${formatINR(tx.balance)} Dr` : tx.balance < 0 ? `${formatINR(Math.abs(tx.balance))} Cr` : 'Clear';
+        ctx.fillText(balanceVal, cx + cols[5].w - 8, y + 21);
         ctx.textAlign = 'left';
 
         y += rowH;
@@ -338,7 +346,7 @@ const renderStatement = (canvas, { customer, bills, summary, shop, dateRange }) 
     // ─── Item count & Notes (Left Side)
     ctx.fillStyle = COLORS.textMuted;
     ctx.font = '11px Inter, system-ui, sans-serif';
-    ctx.fillText(`${allItems.length} item(s) across ${bills.length} bill(s)`, margin, y + 5);
+    ctx.fillText(`${transactions.length} transaction(s) recorded`, margin, y + 5);
 
     let ny = y + 25;
     ctx.fillStyle = COLORS.textLight;
@@ -371,8 +379,9 @@ const renderStatement = (canvas, { customer, bills, summary, shop, dateRange }) 
         sy += isBold ? 22 : 18;
     };
 
-    drawSummaryLine('Subtotal (Billed Amount):', formatINR(summary?.totalBilled || 0));
-    drawSummaryLine('Total Paid to Date:', formatINR(summary?.totalPaid || 0), false, COLORS.success);
+    const totalPayments = summary?.totalPaymentsReceived !== undefined ? summary.totalPaymentsReceived : (summary?.totalPaid || 0);
+    drawSummaryLine('Total Billed Amount:', formatINR(summary?.totalBilled || 0));
+    drawSummaryLine('Total Payments Received:', formatINR(totalPayments), false, COLORS.success);
 
     // Grand total bar
     sy += 6;
@@ -386,11 +395,13 @@ const renderStatement = (canvas, { customer, bills, summary, shop, dateRange }) 
     
     ctx.textAlign = 'left';
     ctx.font = 'bold 11px Inter, system-ui, sans-serif';
-    ctx.fillText('Balance Outstanding', summaryX + 12, sy + 16);
+    ctx.fillText('Current Balance', summaryX + 12, sy + 16);
     
     ctx.textAlign = 'right';
     ctx.font = 'bold 15px Inter, system-ui, sans-serif';
-    ctx.fillText(formatINR(summary?.totalOutstanding || 0), summaryX + summaryW - 12, sy + 16);
+    const outstandingVal = customer?.currentBalance !== undefined ? customer.currentBalance : (summary?.totalOutstanding || 0);
+    const balanceStr = outstandingVal > 0 ? `${formatINR(outstandingVal)} Dr` : outstandingVal < 0 ? `${formatINR(Math.abs(outstandingVal))} Cr` : 'Clear';
+    ctx.fillText(balanceStr, summaryX + summaryW - 12, sy + 16);
     
     ctx.textBaseline = 'alphabetic'; // Reset
     ctx.textAlign = 'left';
@@ -469,13 +480,13 @@ const renderStatement = (canvas, { customer, bills, summary, shop, dateRange }) 
 // ═══════════════════════════════════════════════════════════
 // ─── STATEMENT MODAL COMPONENT ──────────────────────────────
 // ═══════════════════════════════════════════════════════════
-const CustomerStatementPDF = ({ isOpen, onClose, customer, bills, summary, shop }) => {
+const CustomerStatementPDF = ({ isOpen, onClose, customer, bills, payments, summary, shop }) => {
     const canvasRef = useRef(null);
 
     const drawCanvas = useCallback(() => {
         if (!canvasRef.current || !customer || !bills) return;
-        renderStatement(canvasRef.current, { customer, bills, summary, shop });
-    }, [customer, bills, summary, shop]);
+        renderStatement(canvasRef.current, { customer, bills, payments, summary, shop });
+    }, [customer, bills, payments, summary, shop]);
 
     // Draw when modal opens
     React.useEffect(() => {

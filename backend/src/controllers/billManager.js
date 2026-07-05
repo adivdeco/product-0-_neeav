@@ -67,11 +67,10 @@ const addNewBills = async (req, res) => {
         }
 
         let customerId;
+        let customer = null;
 
         // Find or create customer
         if (phone || customerName) {
-            let customer = null;
-
             // Primary lookup: by phone (if provided and non-empty)
             if (phone && phone.trim() !== '') {
                 customer = await Customer.findOne({ phone: phone.trim(), shopId }).session(session);
@@ -129,9 +128,9 @@ const addNewBills = async (req, res) => {
                     req.body._advanceApplied = advanceToApply;
                 }
 
-                const advanceApplied = req.body._advanceApplied || 0;
-                // Net effect on balance: billDue minus advance applied
-                customer.currentBalance += (billDue - advanceApplied);
+                // Net effect on balance is simply: grandTotal - amountPaid (billDue)
+                // The running balance automatically handles any existing negative advance balance
+                customer.currentBalance += billDue;
                 await customer.save({ session });
             }
         }
@@ -204,6 +203,23 @@ const addNewBills = async (req, res) => {
         // });
 
         await newBill.save({ session });
+
+        // Create a PaymentRecord if there was an actual cash/UPI/card payment at purchase
+        if (customerId && amountPaid > 0) {
+            const paymentRecord = new PaymentRecord({
+                shopId: shop._id,
+                customerId: customerId,
+                billId: newBill._id,
+                amount: amountPaid,
+                paymentMethod: newBill.paymentMethod || 'cash',
+                notes: `Initial payment for Bill #${newBill.billNumber ? newBill.billNumber.slice(-8) : ''}`,
+                balanceAfter: customer ? customer.currentBalance : 0,
+                date: newBill.billDate || new Date(),
+                createdBy: userId
+            });
+            await paymentRecord.save({ session });
+        }
+
         await session.commitTransaction();
 
         // ✅ DEBUG: Check the saved bill
@@ -427,11 +443,8 @@ const updateBill = async (req, res) => {
             if (bill.isCredit && bill.customerId) {
                 const customer = await Customer.findById(bill.customerId).session(session);
                 if (customer) {
-                    // Remove old balance effect and apply new one
-                    const oldBalanceEffect = bill.grandTotal - oldAmountPaid;
-                    const newBalanceEffect = bill.grandTotal - newAmountPaid;
-
-                    customer.currentBalance = customer.currentBalance + oldBalanceEffect - newBalanceEffect;
+                    // Reduce customer balance by the increase in amount paid
+                    customer.currentBalance -= (newAmountPaid - oldAmountPaid);
                     await customer.save({ session });
                 }
             }
@@ -479,36 +492,67 @@ const updateBill = async (req, res) => {
 };
 
 const deleateBill = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
+        const userId = req.finduser._id;
+        const role = req.finduser.role;
 
-        const userId = req.finduser._id
-        const role = req.finduser.role
-
-
-
-        if (role != 'store_owner' && role != "admin") {
-            return res.status(403).send("Forbidden: You do not have asses to addShop ")
+        if (role !== 'store_owner' && role !== "admin") {
+            await session.abortTransaction();
+            return res.status(403).send("Forbidden: You do not have access to delete bills");
         }
-
 
         const { billId } = req.params;
 
         if (!mongoose.Types.ObjectId.isValid(billId)) {
+            await session.abortTransaction();
             return res.status(400).json({ message: "Invalid bill ID" });
         }
 
-        const bill = await Bills.findByIdAndDelete(billId);
+        const bill = await Bills.findById(billId).session(session);
         if (!bill) {
+            await session.abortTransaction();
             return res.status(404).json({ message: "Bill not found" });
         }
 
+        // Check if user has access to this bill's shop
+        const shop = await Shop.findOne({ ownerId: userId }).session(session);
+        if (!shop || !bill.shopId.equals(shop._id)) {
+            await session.abortTransaction();
+            return res.status(403).json({
+                message: "Forbidden: You don't have access to this bill"
+            });
+        }
+
+        // Update customer balance if applicable (subtract remaining due on the bill)
+        if (bill.isCredit && bill.customerId) {
+            const customer = await Customer.findById(bill.customerId).session(session);
+            if (customer) {
+                const billDue = bill.grandTotal - bill.amountPaid;
+                customer.currentBalance -= billDue;
+                await customer.save({ session });
+            }
+        }
+
+        // Delete the bill
+        await Bills.findByIdAndDelete(billId).session(session);
+
+        // Delete associated payment records
+        await PaymentRecord.deleteMany({ billId: bill._id }).session(session);
+
+        await session.commitTransaction();
         res.json({
-            message: "Bill delated successfully"
+            message: "Bill deleted successfully"
         });
 
     } catch (error) {
+        await session.abortTransaction();
         console.error('Error in deleting bill:', error);
         res.status(500).json({ message: 'Internal server error' });
+    } finally {
+        session.endSession();
     }
 };
 

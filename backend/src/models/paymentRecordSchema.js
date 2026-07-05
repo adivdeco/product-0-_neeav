@@ -12,6 +12,10 @@ const paymentRecordSchema = new Schema({
         ref: 'Customer',
         required: true
     },
+    billId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Bills'
+    },
     amount: {
         type: Number,
         required: true,

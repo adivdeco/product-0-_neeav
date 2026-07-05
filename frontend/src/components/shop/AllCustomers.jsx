@@ -93,15 +93,15 @@ const BillItemRow = ({ item, index }) => {
 };
 
 // ─── Record Payment Modal ───────────────────────────────────
-const RecordPaymentModal = ({ isOpen, onClose, bill, onSuccess }) => {
+const RecordPaymentModal = ({ isOpen, onClose, customer, onSuccess }) => {
     const [amount, setAmount] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [notes, setNotes] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
-    const remaining = (bill?.grandTotal || 0) - (bill?.amountPaid || 0);
+    const currentBalance = customer?.currentBalance || 0;
     const numAmount = parseFloat(amount) || 0;
-    const excess = numAmount > remaining ? numAmount - remaining : 0;
+    const projectedBalance = currentBalance - numAmount;
 
     useEffect(() => {
         if (isOpen) {
@@ -116,7 +116,7 @@ const RecordPaymentModal = ({ isOpen, onClose, bill, onSuccess }) => {
         if (numAmount <= 0) return toast.error('Enter a valid amount');
         setSubmitting(true);
         try {
-            const res = await axiosClient.post(`/khata/record-payment/${bill._id}`, {
+            const res = await axiosClient.post(`/khata/record-payment/${customer._id}`, {
                 paymentAmount: numAmount,
                 paymentMethod,
                 notes: notes.trim() || undefined
@@ -131,7 +131,7 @@ const RecordPaymentModal = ({ isOpen, onClose, bill, onSuccess }) => {
         }
     };
 
-    if (!isOpen || !bill) return null;
+    if (!isOpen || !customer) return null;
 
     return (
         <AnimatePresence>
@@ -161,25 +161,28 @@ const RecordPaymentModal = ({ isOpen, onClose, bill, onSuccess }) => {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold">Record Payment</h3>
-                                <p className="text-emerald-100 text-xs mt-0.5">Bill #{bill.billNumber?.slice(-10)}</p>
+                                <p className="text-emerald-100 text-xs mt-0.5">{customer.name}</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Bill Summary */}
+                    {/* Balance Summary */}
                     <div className="px-6 pt-5 pb-3">
-                        <div className="grid grid-cols-3 gap-2 mb-4">
-                            <div className="bg-gray-50 rounded-xl p-3 text-center">
-                                <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Total</p>
-                                <p className="text-sm font-bold text-gray-900 mt-0.5">{formatCurrency(bill.grandTotal)}</p>
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                            <div className={`rounded-xl p-3 text-center ${currentBalance > 0 ? 'bg-rose-50' : currentBalance < 0 ? 'bg-emerald-50' : 'bg-gray-50'}`}>
+                                <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Current Balance</p>
+                                <p className={`text-sm font-bold mt-0.5 ${currentBalance > 0 ? 'text-rose-700' : currentBalance < 0 ? 'text-emerald-700' : 'text-gray-700'}`}>
+                                    {currentBalance > 0 ? `${formatCurrency(currentBalance)} Due` : currentBalance < 0 ? `${formatCurrency(Math.abs(currentBalance))} Advance` : 'Clear'}
+                                </p>
                             </div>
-                            <div className="bg-emerald-50 rounded-xl p-3 text-center">
-                                <p className="text-[10px] uppercase tracking-wider text-emerald-600 font-medium">Paid</p>
-                                <p className="text-sm font-bold text-emerald-700 mt-0.5">{formatCurrency(bill.amountPaid)}</p>
-                            </div>
-                            <div className="bg-rose-50 rounded-xl p-3 text-center">
-                                <p className="text-[10px] uppercase tracking-wider text-rose-600 font-medium">Due</p>
-                                <p className="text-sm font-bold text-rose-700 mt-0.5">{formatCurrency(remaining)}</p>
+                            <div className={`rounded-xl p-3 text-center ${projectedBalance > 0 ? 'bg-amber-50' : 'bg-blue-50'}`}>
+                                <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">After Payment</p>
+                                <p className={`text-sm font-bold mt-0.5 ${projectedBalance > 0 ? 'text-amber-700' : 'text-blue-700'}`}>
+                                    {numAmount > 0
+                                        ? (projectedBalance > 0 ? `${formatCurrency(projectedBalance)} Due` : projectedBalance < 0 ? `${formatCurrency(Math.abs(projectedBalance))} Advance` : 'Clear')
+                                        : '—'
+                                    }
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -202,21 +205,17 @@ const RecordPaymentModal = ({ isOpen, onClose, bill, onSuccess }) => {
                                     autoFocus
                                     id="payment-amount-input"
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setAmount(String(remaining))}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-semibold bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition"
-                                    id="pay-full-btn"
-                                >
-                                    Pay Full
-                                </button>
+                                {currentBalance > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setAmount(String(currentBalance))}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-semibold bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition"
+                                        id="pay-due-btn"
+                                    >
+                                        Clear Due
+                                    </button>
+                                )}
                             </div>
-                            {excess > 0 && (
-                                <p className="text-xs text-blue-600 mt-1.5 flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-lg">
-                                    <AlertCircle size={12} />
-                                    ₹{excess.toLocaleString('en-IN')} extra will be saved as advance credit.
-                                </p>
-                            )}
                         </div>
 
                         {/* Payment Method */}
@@ -254,7 +253,7 @@ const RecordPaymentModal = ({ isOpen, onClose, bill, onSuccess }) => {
                                 type="text"
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
-                                placeholder="e.g. GPay ref #1234"
+                                placeholder="e.g. Received via GPay"
                                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition"
                                 id="payment-notes-input"
                             />
@@ -283,200 +282,8 @@ const RecordPaymentModal = ({ isOpen, onClose, bill, onSuccess }) => {
     );
 };
 
-// ─── Record Advance Modal ───────────────────────────────────
-const RecordAdvanceModal = ({ isOpen, onClose, customer, onSuccess }) => {
-    const [amount, setAmount] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState('cash');
-    const [notes, setNotes] = useState('');
-    const [submitting, setSubmitting] = useState(false);
-
-    const numAmount = parseFloat(amount) || 0;
-    const currentBalance = customer?.currentBalance || 0;
-    const projectedBalance = currentBalance - numAmount;
-
-    useEffect(() => {
-        if (isOpen) {
-            setAmount('');
-            setPaymentMethod('cash');
-            setNotes('');
-        }
-    }, [isOpen]);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (numAmount <= 0) return toast.error('Enter a valid amount');
-        setSubmitting(true);
-        try {
-            const res = await axiosClient.post(`/khata/record-advance/${customer._id}`, {
-                paymentAmount: numAmount,
-                paymentMethod,
-                notes: notes.trim() || undefined
-            });
-            toast.success(res.data.message || 'Advance recorded!');
-            onSuccess?.();
-            onClose();
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to record advance');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    if (!isOpen || !customer) return null;
-
-    return (
-        <AnimatePresence>
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-                onClick={onClose}
-            >
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    transition={{ type: 'spring', duration: 0.35 }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
-                >
-                    {/* Header */}
-                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 text-white relative">
-                        <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-xl hover:bg-white/20 transition" id="close-advance-modal">
-                            <X size={18} />
-                        </button>
-                        <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center">
-                                <Banknote size={22} />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold">Record Advance</h3>
-                                <p className="text-blue-100 text-xs mt-0.5">{customer.name}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Current Balance */}
-                    <div className="px-6 pt-5 pb-3">
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                            <div className={`rounded-xl p-3 text-center ${currentBalance > 0 ? 'bg-rose-50' : currentBalance < 0 ? 'bg-emerald-50' : 'bg-gray-50'}`}>
-                                <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Current Balance</p>
-                                <p className={`text-sm font-bold mt-0.5 ${currentBalance > 0 ? 'text-rose-700' : currentBalance < 0 ? 'text-emerald-700' : 'text-gray-700'}`}>
-                                    {currentBalance > 0 ? `${formatCurrency(currentBalance)} Due` : currentBalance < 0 ? `${formatCurrency(Math.abs(currentBalance))} Advance` : 'Clear'}
-                                </p>
-                            </div>
-                            <div className={`rounded-xl p-3 text-center ${projectedBalance > 0 ? 'bg-amber-50' : 'bg-blue-50'}`}>
-                                <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">After Payment</p>
-                                <p className={`text-sm font-bold mt-0.5 ${projectedBalance > 0 ? 'text-amber-700' : 'text-blue-700'}`}>
-                                    {numAmount > 0
-                                        ? (projectedBalance > 0 ? `${formatCurrency(projectedBalance)} Due` : projectedBalance < 0 ? `${formatCurrency(Math.abs(projectedBalance))} Advance` : 'Clear')
-                                        : '—'
-                                    }
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-4">
-                        {/* Amount */}
-                        <div>
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 block">Payment Amount</label>
-                            <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg font-medium">₹</span>
-                                <input
-                                    type="number"
-                                    value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
-                                    placeholder="0"
-                                    className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition"
-                                    min="1"
-                                    step="any"
-                                    autoFocus
-                                    id="advance-amount-input"
-                                />
-                            </div>
-                            {currentBalance > 0 && numAmount > 0 && numAmount <= currentBalance && (
-                                <p className="text-xs text-amber-600 mt-1.5 flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-lg">
-                                    <AlertCircle size={12} />
-                                    This will reduce outstanding due to {formatCurrency(currentBalance - numAmount)}.
-                                </p>
-                            )}
-                            {currentBalance > 0 && numAmount > currentBalance && (
-                                <p className="text-xs text-blue-600 mt-1.5 flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-lg">
-                                    <AlertCircle size={12} />
-                                    Due cleared + ₹{(numAmount - currentBalance).toLocaleString('en-IN')} will be advance credit.
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Payment Method */}
-                        <div>
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 block">Payment Method</label>
-                            <div className="grid grid-cols-4 gap-2">
-                                {[
-                                    { key: 'cash', label: 'Cash', icon: '💵' },
-                                    { key: 'upi', label: 'UPI', icon: '📱' },
-                                    { key: 'card', label: 'Card', icon: '💳' },
-                                    { key: 'bank_transfer', label: 'Bank', icon: '🏦' },
-                                ].map(m => (
-                                    <button
-                                        key={m.key}
-                                        type="button"
-                                        onClick={() => setPaymentMethod(m.key)}
-                                        className={`py-2.5 rounded-xl text-xs font-medium transition-all border ${
-                                            paymentMethod === m.key
-                                                ? 'bg-blue-50 border-blue-400 text-blue-700 shadow-sm'
-                                                : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-blue-300'
-                                        }`}
-                                        id={`advance-method-${m.key}`}
-                                    >
-                                        <span className="text-base block mb-0.5">{m.icon}</span>
-                                        {m.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Notes */}
-                        <div>
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 block">Notes (optional)</label>
-                            <input
-                                type="text"
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="e.g. Advance for next month order"
-                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition"
-                                id="advance-notes-input"
-                            />
-                        </div>
-
-                        {/* Submit */}
-                        <button
-                            type="submit"
-                            disabled={submitting || numAmount <= 0}
-                            className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
-                            id="submit-advance-btn"
-                        >
-                            {submitting ? (
-                                <span className="flex items-center justify-center gap-2">
-                                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                                    Recording...
-                                </span>
-                            ) : (
-                                `Record ₹${numAmount > 0 ? numAmount.toLocaleString('en-IN') : '0'} Advance`
-                            )}
-                        </button>
-                    </form>
-                </motion.div>
-            </motion.div>
-        </AnimatePresence>
-    );
-};
-
 // ─── Expandable Bill Card ───────────────────────────────────
-const BillCard = ({ bill, onRecordPayment }) => {
+const BillCard = ({ bill }) => {
     const [expanded, setExpanded] = useState(false);
     const status = statusConfig[bill.paymentStatus] || statusConfig.pending;
     const StatusIcon = status.icon;
@@ -594,18 +401,6 @@ const BillCard = ({ bill, onRecordPayment }) => {
                                 </div>
                             )}
 
-                            {/* Record Payment Button */}
-                            {remaining > 0 && (
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); onRecordPayment?.(bill); }}
-                                    className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-semibold rounded-xl shadow-md shadow-emerald-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-                                    id={`record-payment-${bill._id}`}
-                                >
-                                    <IndianRupee size={15} />
-                                    Record Payment
-                                </button>
-                            )}
-
                             {/* Notes */}
                             {bill.notes && (
                                 <div className="bg-amber-50 rounded-xl p-3 text-xs text-amber-800">
@@ -679,13 +474,13 @@ const CustomerListItem = ({ customer, isActive, onClick }) => {
 // ─── Customer Detail Panel ──────────────────────────────────
 const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
     const [bills, setBills] = useState([]);
+    const [payments, setPayments] = useState([]);
     const [summary, setSummary] = useState(null);
     const [shop, setShop] = useState(null);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('all');
     const [showStatement, setShowStatement] = useState(false);
-    const [paymentBill, setPaymentBill] = useState(null); // bill to record payment for
-    const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
 
     const fetchBills = useCallback(() => {
@@ -695,6 +490,7 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
         axiosClient.get(`/khata/customer/${customer._id}/bills`)
             .then(res => {
                 setBills(res.data.bills || []);
+                setPayments(res.data.payments || []);
                 setSummary(res.data.summary || null);
                 setShop(res.data.shop || null);
             })
@@ -702,6 +498,7 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
                 console.error('Error fetching customer bills:', err);
                 toast.error('Failed to load bills');
                 setBills([]);
+                setPayments([]);
                 setSummary(null);
             })
             .finally(() => setLoading(false));
@@ -714,11 +511,6 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
     const handlePaymentSuccess = () => {
         setRefreshKey(k => k + 1); // refresh bills
         onCustomerUpdated?.(); // refresh customer list (balance changed)
-    };
-
-    const handleAdvanceSuccess = () => {
-        setRefreshKey(k => k + 1);
-        onCustomerUpdated?.();
     };
 
     const filteredBills = useMemo(() => {
@@ -804,14 +596,14 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
 
                     {/* Action Buttons */}
                     <div className="mt-3 flex flex-wrap gap-2">
-                        {/* Record Advance Button */}
+                        {/* Record Payment Button */}
                         <button
-                            onClick={() => setShowAdvanceModal(true)}
-                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-medium rounded-xl shadow-md shadow-blue-500/20 transition-all active:scale-[0.97]"
-                            id="record-advance-btn"
+                            onClick={() => setShowPaymentModal(true)}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-sm font-medium rounded-xl shadow-md shadow-emerald-500/20 transition-all active:scale-[0.97]"
+                            id="record-payment-btn"
                         >
-                            <Banknote size={16} />
-                            Record Advance
+                            <IndianRupee size={16} />
+                            Record Payment
                         </button>
 
                         {/* Export Statement Button */}
@@ -876,20 +668,57 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
                                 </div>
                                 <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Received</span>
                             </div>
-                            <p className="text-2xl font-bold text-emerald-700">{formatCurrency(summary.totalPaid)}</p>
-                        </div>
-
-                        <div className={`rounded-2xl border shadow-sm p-4 hover:shadow-md transition-shadow ${summary.totalOutstanding > 0 ? 'bg-rose-50/60 border-rose-100' : 'bg-white border-gray-100'}`}>
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${summary.totalOutstanding > 0 ? 'bg-rose-100' : 'bg-gray-50'}`}>
-                                    <TrendingDown size={16} className={summary.totalOutstanding > 0 ? 'text-rose-500' : 'text-gray-400'} />
-                                </div>
-                                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Outstanding</span>
-                            </div>
-                            <p className={`text-2xl font-bold ${summary.totalOutstanding > 0 ? 'text-rose-600' : 'text-gray-700'}`}>
-                                {formatCurrency(summary.totalOutstanding)}
+                            <p className="text-2xl font-bold text-emerald-700">
+                                {formatCurrency(summary.totalPaymentsReceived !== undefined ? summary.totalPaymentsReceived : summary.totalPaid)}
                             </p>
                         </div>
+
+                        {/* Balance Card */}
+                        {(() => {
+                            if (balance < 0) {
+                                return (
+                                    <div className="bg-emerald-50/60 border border-emerald-100 rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-100">
+                                                <TrendingUp size={16} className="text-emerald-600" />
+                                            </div>
+                                            <span className="text-xs font-medium text-emerald-700 uppercase tracking-wider">Advance</span>
+                                        </div>
+                                        <p className="text-2xl font-bold text-emerald-600">
+                                            {formatCurrency(Math.abs(balance))}
+                                        </p>
+                                    </div>
+                                );
+                            } else if (balance > 0) {
+                                return (
+                                    <div className="bg-rose-50/60 border border-rose-100 rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-100">
+                                                <TrendingDown size={16} className="text-rose-500" />
+                                            </div>
+                                            <span className="text-xs font-medium text-rose-700 uppercase tracking-wider">Outstanding</span>
+                                        </div>
+                                        <p className="text-2xl font-bold text-rose-600">
+                                            {formatCurrency(balance)}
+                                        </p>
+                                    </div>
+                                );
+                            } else {
+                                return (
+                                    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-50">
+                                                <CheckCircle2 size={16} className="text-gray-400" />
+                                            </div>
+                                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Outstanding</span>
+                                        </div>
+                                        <p className="text-2xl font-bold text-gray-700">
+                                            Clear
+                                        </p>
+                                    </div>
+                                );
+                            }
+                        })()}
                     </motion.div>
                 )}
 
@@ -944,7 +773,7 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
                     ) : filteredBills.length > 0 ? (
                         <div className="space-y-3">
                             {filteredBills.map(bill => (
-                                <BillCard key={bill._id} bill={bill} onRecordPayment={(b) => setPaymentBill(b)} />
+                                <BillCard key={bill._id} bill={bill} />
                             ))}
                         </div>
                     ) : (
@@ -957,6 +786,64 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
                         </div>
                     )}
                 </div>
+
+                {/* ─ Payment History Section ─ */}
+                <div className="pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                            <CreditCard size={18} className="text-emerald-500" />
+                            Payment History
+                        </h3>
+                        <span className="text-xs text-gray-500">{payments.length} payments</span>
+                    </div>
+
+                    {loading ? (
+                        <div className="space-y-3">
+                            {[1, 2].map(i => (
+                                <div key={i} className="bg-white rounded-2xl border border-gray-100 p-4 animate-pulse h-16" />
+                            ))}
+                        </div>
+                    ) : payments.length > 0 ? (
+                        <div className="space-y-3">
+                            {payments.map(payment => (
+                                <div key={payment._id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center font-bold text-lg">
+                                            ₹
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-900">
+                                                {formatCurrency(payment.amount)} Received
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
+                                                <span>{formatDate(payment.date)}</span>
+                                                <span className="w-1 h-1 rounded-full bg-gray-300" />
+                                                <span className="capitalize">{payment.paymentMethod?.replace('_', ' ') || 'Cash'}</span>
+                                            </p>
+                                            {payment.notes && (
+                                                <p className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md inline-block mt-1">
+                                                    Note: {payment.notes}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Balance After</p>
+                                        <p className={`text-xs font-bold ${payment.balanceAfter > 0 ? 'text-rose-600' : payment.balanceAfter < 0 ? 'text-emerald-600' : 'text-gray-500'}`}>
+                                            {payment.balanceAfter > 0 ? `${formatCurrency(payment.balanceAfter)} Due` : payment.balanceAfter < 0 ? `${formatCurrency(Math.abs(payment.balanceAfter))} Adv` : 'Clear'}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8 bg-white rounded-2xl border border-gray-100">
+                            <CreditCard size={36} className="mx-auto text-gray-300 mb-2" />
+                            <p className="text-gray-500 text-sm font-medium">No payments recorded yet</p>
+                            <p className="text-gray-400 text-xs mt-0.5">Use the "Record Payment" button above to post one</p>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Statement PDF Modal */}
@@ -965,24 +852,17 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
                 onClose={() => setShowStatement(false)}
                 customer={customer}
                 bills={bills}
+                payments={payments}
                 summary={summary}
                 shop={shop}
             />
 
             {/* Record Payment Modal */}
             <RecordPaymentModal
-                isOpen={!!paymentBill}
-                onClose={() => setPaymentBill(null)}
-                bill={paymentBill}
-                onSuccess={handlePaymentSuccess}
-            />
-
-            {/* Record Advance Modal */}
-            <RecordAdvanceModal
-                isOpen={showAdvanceModal}
-                onClose={() => setShowAdvanceModal(false)}
+                isOpen={showPaymentModal}
+                onClose={() => setShowPaymentModal(false)}
                 customer={customer}
-                onSuccess={handleAdvanceSuccess}
+                onSuccess={handlePaymentSuccess}
             />
         </div>
     );
