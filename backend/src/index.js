@@ -172,7 +172,7 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket) => {
-    console.log('✅ Socket connected:', {
+    console.log('✅ Socket connected...:', {
         socketId: socket.id,
         userId: socket.userId,
         userRole: socket.userRole,
