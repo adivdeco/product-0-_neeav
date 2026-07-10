@@ -327,8 +327,7 @@ const renderStatement = (canvas, { customer, bills, payments, summary, shop, dat
         // Balance
         ctx.fillStyle = tx.balance > 0 ? '#B91C1C' : tx.balance < 0 ? COLORS.success : COLORS.textDark;
         ctx.font = 'bold 10px Inter, system-ui, sans-serif';
-        const balanceVal = tx.balance > 0 ? `${formatINR(tx.balance)} Dr` : tx.balance < 0 ? `${formatINR(Math.abs(tx.balance))} Cr` : 'Clear';
-        ctx.fillText(balanceVal, cx + cols[5].w - 8, y + 21);
+const balanceVal = tx.balance > 0 ? `${formatINR(tx.balance)} Due` : tx.balance < 0 ? `${formatINR(Math.abs(tx.balance))} Advance` : 'Clear';        ctx.fillText(balanceVal, cx + cols[5].w - 8, y + 21);
         ctx.textAlign = 'left';
 
         y += rowH;
@@ -400,8 +399,7 @@ const renderStatement = (canvas, { customer, bills, payments, summary, shop, dat
     ctx.textAlign = 'right';
     ctx.font = 'bold 15px Inter, system-ui, sans-serif';
     const outstandingVal = customer?.currentBalance !== undefined ? customer.currentBalance : (summary?.totalOutstanding || 0);
-    const balanceStr = outstandingVal > 0 ? `${formatINR(outstandingVal)} Dr` : outstandingVal < 0 ? `${formatINR(Math.abs(outstandingVal))} Cr` : 'Clear';
-    ctx.fillText(balanceStr, summaryX + summaryW - 12, sy + 16);
+const balanceStr = outstandingVal > 0 ? `${formatINR(outstandingVal)} Due` : outstandingVal < 0 ? `${formatINR(Math.abs(outstandingVal))} Advance` : 'Settled';    ctx.fillText(balanceStr, summaryX + summaryW - 12, sy + 16);
     
     ctx.textBaseline = 'alphabetic'; // Reset
     ctx.textAlign = 'left';
