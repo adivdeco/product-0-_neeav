@@ -520,11 +520,10 @@ const AddBillPage = () => {
                                 ].map(m => (
                                     <label
                                         key={m.val}
-                                        className={`flex flex-col items-center py-2 px-1 rounded-xl border cursor-pointer transition-all text-center ${
-                                            watch('paymentMethod') === m.val
+                                        className={`flex flex-col items-center py-2 px-1 rounded-xl border cursor-pointer transition-all text-center ${watch('paymentMethod') === m.val
                                                 ? 'border-indigo-400 bg-indigo-50 shadow-sm'
                                                 : 'border-gray-200 hover:border-gray-300'
-                                        }`}
+                                            }`}
                                     >
                                         <input type="radio" {...register('paymentMethod')} value={m.val} className="sr-only" />
                                         <span className="text-lg">{m.icon}</span>

@@ -7,9 +7,11 @@ import {
     IndianRupee, Receipt, CreditCard, Clock, CheckCircle2,
     AlertCircle, Filter, Package, Hash, TrendingUp, TrendingDown,
     Wallet, Users, Eye, FileDown, X, Banknote,
+    Archive, BookOpen, Trash2, ShieldCheck,
 } from 'lucide-react';
 import axiosClient from '../../api/auth';
 import CustomerStatementPDF from './CustomerStatementPDF';
+import PastRecordStatementPDF from './PastRecordStatementPDF';
 
 // ─── Utilities ──────────────────────────────────────────────
 const formatCurrency = (amount) =>
@@ -471,6 +473,175 @@ const CustomerListItem = ({ customer, isActive, onClick }) => {
     );
 };
 
+// ─── Past Record Card (Expandable Ledger) ───────────────────
+const PastRecordCard = ({ record, onViewPDF }) => {
+    const [expanded, setExpanded] = useState(false);
+    const ledger = record.ledger || [];
+    const summary = record.summary || {};
+
+    return (
+        <motion.div
+            layout
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative"
+        >
+            {/* Cleared overlay badge */}
+            <div className="absolute top-3 right-3 z-10">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm">
+                    <CheckCircle2 size={12} /> Cleared
+                </span>
+            </div>
+
+            {/* Header — always visible */}
+            <button
+                onClick={() => setExpanded(!expanded)}
+                className="w-full text-left p-4 pr-24 focus:outline-none"
+                id={`past-record-toggle-${record._id}`}
+            >
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-gray-200 flex items-center justify-center flex-shrink-0">
+                        <BookOpen size={18} className="text-slate-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-semibold text-gray-900">
+                                Cycle #{record.cycleNumber}
+                            </span>
+                            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                                {record.statementNumber}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                            <span className="flex items-center gap-1">
+                                <Calendar size={11} /> {formatDate(record.startDate)} — {formatDate(record.endDate)}
+                            </span>
+                            <span>{summary.billCount || 0} bills · {summary.paymentCount || 0} payments</span>
+                        </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                        <p className="text-sm font-bold text-gray-900">{formatCurrency(summary.totalBilled)}</p>
+                        {expanded ? <ChevronUp size={16} className="text-gray-400 mt-1 ml-auto" /> : <ChevronDown size={16} className="text-gray-400 mt-1 ml-auto" />}
+                    </div>
+                </div>
+            </button>
+
+            {/* Expanded — Ledger table */}
+            <AnimatePresence>
+                {expanded && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="overflow-hidden"
+                    >
+                        <div className="px-4 pb-4 space-y-3">
+                            {/* Summary strip */}
+                            <div className="grid grid-cols-3 gap-2">
+                                <div className="bg-blue-50 rounded-xl p-2.5 text-center">
+                                    <p className="text-[10px] uppercase tracking-wider text-blue-600 font-medium">Total Billed</p>
+                                    <p className="text-sm font-bold text-blue-700 mt-0.5">{formatCurrency(summary.totalBilled)}</p>
+                                </div>
+                                <div className="bg-emerald-50 rounded-xl p-2.5 text-center">
+                                    <p className="text-[10px] uppercase tracking-wider text-emerald-600 font-medium">Total Paid</p>
+                                    <p className="text-sm font-bold text-emerald-700 mt-0.5">{formatCurrency(summary.totalPaid)}</p>
+                                </div>
+                                <div className="bg-gray-50 rounded-xl p-2.5 text-center">
+                                    <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Balance</p>
+                                    <p className="text-sm font-bold text-emerald-600 mt-0.5">Clear</p>
+                                </div>
+                            </div>
+
+                            {/* Ledger table */}
+                            {ledger.length > 0 && (
+                                <div className="rounded-xl border border-gray-100 overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left">
+                                            <thead>
+                                                <tr className="bg-slate-800 text-white">
+                                                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider">Date</th>
+                                                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider">Transaction</th>
+                                                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider">Particulars</th>
+                                                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-right">Debit (+)</th>
+                                                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-right">Credit (-)</th>
+                                                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-right">Balance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-50">
+                                                {ledger.map((entry, idx) => (
+                                                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                                                        <td className="px-3 py-2.5 text-xs text-gray-600 whitespace-nowrap">
+                                                            {formatDate(entry.date)}
+                                                        </td>
+                                                        <td className="px-3 py-2.5">
+                                                            {entry.type === 'bill' ? (
+                                                                <span className="text-xs font-semibold text-gray-900">
+                                                                    Bill #{entry.billNumber?.slice(-8) || 'N/A'}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-xs font-semibold text-emerald-700">
+                                                                    Payment ({(entry.paymentMethod || 'cash').toUpperCase()})
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-3 py-2.5 text-xs text-gray-600 max-w-[200px]">
+                                                            {(entry.particulars || '').split('\n').map((line, i) => (
+                                                                <span key={i} className={i === 0 ? 'font-medium block' : 'text-gray-400 text-[11px] block'}>
+                                                                    {line}
+                                                                </span>
+                                                            ))}
+                                                        </td>
+                                                        <td className="px-3 py-2.5 text-xs text-right font-medium text-gray-900 whitespace-nowrap">
+                                                            {entry.debit > 0 ? formatCurrency(entry.debit) : '—'}
+                                                        </td>
+                                                        <td className="px-3 py-2.5 text-xs text-right font-medium text-emerald-700 whitespace-nowrap">
+                                                            {entry.credit > 0 ? formatCurrency(entry.credit) : '—'}
+                                                        </td>
+                                                        <td className="px-3 py-2.5 text-xs text-right font-bold whitespace-nowrap">
+                                                            <span className={entry.balance > 0 ? 'text-rose-600' : entry.balance === 0 ? 'text-emerald-600' : 'text-gray-700'}>
+                                                                {entry.balance === 0 ? 'Clear' : `${formatCurrency(Math.abs(entry.balance))} ${entry.balance > 0 ? 'Dr' : 'Cr'}`}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {/* Footer summary */}
+                                    <div className="bg-gray-50 border-t border-gray-200 px-3 py-2.5 flex items-center justify-between flex-wrap gap-2">
+                                        <span className="text-[11px] text-gray-500">
+                                            {summary.transactionCount || ledger.length} transaction(s) recorded
+                                        </span>
+                                        <div className="flex items-center gap-4 text-xs flex-wrap">
+                                            <span className="text-gray-600">Total Billed: <strong>{formatCurrency(summary.totalBilled)}</strong></span>
+                                            <span className="text-gray-600">Total Paid: <strong>{formatCurrency(summary.totalPaid)}</strong></span>
+                                            <button
+                                                onClick={() => onViewPDF?.(record)}
+                                                className="flex items-center gap-1 px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg transition active:scale-95 shadow-sm text-[11px] font-medium"
+                                                title="View or Download Statement PDF"
+                                            >
+                                                <FileDown size={12} />
+                                                Statement PDF
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Cleared At info */}
+                            <div className="flex items-center justify-between text-[11px] text-gray-400 px-1">
+                                <span>Archived on {formatDateTime(record.clearedAt)}</span>
+                                <span className="flex items-center gap-1"><ShieldCheck size={12} /> All dues cleared</span>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    );
+};
+
 // ─── Customer Detail Panel ──────────────────────────────────
 const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
     const [bills, setBills] = useState([]);
@@ -482,6 +653,11 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
     const [showStatement, setShowStatement] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [pastRecords, setPastRecords] = useState([]);
+    const [loadingPast, setLoadingPast] = useState(false);
+    const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
+    const [archiving, setArchiving] = useState(false);
+    const [selectedPastRecord, setSelectedPastRecord] = useState(null);
 
     const fetchBills = useCallback(() => {
         if (!customer?._id) return;
@@ -511,6 +687,41 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
     const handlePaymentSuccess = () => {
         setRefreshKey(k => k + 1); // refresh bills
         onCustomerUpdated?.(); // refresh customer list (balance changed)
+    };
+
+    // Fetch past records
+    const fetchPastRecords = useCallback(() => {
+        if (!customer?._id) return;
+        setLoadingPast(true);
+        axiosClient.get(`/khata/past-records/${customer._id}`)
+            .then(res => {
+                setPastRecords(res.data.pastRecords || []);
+            })
+            .catch(err => {
+                console.error('Error fetching past records:', err);
+                setPastRecords([]);
+            })
+            .finally(() => setLoadingPast(false));
+    }, [customer?._id]);
+
+    useEffect(() => {
+        fetchPastRecords();
+    }, [fetchPastRecords, refreshKey]);
+
+    // Archive handler
+    const handleArchive = async () => {
+        setArchiving(true);
+        try {
+            const res = await axiosClient.post(`/khata/archive-customer/${customer._id}`);
+            toast.success(res.data.message || 'Records archived successfully!');
+            setShowArchiveConfirm(false);
+            setRefreshKey(k => k + 1); // refresh everything
+            onCustomerUpdated?.(); // refresh customer list
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to archive records');
+        } finally {
+            setArchiving(false);
+        }
     };
 
     const filteredBills = useMemo(() => {
@@ -615,6 +826,18 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
                             >
                                 <FileDown size={16} />
                                 Export Statement
+                            </button>
+                        )}
+
+                        {/* Archive & Clear Button — only when balance ≤ 0 and has bills */}
+                        {!loading && bills.length > 0 && balance <= 0 && (
+                            <button
+                                onClick={() => setShowArchiveConfirm(true)}
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-medium rounded-xl shadow-md shadow-amber-500/20 transition-all active:scale-[0.97]"
+                                id="archive-clear-btn"
+                            >
+                                <Archive size={16} />
+                                Archive & Clear
                             </button>
                         )}
                     </div>
@@ -844,6 +1067,37 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
                         </div>
                     )}
                 </div>
+
+                {/* ─ Past Records Section ─ */}
+                <div className="pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                            <Archive size={18} className="text-amber-500" />
+                            Past Records
+                        </h3>
+                        <span className="text-xs text-gray-500">{pastRecords.length} cycle(s)</span>
+                    </div>
+
+                    {loadingPast ? (
+                        <div className="space-y-3">
+                            {[1, 2].map(i => (
+                                <div key={i} className="bg-white rounded-2xl border border-gray-100 p-4 animate-pulse h-20" />
+                            ))}
+                        </div>
+                    ) : pastRecords.length > 0 ? (
+                        <div className="space-y-3">
+                            {pastRecords.map(record => (
+                                <PastRecordCard key={record._id} record={record} onViewPDF={setSelectedPastRecord} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8 bg-white rounded-2xl border border-gray-100">
+                            <Archive size={36} className="mx-auto text-gray-300 mb-2" />
+                            <p className="text-gray-500 text-sm font-medium">No archived records</p>
+                            <p className="text-gray-400 text-xs mt-0.5">Cleared cycles will appear here after archiving</p>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Statement PDF Modal */}
@@ -857,6 +1111,13 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
                 shop={shop}
             />
 
+            {/* Past Record Statement PDF Modal */}
+            <PastRecordStatementPDF
+                isOpen={!!selectedPastRecord}
+                onClose={() => setSelectedPastRecord(null)}
+                record={selectedPastRecord}
+            />
+
             {/* Record Payment Modal */}
             <RecordPaymentModal
                 isOpen={showPaymentModal}
@@ -864,6 +1125,81 @@ const CustomerDetailPanel = ({ customer, onBack, onCustomerUpdated }) => {
                 customer={customer}
                 onSuccess={handlePaymentSuccess}
             />
+
+            {/* Archive Confirmation Modal */}
+            <AnimatePresence>
+                {showArchiveConfirm && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+                        onClick={() => setShowArchiveConfirm(false)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={{ type: 'spring', duration: 0.35 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden"
+                        >
+                            {/* Header */}
+                            <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-5 text-white">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center">
+                                        <Archive size={22} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold">Archive & Clear</h3>
+                                        <p className="text-amber-100 text-xs mt-0.5">{customer.name}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="px-6 py-5 space-y-4">
+                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-800">
+                                    <p className="font-medium flex items-center gap-1.5 mb-1">
+                                        <AlertCircle size={14} /> This action will:
+                                    </p>
+                                    <ul className="text-xs space-y-1 ml-5 list-disc text-amber-700">
+                                        <li>Archive all <strong>{bills.length}</strong> bills and <strong>{payments.length}</strong> payments into a compact record</li>
+                                        <li>Permanently delete all individual bills & payment records</li>
+                                        <li>Reset customer balance to ₹0</li>
+                                    </ul>
+                                </div>
+
+                                <p className="text-xs text-gray-500">The archived record will be available in the "Past Records" section for PDF export.</p>
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowArchiveConfirm(false)}
+                                        className="flex-1 py-3 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition text-sm"
+                                        id="cancel-archive-btn"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleArchive}
+                                        disabled={archiving}
+                                        className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 transition-all disabled:opacity-50 active:scale-[0.98] text-sm"
+                                        id="confirm-archive-btn"
+                                    >
+                                        {archiving ? (
+                                            <span className="flex items-center justify-center gap-2">
+                                                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                                Archiving...
+                                            </span>
+                                        ) : (
+                                            'Archive & Clear'
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

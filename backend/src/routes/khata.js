@@ -1,6 +1,6 @@
 const express = require('express')
 const mongoose = require('mongoose');
-const { addNewBills, updateBill, deleateBill, getBill, getAllBills, recordPayment } = require('../controllers/billManager');
+const { addNewBills, updateBill, deleateBill, getBill, getAllBills, recordPayment, archiveAndClearCustomer, getCustomerPastRecords } = require('../controllers/billManager');
 const Shop = require('../models/shopSchema');
 const Customer = require('../models/customerSchema');
 const Bills = require('../models/billsSchema');
@@ -14,8 +14,8 @@ billsRouter.post('/add_bill', authMiddleware, addNewBills)
 billsRouter.put('/update_bill/:billId', authMiddleware, updateBill);
 billsRouter.delete('/delete_bill/:billId', authMiddleware, deleateBill)
 billsRouter.post('/record-payment/:customerId', authMiddleware, recordPayment)
-
-
+billsRouter.post('/archive-customer/:customerId', authMiddleware, archiveAndClearCustomer)
+billsRouter.get('/past-records/:customerId', authMiddleware, getCustomerPastRecords)
 
 
 billsRouter.get('/find/:billId', authMiddleware, getBill)

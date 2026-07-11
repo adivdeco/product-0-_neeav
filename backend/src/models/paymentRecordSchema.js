@@ -16,6 +16,19 @@ const paymentRecordSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Bills'
     },
+    // Track how this payment was distributed across bills
+    billAllocations: [{
+        billId: {
+            type: Schema.Types.ObjectId,
+            ref: 'bills'
+        },
+        billNumber: String,
+        amount: {
+            type: Number,
+            required: true,
+            min: 0
+        }
+    }],
     amount: {
         type: Number,
         required: true,
@@ -52,6 +65,7 @@ const paymentRecordSchema = new Schema({
 // Indexes
 paymentRecordSchema.index({ shopId: 1, customerId: 1 });
 paymentRecordSchema.index({ customerId: 1, date: -1 });
+paymentRecordSchema.index({ 'billAllocations.billId': 1 });
 
 const PaymentRecord = mongoose.model('PaymentRecord', paymentRecordSchema);
 module.exports = PaymentRecord;
