@@ -126,13 +126,16 @@ const pastRecordSchema = new Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    notes:{
+        type: String,
+        default: ''
     }
 });
 
 // Indexes
 pastRecordSchema.index({ shopId: 1, customerId: 1 });
 pastRecordSchema.index({ customerId: 1, cycleNumber: -1 });
-pastRecordSchema.index({ statementNumber: 1 });
 
 const PastRecord = mongoose.model('PastRecord', pastRecordSchema);
 module.exports = PastRecord;
