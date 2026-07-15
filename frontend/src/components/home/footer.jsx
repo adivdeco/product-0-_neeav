@@ -1,6 +1,6 @@
 import React from 'react';
 import { MdEmail } from 'react-icons/md';
-import { Phone } from "lucide-react";
+import { Phone, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
 
 
 
@@ -9,42 +9,44 @@ export default function Footer() {
 
     return (
         <footer className="bg-gradient-to-b from-gray-900 to-black text-gray-300 py-12 relative overflow-hidden">
-            {/* Animated background elements */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-            </div>
-
+            {/* Background Image */}
+            <div
+                className="absolute inset-0 z-0 bg-cover bg-center  pointer-events-none"
+                style={{ backgroundImage: 'url(/lake.svg)' }}
+            />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
                     {/* Brand Section */}
                     <div className="lg:col-span-2 space-y-6">
                         <div className="flex items-center space-x-3 group cursor-pointer">
                             <div className="relative">
-                                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300">
-                                    <span className="text-white font-bold text-xl">N</span>
+                                {/* Main Logo Box */}
+                                <div className="w-11 h-11 bg-gradient-to-br from-emerald-500 to-teal-700 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-all duration-300">
+                                    <span className="text-white font-extrabold text-2xl tracking-tighter">N</span>
                                 </div>
-                                <div className="absolute inset-0 border-2 border-blue-400/30 rounded-lg animate-ping opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                {/* Subtle Hover Glow Effect */}
+                                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl blur opacity-0 group-hover:opacity-40 transition duration-300 -z-10"></div>
                             </div>
-                            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                                Neerman
-                            </h3>
+                            <span className="text-2xl font-bold tracking-tight text-white">
+                                Neer<span className="text-emerald-400">man</span>
+                            </span>
                         </div>
-                        <p className="text-gray-400 leading-relaxed max-w-md">
+
+                        <p className="text-gray-400 leading-relaxed max-w-md text-sm sm:text-base">
                             Empowering local businesses and homeowners with cutting-edge AI technology
                             for a seamless build experience. Building tomorrow, today.
                         </p>
 
                         {/* Newsletter Subscription */}
-                        <div className="space-y-4 mt-8">
-                            <h4 className="text-white font-semibold">Stay Updated</h4>
-                            <div className="flex max-w-md">
+                        <div className="space-y-3 mt-8">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400">Stay Updated</h4>
+                            <div className="flex max-w-md relative">
                                 <input
                                     type="email"
                                     placeholder="Enter your email"
-                                    className="flex-grow px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm"
+                                    className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700/80 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 pr-32 transition-all"
                                 />
-                                <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-r-lg hover:opacity-90 transition-all duration-300 hover:scale-105 transform">
+                                <button className="absolute right-1 top-1 bottom-1 px-5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium text-sm rounded-md hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-md">
                                     Subscribe
                                 </button>
                             </div>
@@ -103,15 +105,23 @@ export default function Footer() {
                         <div className="space-y-4">
                             {/* Social Media Icons */}
                             <div className="flex space-x-4">
-                                {['twitter', 'facebook', 'instagram', 'linkedin'].map((platform) => (
-                                    <a
-                                        key={platform}
-                                        // href="#"
-                                        className="w-10 h-10 bg-gray-800/50 backdrop-blur-sm rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20 transition-all duration-300 transform hover:-translate-y-1"
-                                    >
-                                        <i className={`fab fa-${platform} text-lg`}></i>
-                                    </a>
-                                ))}
+                                {[
+                                    { name: 'twitter', icon: Twitter },
+                                    { name: 'facebook', icon: Facebook },
+                                    { name: 'instagram', icon: Instagram },
+                                    { name: 'linkedin', icon: Linkedin },
+                                ].map((platform) => {
+                                    const Icon = platform.icon;
+                                    return (
+                                        <a
+                                            key={platform.name}
+                                            // href="#"
+                                            className="w-10 h-10 bg-gray-800/50 backdrop-blur-sm rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20 transition-all duration-300 transform hover:-translate-y-1"
+                                        >
+                                            <Icon size={18} />
+                                        </a>
+                                    );
+                                })}
                             </div>
 
                             {/* Contact Info */}
