@@ -1213,6 +1213,7 @@ const CustomersPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [showDetail, setShowDetail] = useState(false); // mobile panel toggle
+    const [paymentFilter, setPaymentFilter] = useState('all'); // 'all', 'clear', 'due'
 
     const fetchCustomers = useCallback(async () => {
         try {
@@ -1231,15 +1232,26 @@ const CustomersPage = () => {
         fetchCustomers();
     }, [fetchCustomers]);
 
+    const dueCount = useMemo(() => customers.filter(c => (c.currentBalance || 0) > 0).length, [customers]);
+    const clearCount = useMemo(() => customers.filter(c => (c.currentBalance || 0) <= 0).length, [customers]);
+
     const filteredCustomers = useMemo(() => {
-        if (!searchTerm.trim()) return customers;
+        let list = customers;
+
+        if (paymentFilter === 'clear') {
+            list = list.filter(c => (c.currentBalance || 0) <= 0);
+        } else if (paymentFilter === 'due') {
+            list = list.filter(c => (c.currentBalance || 0) > 0);
+        }
+
+        if (!searchTerm.trim()) return list;
         const q = searchTerm.toLowerCase();
-        return customers.filter(c =>
+        return list.filter(c =>
             c.name?.toLowerCase().includes(q) ||
             c.phone?.includes(q) ||
             c.email?.toLowerCase().includes(q)
         );
-    }, [customers, searchTerm]);
+    }, [customers, searchTerm, paymentFilter]);
 
     const totalOutstanding = useMemo(() =>
         customers.reduce((sum, c) => sum + (c.currentBalance || 0), 0),
@@ -1305,6 +1317,42 @@ const CustomersPage = () => {
                             className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition placeholder:text-gray-400"
                             id="customer-search"
                         />
+                    </div>
+
+                    {/* Payment Status Filter */}
+                    <div className="flex gap-2 mt-3 overflow-x-auto pb-1 scrollbar-hide">
+                        {[
+                            { key: 'all', label: 'All', count: customers.length },
+                            { key: 'due', label: 'Pending Due', count: dueCount },
+                            { key: 'clear', label: 'Clear', count: clearCount },
+                        ].map(f => {
+                            const isActive = paymentFilter === f.key;
+                            let activeClass = '';
+                            if (isActive) {
+                                if (f.key === 'due') {
+                                    activeClass = 'bg-rose-600 text-white border-rose-600 shadow-sm shadow-rose-100';
+                                } else if (f.key === 'clear') {
+                                    activeClass = 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-100';
+                                } else {
+                                    activeClass = 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-100';
+                                }
+                            } else {
+                                activeClass = 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50';
+                            }
+                            return (
+                                <button
+                                    key={f.key}
+                                    onClick={() => setPaymentFilter(f.key)}
+                                    className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 border flex items-center gap-1.5 ${activeClass}`}
+                                    id={`customer-filter-${f.key}`}
+                                >
+                                    <span>{f.label}</span>
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                                        {f.count}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
